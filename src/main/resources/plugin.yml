@@ -1,4 +1,8 @@
 name: Man10OfflineBank
-version: @version@
+version: 1.0
+auther: [forest611]
 main: red.man10.man10offlinebank.Man10OfflineBank
 api-version: 1.13
+commands:
+  mbal:
+    default: op
