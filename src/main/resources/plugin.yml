@@ -1,0 +1,4 @@
+name: Man10OfflineBank
+version: @version@
+main: red.man10.man10offlinebank.Man10OfflineBank
+api-version: 1.13
