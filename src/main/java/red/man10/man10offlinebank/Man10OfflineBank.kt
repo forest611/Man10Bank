@@ -83,10 +83,18 @@ class Man10OfflineBank : JavaPlugin() {
 
                 val amount = args[1].toDouble()
 
-                if (!vault.withdraw(sender.uniqueId,amount)){
-                    sendMsg(sender,"§c§l入金失敗！、所持金が足りません！")
+                if (amount <= 0){
+                    sendMsg(sender,"§c§l0以下の値は入金出来ません！")
                     return true
                 }
+
+                if (vault.getBalance(sender.uniqueId)<amount){
+                    sendMsg(sender,"§c§l入金失敗！、所持金が足りません！")
+                    return true
+
+                }
+
+                !vault.withdraw(sender.uniqueId,amount)
 
                 Thread(Runnable {
                     bank.deposit(sender.uniqueId,amount,this,"PlayerDepositOnCommand")
@@ -107,6 +115,11 @@ class Man10OfflineBank : JavaPlugin() {
                 }
 
                 val amount = args[1].toDouble()
+
+                if (amount <= 0){
+                    sendMsg(sender,"§c§l0以下の値は出金出来ません！")
+                    return true
+                }
 
                 Thread(Runnable {
                     if (!bank.withdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand")){
@@ -135,16 +148,19 @@ class Man10OfflineBank : JavaPlugin() {
 
             if (args.size != 2)return false
 
-            if (!NumberUtils.isNumber(args[2])){
+            if (!NumberUtils.isNumber(args[1])){
                 sendMsg(sender,"§c§l/mpay <ユーザー名> <金額>")
                 return true
             }
 
-            if (!checking.keys.contains(sender)&&checking[sender]!! == command){
+            val amount = args[1].toDouble()
+
+            if (checking[sender] == null||checking[sender]!! != command){
 
 
-                sendMsg(sender,"§7§l送金金額:${String.format("%,.1s",args[2])}")
-                sendMsg(sender,"§7§l送金相手:${args[1]}")
+
+                sendMsg(sender,"§7§l送金金額:${String.format("%,.1f",amount)}")
+                sendMsg(sender,"§7§l送金相手:${args[0]}")
                 sendMsg(sender,"§7§l確認のため、もう一度入力してください")
 
                 checking[sender] = command
@@ -157,19 +173,20 @@ class Man10OfflineBank : JavaPlugin() {
             sendMsg(sender,"§e§l現在入金中・・・")
 
             Thread(Runnable {
-                val uuid = bank.getUUID(args[1])
-
-                val amount = args[2].toDouble()
+                val uuid = bank.getUUID(args[0])
 
                 if (uuid == null){
                     sendMsg(sender,"§c§l存在しないユーザ、もしくは口座がありません！")
                     return@Runnable
                 }
 
-                if (!vault.withdraw(sender.uniqueId,amount)){
+                if (vault.getBalance(uuid)<amount){
                     sendMsg(sender,"§c§l送金する残高が足りません！")
                     return@Runnable
+
                 }
+
+                !vault.withdraw(sender.uniqueId,amount)
 
                 bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}")
 
