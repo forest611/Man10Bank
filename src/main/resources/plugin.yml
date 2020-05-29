@@ -6,3 +6,5 @@ api-version: 1.13
 commands:
   mbal:
     default: op
+  mpay:
+    default: op

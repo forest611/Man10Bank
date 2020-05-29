@@ -26,14 +26,24 @@ class Bank(private val plugin:Man10OfflineBank) {
 
             val mysql = MySQLManager(plugin,"Man10OfflineBank")
 
-            val rs = mysql.query("")?:return false
+            val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid'")?:return false
 
             if (rs.next()) {
                 hasAccount[uuid] = true
+
+                mysql.close()
+                rs.close()
+
                 return true
             }
+
+            mysql.close()
+            rs.close()
+
+            return false
+
         }
-        return false
+        return bool
 
     }
 
@@ -65,13 +75,13 @@ class Bank(private val plugin:Man10OfflineBank) {
 
         val p = Bukkit.getOfflinePlayer(uuid)
 
-        mysqlQueue.add("INSERT INTO money_log (player, uuid, plugin_name, amount, note, server) " +
+        mysqlQueue.add("INSERT INTO money_log (player, uuid, plugin_name, amount, server, note) " +
                 "VALUES " +
                 "('${p.name}', " +
                 "'$uuid', " +
                 "'${plugin.name}', " +
                 "$amount, " +
-                "'${plugin.server}', " +
+                "'${plugin.server.name}', " +
                 "'$note');")
 
     }
@@ -84,17 +94,45 @@ class Bank(private val plugin:Man10OfflineBank) {
      */
     fun getBalance(uuid:UUID):Double{
 
-        var bal = -1.0
+        var bal = 0.0
 
         val mysql = MySQLManager(plugin,"Man10OfflineBank")
 
-        val rs = mysql.query("SELECT balance WHERE uuid='$uuid' for update;")?:return bal
+        val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid' for update;")?:return bal
         rs.next()
 
         bal = rs.getDouble("balance")
 
         return bal
     }
+
+    /**
+     * ユーザー名からuuidを取得する
+     *
+     *@return 口座が存在しなかったらnullを返す
+     */
+    fun getUUID(player:String):UUID?{
+
+        val mysql = MySQLManager(plugin,"Man10OfflineBank")
+
+        val rs = mysql.query("SELECT uuid FROM user_bank WHERE player='$player';")?:return null
+
+        if (rs.next()){
+            val uuid = UUID.fromString(rs.getString("uuid"))
+
+            mysql.close()
+            rs.close()
+
+            return uuid
+        }
+
+        mysql.close()
+        rs.close()
+
+        return null
+
+    }
+
 
     /**
      * オフライン口座に入金する
