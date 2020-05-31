@@ -4,11 +4,16 @@ import org.apache.commons.lang.math.NumberUtils
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import kotlin.collections.HashMap
 
-class Man10OfflineBank : JavaPlugin() {
+class Man10OfflineBank : JavaPlugin(),Listener {
 
     companion object{
         val prefix = "§l[§e§lMan10Bank§f§l]"
@@ -27,11 +32,11 @@ class Man10OfflineBank : JavaPlugin() {
 
     lateinit var vault : VaultManager
 
+    lateinit var es : ExecutorService
+
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
 
         if (label == "mbal"){
-
-
 
             if (args.isEmpty()){
 
@@ -39,40 +44,51 @@ class Man10OfflineBank : JavaPlugin() {
 
                 sendMsg(sender,"現在取得中....")
 
-                Thread(Runnable {
+                es.execute{
                     sendMsg(sender,"§e§l==========現在の銀行口座残高==========")
                     sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",bank.getBalance(sender.uniqueId))}§b§kXX")
-                }).start()
+
+                }
 
                 return true
             }
 
             val cmd = args[0]
 
-            //プラグインテスト用
-            if (cmd == "give"){
-
+            if (cmd == "user"&& args.size == 2){
+                if (sender !is Player)return false
                 if (!sender.hasPermission(OP))return true
 
-                bank.deposit(UUID.fromString(args[1]),args[2].toDouble(),this,"GivePluginCommand")
+                sendMsg(sender,"現在取得中....")
 
-                return true
-            }
+                es.execute{
+                    val uuid = bank.getUUID(args[1])
 
-            //プラグインテスト用
-            if (cmd == "take"){
+                    if (uuid == null){
+                        sendMsg(sender,"まだ口座が解説されていない可能性があります")
+                        return@execute
+                    }
 
-                if (!sender.hasPermission(OP))return true
+                    sendMsg(sender,"§e§l==========現在の銀行口座残高==========")
+                    sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",bank.getBalance(uuid))}§b§kXX")
 
-                bank.withdraw(UUID.fromString(args[1]),args[2].toDouble(),this,"TakePluginCommand")
+                }
 
-                return true
             }
 
             if (!sender.hasPermission(USER))return true
 
+            if (cmd == "help"){
+
+                if (sender !is Player)return false
+                sendMsg(sender,"§eMan10Bank")
+                sendMsg(sender,"§e/mbal : 口座残高を確認する")
+                sendMsg(sender,"§e/mbal deposit(d) <金額>: 所持金のいくらかを、口座に入金する")
+                sendMsg(sender,"§e/mbal withdraw(w) <金額>: 口座のお金を、出金する")
+            }
+
             //deposit withdraw
-            if (cmd == "deposit" && args.size == 2){
+            if ((cmd == "deposit" || cmd == "d")&& args.size == 2){
 
                 if (sender !is Player)return false
 
@@ -96,17 +112,17 @@ class Man10OfflineBank : JavaPlugin() {
 
                 !vault.withdraw(sender.uniqueId,amount)
 
-                Thread(Runnable {
+                es.execute {
                     bank.deposit(sender.uniqueId,amount,this,"PlayerDepositOnCommand")
 
                     sendMsg(sender,"§a§l入金成功！")
-                }).start()
+                }
 
 
                 return true
             }
 
-            if (cmd == "withdraw" && args.size == 2){
+            if ((cmd == "withdraw" || cmd == "w") && args.size == 2){
                 if (sender !is Player)return false
 
                 if (!NumberUtils.isNumber(args[1])){
@@ -121,17 +137,17 @@ class Man10OfflineBank : JavaPlugin() {
                     return true
                 }
 
-                Thread(Runnable {
+                es.execute {
                     if (!bank.withdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand")){
                         sendMsg(sender,"§c§l出金失敗！口座残高が足りません！")
-                        return@Runnable
+                        return@execute
                     }
 
                     vault.deposit(sender.uniqueId,amount)
 
                     sendMsg(sender,"§a§l出金成功！")
-                }).start()
 
+                }
 
                 return true
             }
@@ -157,8 +173,6 @@ class Man10OfflineBank : JavaPlugin() {
 
             if (checking[sender] == null||checking[sender]!! != command){
 
-
-
                 sendMsg(sender,"§7§l送金金額:${String.format("%,.1f",amount)}")
                 sendMsg(sender,"§7§l送金相手:${args[0]}")
                 sendMsg(sender,"§7§l確認のため、もう一度入力してください")
@@ -172,17 +186,18 @@ class Man10OfflineBank : JavaPlugin() {
 
             sendMsg(sender,"§e§l現在入金中・・・")
 
-            Thread(Runnable {
+
+            es.execute {
                 val uuid = bank.getUUID(args[0])
 
                 if (uuid == null){
                     sendMsg(sender,"§c§l存在しないユーザ、もしくは口座がありません！")
-                    return@Runnable
+                    return@execute
                 }
 
-                if (vault.getBalance(uuid)<amount){
+                if (vault.getBalance(sender.uniqueId)<amount){
                     sendMsg(sender,"§c§l送金する残高が足りません！")
-                    return@Runnable
+                    return@execute
 
                 }
 
@@ -191,8 +206,7 @@ class Man10OfflineBank : JavaPlugin() {
                 bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}")
 
                 sendMsg(sender,"§a§l送金成功！")
-
-            }).start()
+            }
         }
 
 
@@ -204,15 +218,25 @@ class Man10OfflineBank : JavaPlugin() {
 
         saveDefaultConfig()
 
+        es = Executors.newCachedThreadPool()
+
         bank = Bank(this)
 
         bank.mysqlQueue()
 
         vault = VaultManager(this)
 
+        server.pluginManager.registerEvents(this,this)
+
     }
 
     override fun onDisable() {
         // Plugin shutdown logic
+        es.shutdown()
+    }
+
+    @EventHandler
+    fun login(e:PlayerJoinEvent){
+        e.player.performCommand("mbal")
     }
 }

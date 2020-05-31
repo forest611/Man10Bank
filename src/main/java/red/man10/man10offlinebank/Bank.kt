@@ -36,6 +36,7 @@ class Bank(private val plugin:Man10OfflineBank) {
 
                 return true
             }
+            hasAccount[uuid] = false
 
             mysql.close()
             rs.close()
@@ -60,6 +61,8 @@ class Bank(private val plugin:Man10OfflineBank) {
                 "VALUES ('${p.name}', '$uuid', 0);")
 
         addLog(uuid,plugin,"CreateAccount",0.0)
+
+        hasAccount[uuid] = true
 
         return true
     }
@@ -95,6 +98,8 @@ class Bank(private val plugin:Man10OfflineBank) {
     fun getBalance(uuid:UUID):Double{
 
         var bal = 0.0
+
+        if (!hasAccount(uuid))return 0.0
 
         val mysql = MySQLManager(plugin,"Man10OfflineBank")
 
@@ -200,5 +205,8 @@ class Bank(private val plugin:Man10OfflineBank) {
 
             }
         }).start()
+
+
+
     }
 }
