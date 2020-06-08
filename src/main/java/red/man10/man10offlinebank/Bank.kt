@@ -150,7 +150,7 @@ class Bank(private val plugin:Man10OfflineBank) {
     @Synchronized
     fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String){
 
-        if (amount <0)return
+        if (amount <1)return
 
         if (!hasAccount(uuid)){
             createAccount(uuid)
@@ -174,7 +174,7 @@ class Bank(private val plugin:Man10OfflineBank) {
     @Synchronized
     fun withdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String):Boolean{
 
-        if (amount <0)return false
+        if (amount <1)return false
 
         if (!hasAccount(uuid)){
             createAccount(uuid)

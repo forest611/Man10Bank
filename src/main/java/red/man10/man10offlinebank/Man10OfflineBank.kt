@@ -19,6 +19,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
         val prefix = "§l[§e§lMan10Bank§f§l]"
 
         lateinit var bank : Bank
+        lateinit var vault : VaultManager
 
         fun sendMsg(p:Player,msg:String){
             p.sendMessage(prefix+msg)
@@ -30,7 +31,6 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
     val checking = HashMap<Player,Command>()
 
-    lateinit var vault : VaultManager
 
     lateinit var es : ExecutorService
 
@@ -99,8 +99,8 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                 val amount = args[1].toDouble()
 
-                if (amount <= 0){
-                    sendMsg(sender,"§c§l0以下の値は入金出来ません！")
+                if (amount < 1){
+                    sendMsg(sender,"§c§l1未満の値は入金出来ません！")
                     return true
                 }
 
@@ -132,8 +132,8 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                 val amount = args[1].toDouble()
 
-                if (amount <= 0){
-                    sendMsg(sender,"§c§l0以下の値は出金出来ません！")
+                if (amount < 1){
+                    sendMsg(sender,"§c§l1未満の値は出金出来ません！")
                     return true
                 }
 
@@ -170,6 +170,11 @@ class Man10OfflineBank : JavaPlugin(),Listener {
             }
 
             val amount = args[1].toDouble()
+
+            if (amount <1){
+                sendMsg(sender,"§c§l1未満の額は送金できません！")
+                return true
+            }
 
             if (checking[sender] == null||checking[sender]!! != command){
 
