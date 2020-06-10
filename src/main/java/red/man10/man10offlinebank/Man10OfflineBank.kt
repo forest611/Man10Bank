@@ -171,8 +171,8 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
             val amount = args[1].toDouble()
 
-            if (amount <1){
-                sendMsg(sender,"§c§l1未満の額は送金できません！")
+            if (amount <0.1){
+                sendMsg(sender,"§c§l0.1未満の額は送金できません！")
                 return true
             }
 
