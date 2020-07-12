@@ -8,3 +8,5 @@ commands:
     default: op
   mpay:
     default: op
+  mbaltop:
+    default: op

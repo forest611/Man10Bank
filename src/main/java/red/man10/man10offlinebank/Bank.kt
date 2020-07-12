@@ -1,6 +1,7 @@
 package red.man10.man10offlinebank
 
 import org.bukkit.Bukkit
+import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10offlinebank.Man10OfflineBank
@@ -187,6 +188,43 @@ class Bank(private val plugin:Man10OfflineBank) {
         addLog(uuid,plugin, note, amount)
 
         return true
+    }
+
+    fun balanceTop(): MutableList<Pair<OfflinePlayer, Double>>? {
+
+        val list = mutableListOf<Pair<OfflinePlayer,Double>>()
+
+        val mysql = MySQLManager(plugin,"Man10Bank baltop")
+
+        val rs = mysql.query("SELECT *" +
+                "                  FROM user_bank " +
+                "                  ORDER BY balance" +
+                "                  LIMIT 10")?:return null
+
+        while (rs.next()){
+            list.add(Pair(Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("uuid"))),rs.getDouble("balance")))
+        }
+
+        rs.close()
+        mysql.close()
+
+        return list
+
+    }
+
+    fun totalBalance():Double{
+
+        val mysql = MySQLManager(plugin,"Man10Bank total")
+
+        val rs = mysql.query("select sum(balance) from user_bank")?:return 0.0
+        rs.next()
+
+        val amount = rs.getDouble(1)
+
+        rs.close()
+        mysql.close()
+        return amount
+
     }
 
 

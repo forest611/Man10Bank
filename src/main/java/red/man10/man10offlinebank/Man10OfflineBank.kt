@@ -36,6 +36,28 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
 
+        if (label == "mbaltop"){
+
+            if (sender !is Player)return false
+
+            sendMsg(sender,"§e§l現在取得中....")
+
+            es.execute{
+
+                val list = bank.balanceTop()?:return@execute
+
+                for (data in list){
+                    sendMsg(sender,"§b§l${data.first.name} : §e§l$ ${String.format("%,.1f",data.second)}")
+                }
+
+                sendMsg(sender,"§e§l合計口座残高")
+
+                sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",bank.totalBalance())}§b§kXX")
+
+            }
+
+        }
+
         if (label == "mbal"){
 
             if (args.isEmpty()){
