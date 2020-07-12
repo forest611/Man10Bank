@@ -196,10 +196,7 @@ class Bank(private val plugin:Man10OfflineBank) {
 
         val mysql = MySQLManager(plugin,"Man10Bank baltop")
 
-        val rs = mysql.query("SELECT *" +
-                "                  FROM user_bank " +
-                "                  ORDER BY balance" +
-                "                  LIMIT 10")?:return null
+        val rs = mysql.query("select * from user_bank order by balance desc limit 10")?:return null
 
         while (rs.next()){
             list.add(Pair(Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("uuid"))),rs.getDouble("balance")))
