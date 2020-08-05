@@ -94,7 +94,7 @@ class Bank(private val plugin:Man10OfflineBank) {
      * オフライン口座の残高を確認する
      *
      * @param uuid ユーザーのuuid*
-     * @return 残高 存在しないユーザーだった場合、-1.0が返される
+     * @return 残高 存在しないユーザーだった場合、0.0が返される
      */
     fun getBalance(uuid:UUID):Double{
 
@@ -105,7 +105,10 @@ class Bank(private val plugin:Man10OfflineBank) {
         val mysql = MySQLManager(plugin,"Man10OfflineBank")
 
         val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid' for update;")?:return bal
-        rs.next()
+
+        if (!rs.next()){
+            return bal
+        }
 
         bal = rs.getDouble("balance")
 
