@@ -6,6 +6,7 @@ import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10offlinebank.Man10OfflineBank
 import red.man10.realestate.MySQLManager
+import java.sql.Timestamp
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.LinkedBlockingDeque
@@ -164,6 +165,12 @@ class Bank(private val plugin:Man10OfflineBank) {
 
         addLog(uuid,plugin, note, amount)
 
+        Bukkit.getScheduler().runTask(plugin) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &c&l[入金情報] Man10OfflineBank " +
+                            "&a&lmbal口座に入金がありました;&e&l入金元:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
+        }
+
     }
 
     /**
@@ -189,6 +196,12 @@ class Bank(private val plugin:Man10OfflineBank) {
         mysqlQueue.add("update user_bank set balance=balance-$amount where uuid='$uuid';")
 
         addLog(uuid,plugin, note, amount)
+
+        Bukkit.getScheduler().runTask(plugin) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &4&l[出金情報] Man10OfflineBank " +
+                            "&a&lmbal口座から出金がありました;&e&l出金先:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
+        }
 
         return true
     }
