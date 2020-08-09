@@ -54,6 +54,10 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                 sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",bank.totalBalance())}§b§kXX")
 
+                sendMsg(sender,"§e§l平均口座残高")
+
+                sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",bank.average())}§b§kXX")
+
             }
 
         }

@@ -227,6 +227,19 @@ class Bank(private val plugin:Man10OfflineBank) {
 
     }
 
+    fun average():Double{
+        val mysql = MySQLManager(plugin,"Man10Bank total")
+
+        val rs = mysql.query("select avg(balance) from user_bank")?:return 0.0
+        rs.next()
+
+        val amount = rs.getDouble(1)
+
+        rs.close()
+        mysql.close()
+        return amount
+    }
+
 
     /////////////////
     //query queue
