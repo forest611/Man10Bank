@@ -116,6 +116,19 @@ class Bank(private val plugin:Man10OfflineBank) {
         return bal
     }
 
+    @Synchronized
+    fun setBalance(uuid:UUID,amount: Double){
+        if (amount <0.1)return
+
+        if (!hasAccount(uuid)){
+            createAccount(uuid)
+        }
+
+        mysqlQueue.add("update user_bank set balance=$amount where uuid='$uuid';")
+
+        addLog(uuid,plugin, "SetBalanceByCommand", amount)
+    }
+
     /**
      * ユーザー名からuuidを取得する
      *

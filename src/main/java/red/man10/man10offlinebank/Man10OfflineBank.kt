@@ -24,6 +24,10 @@ class Man10OfflineBank : JavaPlugin(),Listener {
         fun sendMsg(p:Player,msg:String){
             p.sendMessage(prefix+msg)
         }
+
+        fun sendMsg(p: CommandSender, msg: String) {
+            p.sendMessage(prefix+msg)
+        }
     }
 
     val OP = "man10bank.op"
@@ -178,6 +182,94 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                 return true
             }
 
+            if (cmd == "take"){//mbal take <name> <amount>
+
+                if (!sender.hasPermission("mbal.op"))return true
+
+                if (!NumberUtils.isNumber(args[2])){
+                    sendMsg(sender,"§c§l回収する額を半角数字で入力してください！")
+                    return true
+                }
+
+                val amount = args[2].toDouble()
+
+                if (amount < 1){
+                    sendMsg(sender,"§c§l1未満の値は入金出来ません！")
+                    return true
+                }
+
+                es.execute {
+
+                    val uuid = bank.getUUID(args[1])?: return@execute
+
+                    if (!bank.withdraw(uuid,amount,this,"TakenByCommand")){
+                        bank.setBalance(uuid,0.0)
+                        sendMsg(sender,"§a回収額が残高を上回っていたので、残高が0になりました")
+                        return@execute
+                    }
+                    sendMsg(sender,"§a${String.format("%,.1f",amount)}円回収しました")
+                    sendMsg(sender,"§a現在の残高：${String.format("%,.1f",bank.getBalance(uuid))}")
+
+                }
+                return true
+
+            }
+
+            if (cmd == "give"){
+
+                if (!sender.hasPermission("mbal.op"))return true
+
+                if (!NumberUtils.isNumber(args[2])){
+                    sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
+                    return true
+                }
+
+                val amount = args[2].toDouble()
+
+                if (amount < 1){
+                    sendMsg(sender,"§c§l1未満の値は入金出来ません！")
+                    return true
+                }
+
+                es.execute {
+
+                    val uuid =  bank.getUUID(args[1])?: return@execute
+
+                    bank.deposit(uuid,amount,this,"GivenFromServer")
+
+                    sendMsg(sender,"§a${String.format("%,.1f",amount)}円入金しました")
+                    sendMsg(sender,"§a現在の残高：${String.format("%,.1f",bank.getBalance(uuid))}")
+
+                }
+            }
+
+            if (cmd == "set"){
+
+                if (!sender.hasPermission("mbal.op"))return true
+
+                if (!NumberUtils.isNumber(args[2])){
+                    sendMsg(sender,"§c§l設定する額を半角数字で入力してください！")
+                    return true
+                }
+
+                val amount = args[2].toDouble()
+
+                if (amount < 1){
+                    sendMsg(sender,"§c§l1未満の値は入金出来ません！")
+                    return true
+                }
+
+                es.execute {
+
+                    val uuid =  bank.getUUID(args[1])?: return@execute
+
+                    bank.setBalance(uuid,amount)
+
+                    sendMsg(sender,"§a${String.format("%,.1f",amount)}円に設定しました")
+
+                }
+            }
+
 
         }
 
@@ -243,6 +335,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
         return false
     }
+
 
     override fun onEnable() {
         // Plugin startup logic
