@@ -1,4 +1,4 @@
-package red.man10.realestate
+package red.man10.man10offlinebank
 
 import org.bukkit.Bukkit
 
