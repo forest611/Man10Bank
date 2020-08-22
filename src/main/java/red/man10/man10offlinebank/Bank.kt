@@ -5,7 +5,6 @@ import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10offlinebank.Man10OfflineBank
-import red.man10.realestate.MySQLManager
 import java.sql.Timestamp
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
