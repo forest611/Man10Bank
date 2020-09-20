@@ -177,11 +177,11 @@ class Bank(private val plugin:Man10OfflineBank) {
 
         addLog(uuid,plugin, note, amount)
 
-        Bukkit.getScheduler().runTask(plugin) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &c&l[入金情報] Man10OfflineBank " +
-                            "&a&lmbal口座に入金がありました;&e&l入金元:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
-        }
+//        Bukkit.getScheduler().runTask(plugin) {
+//            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+//                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &c&l[入金情報] Man10OfflineBank " +
+//                            "&a&lmbal口座に入金がありました;&e&l入金元:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
+//        }
 
     }
 
@@ -209,11 +209,11 @@ class Bank(private val plugin:Man10OfflineBank) {
 
         addLog(uuid,plugin, note, amount)
 
-        Bukkit.getScheduler().runTask(plugin) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &4&l[出金情報] Man10OfflineBank " +
-                            "&a&lmbal口座から出金がありました;&e&l出金先:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
-        }
+//        Bukkit.getScheduler().runTask(plugin) {
+//            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+//                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &4&l[出金情報] Man10OfflineBank " +
+//                            "&a&lmbal口座から出金がありました;&e&l出金先:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
+//        }
 
         return true
     }
@@ -270,17 +270,17 @@ class Bank(private val plugin:Man10OfflineBank) {
     //query queue
     ////////////////
     fun mysqlQueue(){
-        Thread(Runnable {
-            val sql = MySQLManager(plugin,"Man10OfflineBank Queue")
-            try{
-                while (true){
+        Thread {
+            val sql = MySQLManager(plugin, "Man10OfflineBank Queue")
+            try {
+                while (true) {
                     val take = mysqlQueue.take()
                     sql.execute(take)
                 }
-            }catch (e:InterruptedException){
+            } catch (e: InterruptedException) {
 
             }
-        }).start()
+        }.start()
 
 
 
