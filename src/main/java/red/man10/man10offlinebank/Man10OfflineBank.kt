@@ -8,7 +8,6 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
-import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.collections.HashMap
@@ -16,10 +15,11 @@ import kotlin.collections.HashMap
 class Man10OfflineBank : JavaPlugin(),Listener {
 
     companion object{
-        val prefix = "§l[§e§lMan10Bank§f§l]"
+        private const val prefix = "§l[§e§lMan10Bank§f§l]"
 
-        lateinit var bank : Bank
         lateinit var vault : VaultManager
+
+        lateinit var plugin : Man10OfflineBank
 
         fun sendMsg(p:Player,msg:String){
             p.sendMessage(prefix+msg)
@@ -28,12 +28,15 @@ class Man10OfflineBank : JavaPlugin(),Listener {
         fun sendMsg(p: CommandSender, msg: String) {
             p.sendMessage(prefix+msg)
         }
+
+        const val OP = "man10bank.op"
+        const val USER = "man10bank.user"
+
+        var fee = 0.00
+
     }
 
-    val OP = "man10bank.op"
-    val USER = "man10bank.user"
-
-    val checking = HashMap<Player,Command>()
+    private val checking = HashMap<Player,Command>()
 
 
     lateinit var es : ExecutorService
@@ -48,7 +51,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
             es.execute{
 
-                val list = bank.balanceTop()?:return@execute
+                val list = Bank.balanceTop()?:return@execute
 
                 for (data in list){
                     sendMsg(sender,"§b§l${data.first.name} : §e§l$ ${String.format("%,.1f",data.second)}")
@@ -56,11 +59,11 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                 sendMsg(sender,"§e§l合計口座残高")
 
-                sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",bank.totalBalance())}§b§kXX")
+                sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",Bank.totalBalance())}§b§kXX")
 
                 sendMsg(sender,"§e§l平均口座残高")
 
-                sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",bank.average())}§b§kXX")
+                sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",Bank.average())}§b§kXX")
 
             }
 
@@ -76,7 +79,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                 es.execute{
                     sendMsg(sender,"§e§l==========現在の銀行口座残高==========")
-                    sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",bank.getBalance(sender.uniqueId))}§b§kXX")
+                    sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",Bank.getBalance(sender.uniqueId))}§b§kXX")
 
                 }
 
@@ -92,7 +95,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                 sendMsg(sender,"現在取得中....")
 
                 es.execute{
-                    val uuid = bank.getUUID(args[1])
+                    val uuid = Bank.getUUID(args[1])
 
                     if (uuid == null){
                         sendMsg(sender,"まだ口座が解説されていない可能性があります")
@@ -100,7 +103,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                     }
 
                     sendMsg(sender,"§e§l==========現在の銀行口座残高==========")
-                    sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",bank.getBalance(uuid))}§b§kXX")
+                    sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",Bank.getBalance(uuid))}§b§kXX")
 
                 }
 
@@ -143,7 +146,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                 !vault.withdraw(sender.uniqueId,amount)
 
                 es.execute {
-                    bank.deposit(sender.uniqueId,amount,this,"PlayerDepositOnCommand")
+                    Bank.deposit(sender.uniqueId,amount,this,"PlayerDepositOnCommand")
 
                     sendMsg(sender,"§a§l入金成功！")
                 }
@@ -160,7 +163,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                     return true
                 }
 
-                val amount = args[1].toDouble()
+                var amount = args[1].toDouble()
 
                 if (amount < 1){
                     sendMsg(sender,"§c§l1未満の値は出金出来ません！")
@@ -168,14 +171,20 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                 }
 
                 es.execute {
-                    if (!bank.withdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand")){
+                    if (!Bank.withdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand")){
                         sendMsg(sender,"§c§l出金失敗！口座残高が足りません！")
                         return@execute
                     }
 
+                    val fee1 = (amount*fee)
+                    amount -= fee1
+
                     vault.deposit(sender.uniqueId,amount)
 
                     sendMsg(sender,"§a§l出金成功！")
+                    if (fee1 != 0.0){
+                        sendMsg(sender,"§a$${String.format("%,.1f",fee1)}手数料を徴収しました")
+                    }
 
                 }
 
@@ -184,7 +193,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
             if (cmd == "take"){//mbal take <name> <amount>
 
-                if (!sender.hasPermission("mbal.op"))return true
+                if (!sender.hasPermission(OP))return true
 
                 if (!NumberUtils.isNumber(args[2])){
                     sendMsg(sender,"§c§l回収する額を半角数字で入力してください！")
@@ -200,15 +209,15 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                 es.execute {
 
-                    val uuid = bank.getUUID(args[1])?: return@execute
+                    val uuid = Bank.getUUID(args[1])?: return@execute
 
-                    if (!bank.withdraw(uuid,amount,this,"TakenByCommand")){
-                        bank.setBalance(uuid,0.0)
+                    if (!Bank.withdraw(uuid,amount,this,"TakenByCommand")){
+                        Bank.setBalance(uuid,0.0)
                         sendMsg(sender,"§a回収額が残高を上回っていたので、残高が0になりました")
                         return@execute
                     }
                     sendMsg(sender,"§a${String.format("%,.1f",amount)}円回収しました")
-                    sendMsg(sender,"§a現在の残高：${String.format("%,.1f",bank.getBalance(uuid))}")
+                    sendMsg(sender,"§a現在の残高：${String.format("%,.1f",Bank.getBalance(uuid))}")
 
                 }
                 return true
@@ -217,7 +226,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
             if (cmd == "give"){
 
-                if (!sender.hasPermission("mbal.op"))return true
+                if (!sender.hasPermission(OP))return true
 
                 if (!NumberUtils.isNumber(args[2])){
                     sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
@@ -233,19 +242,19 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                 es.execute {
 
-                    val uuid =  bank.getUUID(args[1])?: return@execute
+                    val uuid =  Bank.getUUID(args[1])?: return@execute
 
-                    bank.deposit(uuid,amount,this,"GivenFromServer")
+                    Bank.deposit(uuid,amount,this,"GivenFromServer")
 
                     sendMsg(sender,"§a${String.format("%,.1f",amount)}円入金しました")
-                    sendMsg(sender,"§a現在の残高：${String.format("%,.1f",bank.getBalance(uuid))}")
+                    sendMsg(sender,"§a現在の残高：${String.format("%,.1f",Bank.getBalance(uuid))}")
 
                 }
             }
 
             if (cmd == "set"){
 
-                if (!sender.hasPermission("mbal.op"))return true
+                if (!sender.hasPermission(OP))return true
 
                 if (!NumberUtils.isNumber(args[2])){
                     sendMsg(sender,"§c§l設定する額を半角数字で入力してください！")
@@ -261,13 +270,24 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                 es.execute {
 
-                    val uuid =  bank.getUUID(args[1])?: return@execute
+                    val uuid =  Bank.getUUID(args[1])?: return@execute
 
-                    bank.setBalance(uuid,amount)
+                    Bank.setBalance(uuid,amount)
 
                     sendMsg(sender,"§a${String.format("%,.1f",amount)}円に設定しました")
 
                 }
+            }
+
+            if (cmd == "reload"){
+                if (!sender.hasPermission(OP))return false
+
+                es.execute{
+                    reloadConfig()
+
+                    fee = config.getDouble("fee")
+                }
+
             }
 
 
@@ -311,7 +331,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
 
             es.execute {
-                val uuid = bank.getUUID(args[0])
+                val uuid = Bank.getUUID(args[0])
 
                 if (uuid == null){
                     sendMsg(sender,"§c§l存在しないユーザ、もしくは口座がありません！")
@@ -326,7 +346,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                 !vault.withdraw(sender.uniqueId,amount)
 
-                bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}")
+                Bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}")
 
                 sendMsg(sender,"§a§l送金成功！")
             }
@@ -340,15 +360,17 @@ class Man10OfflineBank : JavaPlugin(),Listener {
     override fun onEnable() {
         // Plugin startup logic
 
+        plugin = this
+
         saveDefaultConfig()
 
         es = Executors.newCachedThreadPool()
 
-        bank = Bank(this)
-
-        bank.mysqlQueue()
+        Bank.mysqlQueue()
 
         vault = VaultManager(this)
+
+        fee = config.getDouble("fee",1.0)
 
         server.pluginManager.registerEvents(this,this)
 

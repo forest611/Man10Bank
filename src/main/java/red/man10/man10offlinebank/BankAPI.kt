@@ -1,7 +1,6 @@
 package red.man10.man10offlinebank
 
 import org.bukkit.plugin.java.JavaPlugin
-import red.man10.man10offlinebank.Man10OfflineBank.Companion.bank
 import java.util.*
 
 class BankAPI(val plugin : JavaPlugin) {
@@ -18,7 +17,7 @@ class BankAPI(val plugin : JavaPlugin) {
      *
      */
     fun withdraw(uuid:UUID,amount:Double,note:String):Boolean{
-        return bank.withdraw(uuid,amount, plugin, note)
+        return Bank.withdraw(uuid,amount, plugin, note)
     }
 
     /**
@@ -29,14 +28,14 @@ class BankAPI(val plugin : JavaPlugin) {
      * @param note 入金の内容(64文字以内で必ず書き込む)
      */
     fun deposit(uuid: UUID,amount: Double,note: String){
-        bank.deposit(uuid,amount, plugin, note)
+        Bank.deposit(uuid,amount, plugin, note)
     }
 
     /**
      * @return オフライン口座の残高を返す
      */
     fun getBalance(uuid: UUID): Double {
-        return bank.getBalance(uuid)
+        return Bank.getBalance(uuid)
     }
 
 }
