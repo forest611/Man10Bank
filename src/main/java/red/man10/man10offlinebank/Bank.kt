@@ -2,14 +2,12 @@ package red.man10.man10offlinebank
 
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
-import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
-import red.man10.man10offlinebank.Man10OfflineBank
 import red.man10.man10offlinebank.Man10OfflineBank.Companion.plugin
 import java.sql.Timestamp
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.LinkedBlockingQueue
 
 object Bank {
@@ -62,7 +60,7 @@ object Bank {
         mysqlQueue.add("INSERT INTO user_bank (player, uuid, balance) " +
                 "VALUES ('${p.name}', '$uuid', 0);")
 
-        addLog(uuid,plugin,"CreateAccount",0.0)
+        addLog(uuid,plugin,"CreateAccount",0.0,true)
 
         hasAccount[uuid] = true
 
@@ -76,18 +74,19 @@ object Bank {
      * @param note ログの内容 (max64)
      * @param amount 動いた金額
      */
-    private fun addLog(uuid: UUID,plugin:JavaPlugin,note:String,amount:Double){
+    private fun addLog(uuid: UUID,plugin:JavaPlugin,note:String,amount:Double,isDeposit:Boolean){
 
         val p = Bukkit.getOfflinePlayer(uuid)
 
-        mysqlQueue.add("INSERT INTO money_log (player, uuid, plugin_name, amount, server, note) " +
+        mysqlQueue.add("INSERT INTO money_log (player, uuid, plugin_name, amount, server, note, deposit) " +
                 "VALUES " +
                 "('${p.name}', " +
                 "'$uuid', " +
                 "'${plugin.name}', " +
                 "$amount, " +
                 "'${plugin.server.name}', " +
-                "'$note');")
+                "'$note'" +
+                "'${if (isDeposit) 1 else 0}');")
 
     }
 
@@ -126,7 +125,7 @@ object Bank {
 
         mysqlQueue.add("update user_bank set balance=$amount where uuid='$uuid';")
 
-        addLog(uuid,plugin, "SetBalanceByCommand", amount)
+        addLog(uuid,plugin, "SetBalanceByCommand", amount,true)
     }
 
     /**
@@ -176,13 +175,13 @@ object Bank {
 
         mysqlQueue.add("update user_bank set balance=balance+$amount where uuid='$uuid';")
 
-        addLog(uuid,plugin, note, amount)
+        addLog(uuid,plugin, note, amount,true)
 
-//        Bukkit.getScheduler().runTask(plugin) {
-//            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-//                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &c&l[入金情報] Man10OfflineBank " +
-//                            "&a&lmbal口座に入金がありました;&e&l入金元:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
-//        }
+        Bukkit.getScheduler().runTask(plugin) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &c&l[入金情報] Man10OfflineBank " +
+                            "&a&lmbal口座に入金がありました;&e&l入金元:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
+        }
 
     }
 
@@ -208,13 +207,13 @@ object Bank {
 
         mysqlQueue.add("update user_bank set balance=balance-$amount where uuid='$uuid';")
 
-        addLog(uuid,plugin, note, amount)
+        addLog(uuid,plugin, note, amount,false)
 
-//        Bukkit.getScheduler().runTask(plugin) {
-//            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-//                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &4&l[出金情報] Man10OfflineBank " +
-//                            "&a&lmbal口座から出金がありました;&e&l出金先:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
-//        }
+        Bukkit.getScheduler().runTask(plugin) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &4&l[出金情報] Man10OfflineBank " +
+                            "&a&lmbal口座から出金がありました;&e&l出金先:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
+        }
 
         return true
     }
@@ -265,6 +264,16 @@ object Bank {
         mysql.close()
         return amount
     }
+//
+//    fun sendProfitAndLossMail(){
+//
+//        val format = SimpleDateFormat("yyyy-MM-dd")
+//
+//        val mysql = MySQLManager(plugin,"Man10Bank profit and loss")
+//
+//        val rs = mysql.query("select * from money_log where date>${format.format(Date())} and amount != 0;")
+//
+//    }
 
 
     /////////////////
@@ -282,8 +291,6 @@ object Bank {
 
             }
         }.start()
-
-
 
     }
 }

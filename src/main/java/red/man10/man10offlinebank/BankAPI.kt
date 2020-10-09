@@ -3,7 +3,7 @@ package red.man10.man10offlinebank
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.*
 
-class BankAPI(val plugin : JavaPlugin) {
+class BankAPI(private val plugin : JavaPlugin) {
 
 
     /**
