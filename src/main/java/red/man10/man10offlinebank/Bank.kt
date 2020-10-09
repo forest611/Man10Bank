@@ -85,8 +85,8 @@ object Bank {
                 "'${plugin.name}', " +
                 "$amount, " +
                 "'${plugin.server.name}', " +
-                "'$note'" +
-                "'${if (isDeposit) 1 else 0}');")
+                "'$note,'" +
+                "${if (isDeposit) 1 else 0});")
 
     }
 
