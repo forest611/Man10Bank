@@ -29,6 +29,10 @@ class Man10OfflineBank : JavaPlugin(),Listener {
             p.sendMessage(prefix+msg)
         }
 
+        fun format(double: Double):String{
+            return String.format("%,.1f",double)
+        }
+
         const val OP = "man10bank.op"
         const val USER = "man10bank.user"
 
@@ -54,16 +58,16 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                 val list = Bank.balanceTop()?:return@execute
 
                 for (data in list){
-                    sendMsg(sender,"§b§l${data.first.name} : §e§l$ ${String.format("%,.1f",data.second)}")
+                    sendMsg(sender,"§b§l${data.first.name} : §e§l$ ${format(data.second)}")
                 }
 
                 sendMsg(sender,"§e§l合計口座残高")
 
-                sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",Bank.totalBalance())}§b§kXX")
+                sendMsg(sender,"§b§kXX§e§l${format(Bank.totalBalance())}§b§kXX")
 
                 sendMsg(sender,"§e§l平均口座残高")
 
-                sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",Bank.average())}§b§kXX")
+                sendMsg(sender,"§b§kXX§e§l${format(Bank.average())}§b§kXX")
 
             }
 
@@ -79,7 +83,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                 es.execute{
                     sendMsg(sender,"§e§l==========現在の銀行口座残高==========")
-                    sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",Bank.getBalance(sender.uniqueId))}§b§kXX")
+                    sendMsg(sender,"§b§kXX§e§l${format(Bank.getBalance(sender.uniqueId))}§b§kXX")
 
                 }
 
@@ -103,7 +107,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                     }
 
                     sendMsg(sender,"§e§l==========現在の銀行口座残高==========")
-                    sendMsg(sender,"§b§kXX§e§l${String.format("%,.1f",Bank.getBalance(uuid))}§b§kXX")
+                    sendMsg(sender,"§b§kXX§e§l${format(Bank.getBalance(uuid))}§b§kXX")
 
                 }
 
@@ -118,6 +122,16 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                 sendMsg(sender,"§e/mbal : 口座残高を確認する")
                 sendMsg(sender,"§e/mbal deposit(d) <金額>: 所持金のいくらかを、口座に入金する")
                 sendMsg(sender,"§e/mbal withdraw(w) <金額>: 口座のお金を、出金する")
+            }
+
+            if (cmd == "mail"){
+                if (!sender.hasPermission(OP))return false
+
+                Thread{
+                    Bank.sendProfitAndLossMail()
+                }.start()
+                sender.sendMessage("送信完了")
+                return true
             }
 
             //deposit withdraw
@@ -183,7 +197,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                     sendMsg(sender,"§a§l出金成功！")
                     if (fee1 != 0.0){
-                        sendMsg(sender,"§a$${String.format("%,.1f",fee1)}手数料を徴収しました")
+                        sendMsg(sender,"§a$${format(fee1)}手数料を徴収しました")
                     }
 
                 }
@@ -216,8 +230,8 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                         sendMsg(sender,"§a回収額が残高を上回っていたので、残高が0になりました")
                         return@execute
                     }
-                    sendMsg(sender,"§a${String.format("%,.1f",amount)}円回収しました")
-                    sendMsg(sender,"§a現在の残高：${String.format("%,.1f",Bank.getBalance(uuid))}")
+                    sendMsg(sender,"§a${format(amount)}円回収しました")
+                    sendMsg(sender,"§a現在の残高：${format(Bank.getBalance(uuid))}")
 
                 }
                 return true
@@ -246,8 +260,8 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                     Bank.deposit(uuid,amount,this,"GivenFromServer")
 
-                    sendMsg(sender,"§a${String.format("%,.1f",amount)}円入金しました")
-                    sendMsg(sender,"§a現在の残高：${String.format("%,.1f",Bank.getBalance(uuid))}")
+                    sendMsg(sender,"§a${format(amount)}円入金しました")
+                    sendMsg(sender,"§a現在の残高：${format(Bank.getBalance(uuid))}")
 
                 }
             }
@@ -274,7 +288,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                     Bank.setBalance(uuid,amount)
 
-                    sendMsg(sender,"§a${String.format("%,.1f",amount)}円に設定しました")
+                    sendMsg(sender,"§a${format(amount)}円に設定しました")
 
                 }
             }
@@ -316,7 +330,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
             if (checking[sender] == null||checking[sender]!! != command){
 
-                sendMsg(sender,"§7§l送金金額:${String.format("%,.1f",amount)}")
+                sendMsg(sender,"§7§l送金金額:${format(amount)}")
                 sendMsg(sender,"§7§l送金相手:${args[0]}")
                 sendMsg(sender,"§7§l確認のため、もう一度入力してください")
 

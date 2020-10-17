@@ -20,7 +20,7 @@ create table money_log
 	amount double default 0 not null,
 	note varchar(64) null,
 	server varchar(16) null,
-	deposit boolean default true null;
+	deposit boolean default true null,
 	date datetime default now() not null,
 	constraint money_log_pk
 		primary key (id)

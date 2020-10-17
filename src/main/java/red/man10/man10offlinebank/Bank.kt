@@ -2,13 +2,16 @@ package red.man10.man10offlinebank
 
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
+import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
+import red.man10.man10offlinebank.Man10OfflineBank.Companion.format
 import red.man10.man10offlinebank.Man10OfflineBank.Companion.plugin
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.LinkedBlockingQueue
+import kotlin.collections.HashMap
 
 object Bank {
 
@@ -177,11 +180,11 @@ object Bank {
 
         addLog(uuid,plugin, note, amount,true)
 
-        Bukkit.getScheduler().runTask(plugin) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &c&l[入金情報] Man10OfflineBank " +
-                            "&a&lmbal口座に入金がありました;&e&l入金元:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
-        }
+//        Bukkit.getScheduler().runTask(plugin) {
+//            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+//                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &c&l[入金情報] Man10OfflineBank " +
+//                            "&a&lmbal口座に入金がありました;&e&l入金元:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
+//        }
 
     }
 
@@ -209,11 +212,11 @@ object Bank {
 
         addLog(uuid,plugin, note, amount,false)
 
-        Bukkit.getScheduler().runTask(plugin) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &4&l[出金情報] Man10OfflineBank " +
-                            "&a&lmbal口座から出金がありました;&e&l出金先:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
-        }
+//        Bukkit.getScheduler().runTask(plugin) {
+//            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+//                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &4&l[出金情報] Man10OfflineBank " +
+//                            "&a&lmbal口座から出金がありました;&e&l出金先:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
+//        }
 
         return true
     }
@@ -264,16 +267,62 @@ object Bank {
         mysql.close()
         return amount
     }
-//
-//    fun sendProfitAndLossMail(){
-//
-//        val format = SimpleDateFormat("yyyy-MM-dd")
-//
-//        val mysql = MySQLManager(plugin,"Man10Bank profit and loss")
-//
-//        val rs = mysql.query("select * from money_log where date>${format.format(Date())} and amount != 0;")
-//
-//    }
+
+    fun sendProfitAndLossMail(){
+
+        val moneyLog = HashMap<OfflinePlayer,MoneyData>()
+
+        val format = SimpleDateFormat("yyyy-MM-dd")
+        val date = Date()
+
+        val mysql = MySQLManager(plugin,"Man10Bank profit and loss")
+
+        val rs = mysql.query("select * from money_log where date>${format.format(date)} and amount != 0;")?:return
+
+        while (rs.next()){
+
+            val p = Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("uuid")))
+
+            val isDeposit = rs.getInt("deposit") == 1
+
+            val data = moneyLog[p] ?: MoneyData()
+
+            if (isDeposit){
+                data.deposit = data.deposit+ rs.getDouble("amount")
+                data.depositCount ++
+            }else{
+                data.withdraw = data.withdraw+ rs.getDouble("amount")
+                data.withdrawCount ++
+            }
+
+            moneyLog[p] = data
+
+        }
+
+        rs.close()
+        mysql.close()
+
+        for (log in moneyLog){
+
+            Bukkit.getScheduler().runTask(plugin) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "mmail send-tag &b&lMan10OfflineBank ${log.key.name} &c&l[入出金情報] Man10OfflineBank " +
+                                "&e&l${format.format(date)}の入出金情報です;" +
+                                "§e入金額:§a§l${format(log.value.deposit)};" +
+                                "§e出金額:§c§l${format(log.value.withdraw)};" +
+                                "§e取引回数:§a入金:${log.value.depositCount}回,§c出金:§c${log.value.withdrawCount}回")
+            }
+
+        }
+
+    }
+
+    class MoneyData{
+        var withdraw = 0.0
+        var deposit = 0.0
+        var withdrawCount = 0
+        var depositCount = 0
+    }
 
 
     /////////////////
