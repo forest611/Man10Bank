@@ -56,4 +56,5 @@ repositories {
 }
 dependencies {
     compileOnly "com.github.MilkBowl:VaultAPI:1.7"
+    compile fileTree(dir: 'libs', include: '*.jar')
 }

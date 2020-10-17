@@ -1,5 +1,8 @@
 package red.man10.man10offlinebank
 
+import net.testusuke.open.man10mail.DataBase.MailConsole
+import net.testusuke.open.man10mail.DataBase.MailSenderType
+import net.testusuke.open.man10mail.MailUtil
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
@@ -304,14 +307,20 @@ object Bank {
 
         for (log in moneyLog){
 
-            Bukkit.getScheduler().runTask(plugin) {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                        "mmail send-tag &b&lMan10OfflineBank ${log.key.name} &c&l[入出金情報] Man10OfflineBank " +
-                                "&e&l${format.format(date)}の入出金情報です;" +
-                                "§e入金額:§a§l${format(log.value.deposit)};" +
-                                "§e出金額:§c§l${format(log.value.withdraw)};" +
-                                "§e取引回数:§a入金:${log.value.depositCount}回,§c出金:§c${log.value.withdrawCount}回")
-            }
+//            Bukkit.getScheduler().runTask(plugin) {
+//                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+//                        "mmail send-tag &b&lMan10OfflineBank ${log.key.name} &c&l[入出金情報] Man10OfflineBank " +
+//                                "&e&l${format.format(date)}の入出金情報です;" +
+//                                "§e入金額:§a§l${format(log.value.deposit)};" +
+//                                "§e出金額:§c§l${format(log.value.withdraw)};" +
+//                                "§e取引回数:§a入金:${log.value.depositCount}回,§c出金:§c${log.value.withdrawCount}回")
+//            }
+
+            MailConsole.sendMail("&b&lMan10OfflineBank",log.key.name!!," &c&l[入出金情報] Man10OfflineBank","Man10OfflineBank",
+                    "&e&l${format.format(date)}の入出金情報です;" +
+                            "§e入金額:§a§l${format(log.value.deposit)};" +
+                            "§e出金額:§c§l${format(log.value.withdraw)};" +
+                            "§e取引回数:§a入金:${log.value.depositCount}回,§c出金:§c${log.value.withdrawCount}回",MailSenderType.CUSTOM)
 
         }
 
