@@ -388,6 +388,8 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
         server.pluginManager.registerEvents(this,this)
 
+        Bank.mailThread()
+
     }
 
     override fun onDisable() {

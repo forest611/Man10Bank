@@ -342,4 +342,28 @@ object Bank {
         }.start()
 
     }
+
+    fun mailThread(){
+
+        Thread{
+
+            var sent = false
+
+            while (true){
+
+                val calender = Calendar.getInstance()
+
+                if (calender.get(Calendar.MINUTE) == 59 && calender.get(Calendar.HOUR_OF_DAY) == 23 && !sent){
+                    sendProfitAndLossMail()
+                    sent = true
+                }else if(sent){
+                    sent = false
+                }
+
+                Thread.sleep(60000)
+            }
+
+        }.start()
+
+    }
 }
