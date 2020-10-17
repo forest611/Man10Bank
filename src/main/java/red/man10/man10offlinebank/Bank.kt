@@ -316,8 +316,8 @@ object Bank {
 //                                "§e取引回数:§a入金:${log.value.depositCount}回,§c出金:§c${log.value.withdrawCount}回")
 //            }
 
-            MailConsole.sendMail("&b&lMan10OfflineBank",log.key.name!!," &c&l[入出金情報] Man10OfflineBank","Man10OfflineBank",
-                    "&e&l${format.format(date)}の入出金情報です;" +
+            MailConsole.sendMail("&b&lMan10OfflineBank",log.key.uniqueId.toString()," §c§l[入出金情報] Man10OfflineBank","Man10OfflineBank",
+                    "§e§l${format.format(date)}の入出金情報です;" +
                             "§e入金額:§a§l${format(log.value.deposit)};" +
                             "§e出金額:§c§l${format(log.value.withdraw)};" +
                             "§e取引回数:§a入金:${log.value.depositCount}回,§c出金:§c${log.value.withdrawCount}回",MailSenderType.CUSTOM)

@@ -1,6 +1,10 @@
 name: Man10OfflineBank
 version: 1.0
 auther: [forest611]
+softdepend:
+  - Vault
+  - Man10CommonLibs
+  - Man10Mail
 main: red.man10.man10offlinebank.Man10OfflineBank
 api-version: 1.16
 commands:
