@@ -20,6 +20,7 @@ object Bank {
 
     private val hasAccount = ConcurrentHashMap<UUID,Boolean>()
     private val mysqlQueue = LinkedBlockingQueue<String>()
+    private val mysql : MySQLManager = MySQLManager(plugin,"Man10OfflineBank")
 
     //////////////////////////////////
     //口座を持っているかどうか
@@ -102,13 +103,14 @@ object Bank {
      * @param uuid ユーザーのuuid*
      * @return 残高 存在しないユーザーだった場合、0.0が返される
      */
+    @Synchronized
     fun getBalance(uuid:UUID):Double{
 
         var bal = 0.0
 
         if (!hasAccount(uuid))return 0.0
 
-        val mysql = MySQLManager(plugin,"Man10OfflineBank")
+//        val mysql = MySQLManager(plugin,"Man10OfflineBank")
 
         val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid' for update;")?:return bal
 
@@ -170,7 +172,6 @@ object Bank {
      * @param amount 入金額(マイナスだった場合、入金処理は行われない)
      *
      */
-    @Synchronized
     fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String){
 
         if (amount <0.1)return
@@ -183,11 +184,7 @@ object Bank {
 
         addLog(uuid,plugin, note, amount,true)
 
-//        Bukkit.getScheduler().runTask(plugin) {
-//            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-//                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &c&l[入金情報] Man10OfflineBank " +
-//                            "&a&lmbal口座に入金がありました;&e&l入金元:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
-//        }
+
 
     }
 
@@ -198,7 +195,7 @@ object Bank {
      * @param note 出金の内容(64文字以内)
      * @param amount 出金額(マイナスだった場合、入金処理は行われない)
      *
-     * @retur　出金成功でtrue
+     * @return　出金成功でtrue
      */
     @Synchronized
     fun withdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String):Boolean{
@@ -215,11 +212,6 @@ object Bank {
 
         addLog(uuid,plugin, note, amount,false)
 
-//        Bukkit.getScheduler().runTask(plugin) {
-//            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-//                    "mmail send-tag &b&lMan10OfflineBank ${Bukkit.getOfflinePlayer(uuid).name} &4&l[出金情報] Man10OfflineBank " +
-//                            "&a&lmbal口座から出金がありました;&e&l出金先:$note;&6&l金額:$amount;&e&l時刻:${Timestamp.from(Date().toInstant())}")
-//        }
 
         return true
     }

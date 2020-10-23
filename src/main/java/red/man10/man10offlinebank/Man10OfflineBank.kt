@@ -10,7 +10,6 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import kotlin.collections.HashMap
 
 class Man10OfflineBank : JavaPlugin(),Listener {
 
