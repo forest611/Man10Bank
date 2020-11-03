@@ -205,7 +205,7 @@ object Bank {
             createAccount(uuid)
         }
 
-        val finalAmount = floor(amount)
+        val finalAmount = floor(amount/rate)
 
         if (getBalance(uuid) < finalAmount)return false
 

@@ -178,7 +178,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                     return true
                 }
 
-                var amount = args[1].toDouble()/rate
+                var amount = args[1].toDouble()
 
                 if (amount < 1){
                     sendMsg(sender,"§c§l1未満の値は出金出来ません！")
@@ -192,7 +192,6 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                     }
 
                     val fee1 = (amount*fee)
-                    amount*=rate
                     amount -= fee1
 
                     vault.deposit(sender.uniqueId,amount)
