@@ -2,15 +2,12 @@ package red.man10.man10offlinebank
 
 import net.testusuke.open.man10mail.DataBase.MailConsole
 import net.testusuke.open.man10mail.DataBase.MailSenderType
-import net.testusuke.open.man10mail.MailUtil
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
-import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10offlinebank.Man10OfflineBank.Companion.format
 import red.man10.man10offlinebank.Man10OfflineBank.Companion.plugin
 import red.man10.man10offlinebank.Man10OfflineBank.Companion.rate
-import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -176,17 +173,17 @@ object Bank {
      */
     fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String){
 
-        if (amount <0.1)return
+        if (amount <0)return
 
         if (!hasAccount(uuid)){
             createAccount(uuid)
         }
 
-        mysqlQueue.add("update user_bank set balance=balance+${floor(amount/ rate)} where uuid='$uuid';")
+        val finalAmount = floor(amount/ rate)
 
-        addLog(uuid,plugin, note, amount,true)
+        mysqlQueue.add("update user_bank set balance=balance+$finalAmount where uuid='$uuid';")
 
-
+        addLog(uuid,plugin, note, finalAmount,true)
 
     }
 
@@ -202,17 +199,19 @@ object Bank {
     @Synchronized
     fun withdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String):Boolean{
 
-        if (amount <0.1)return false
+        if (amount <0)return false
 
         if (!hasAccount(uuid)){
             createAccount(uuid)
         }
 
-        if (getBalance(uuid) < amount)return false
+        val finalAmount = floor(amount)
 
-        mysqlQueue.add("update user_bank set balance=balance-${floor(amount* rate)} where uuid='$uuid';")
+        if (getBalance(uuid) < finalAmount)return false
 
-        addLog(uuid,plugin, note, amount,false)
+        mysqlQueue.add("update user_bank set balance=balance-${finalAmount} where uuid='$uuid';")
+
+        addLog(uuid,plugin, note, finalAmount,false)
 
 
         return true
