@@ -9,6 +9,7 @@ import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10offlinebank.Man10OfflineBank.Companion.format
 import red.man10.man10offlinebank.Man10OfflineBank.Companion.plugin
+import red.man10.man10offlinebank.Man10OfflineBank.Companion.rate
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
@@ -180,7 +181,7 @@ object Bank {
             createAccount(uuid)
         }
 
-        mysqlQueue.add("update user_bank set balance=balance+$amount where uuid='$uuid';")
+        mysqlQueue.add("update user_bank set balance=balance+${amount/ rate} where uuid='$uuid';")
 
         addLog(uuid,plugin, note, amount,true)
 
@@ -208,7 +209,7 @@ object Bank {
 
         if (getBalance(uuid) < amount)return false
 
-        mysqlQueue.add("update user_bank set balance=balance-$amount where uuid='$uuid';")
+        mysqlQueue.add("update user_bank set balance=balance-${amount* rate} where uuid='$uuid';")
 
         addLog(uuid,plugin, note, amount,false)
 

@@ -37,6 +37,8 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
         var fee = 0.00
 
+        var rate = 1.0
+
     }
 
     private val checking = HashMap<Player,Command>()
@@ -384,6 +386,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
         vault = VaultManager(this)
 
         fee = config.getDouble("fee",1.0)
+        rate = config.getDouble("rate",1.0)
 
         server.pluginManager.registerEvents(this,this)
 
