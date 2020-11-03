@@ -16,6 +16,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.collections.HashMap
+import kotlin.math.floor
 
 object Bank {
 
@@ -181,7 +182,7 @@ object Bank {
             createAccount(uuid)
         }
 
-        mysqlQueue.add("update user_bank set balance=balance+${amount/ rate} where uuid='$uuid';")
+        mysqlQueue.add("update user_bank set balance=balance+${floor(amount/ rate)} where uuid='$uuid';")
 
         addLog(uuid,plugin, note, amount,true)
 
@@ -209,7 +210,7 @@ object Bank {
 
         if (getBalance(uuid) < amount)return false
 
-        mysqlQueue.add("update user_bank set balance=balance-${amount* rate} where uuid='$uuid';")
+        mysqlQueue.add("update user_bank set balance=balance-${floor(amount* rate)} where uuid='$uuid';")
 
         addLog(uuid,plugin, note, amount,false)
 
