@@ -173,7 +173,7 @@ object Bank {
      */
     fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String){
 
-        if (amount <0)return
+        if (amount <rate)return
 
         if (!hasAccount(uuid)){
             createAccount(uuid)
@@ -199,7 +199,7 @@ object Bank {
     @Synchronized
     fun withdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String):Boolean{
 
-        if (amount <0)return false
+        if (amount <rate)return false
 
         if (!hasAccount(uuid)){
             createAccount(uuid)
