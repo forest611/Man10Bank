@@ -7,6 +7,8 @@ import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Statement
+import java.util.*
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.logging.Level
 
 /**
@@ -193,6 +195,31 @@ class MySQLManager(private val plugin: JavaPlugin, private val conName: String) 
             this.MySQL?.close(this.con)
 
         } catch (var4: SQLException) {
+        }
+
+    }
+
+    companion object{
+
+        val mysqlQueue = LinkedBlockingQueue<String>()
+
+        /////////////////
+        //query queue
+        ////////////////
+        @Synchronized
+        fun mysqlQueue(){
+            Thread {
+                val mysql = MySQLManager(Man10OfflineBank.plugin, "Man10OfflineBank Queue")
+                try {
+                    while (true) {
+                        val take = mysqlQueue.take()
+                        mysql.execute(take)
+                    }
+                } catch (e: InterruptedException) {
+
+                }
+            }.start()
+
         }
 
     }

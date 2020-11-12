@@ -5,9 +5,11 @@ import net.testusuke.open.man10mail.DataBase.MailSenderType
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.plugin.java.JavaPlugin
+import red.man10.man10offlinebank.Man10OfflineBank.Companion.bankEnable
 import red.man10.man10offlinebank.Man10OfflineBank.Companion.format
 import red.man10.man10offlinebank.Man10OfflineBank.Companion.plugin
 import red.man10.man10offlinebank.Man10OfflineBank.Companion.rate
+import red.man10.man10offlinebank.MySQLManager.Companion.mysqlQueue
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -18,7 +20,6 @@ import kotlin.math.floor
 object Bank {
 
     private val hasAccount = ConcurrentHashMap<UUID,Boolean>()
-    private val mysqlQueue = LinkedBlockingQueue<String>()
     private val mysql : MySQLManager = MySQLManager(plugin,"Man10OfflineBank")
 
     //////////////////////////////////
@@ -30,7 +31,7 @@ object Bank {
 
         if (bool == null){
 
-            val mysql = MySQLManager(plugin,"Man10OfflineBank")
+//            val mysql = MySQLManager(plugin,"Man10OfflineBank")
 
             val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid'")?:return false
 
@@ -63,7 +64,7 @@ object Bank {
 
         val p = Bukkit.getOfflinePlayer(uuid)
 
-        mysqlQueue.add("INSERT INTO user_bank (player, uuid, balance) " +
+        mysql.execute("INSERT INTO user_bank (player, uuid, balance) " +
                 "VALUES ('${p.name}', '$uuid', 0);")
 
         addLog(uuid,plugin,"CreateAccount",0.0,true)
@@ -130,7 +131,7 @@ object Bank {
             createAccount(uuid)
         }
 
-        mysqlQueue.add("update user_bank set balance=$amount where uuid='$uuid';")
+        mysql.execute("update user_bank set balance=$amount where uuid='$uuid';")
 
         addLog(uuid,plugin, "SetBalanceByCommand", amount,true)
     }
@@ -171,9 +172,12 @@ object Bank {
      * @param amount 入金額(マイナスだった場合、入金処理は行われない)
      *
      */
-    fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String){
+    @Synchronized
+    fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String):Boolean{
 
-        if (amount <rate)return
+        if (!bankEnable)return false
+
+        if (amount <rate)return false
 
         if (!hasAccount(uuid)){
             createAccount(uuid)
@@ -181,10 +185,11 @@ object Bank {
 
         val finalAmount = floor(amount/ rate)
 
-        mysqlQueue.add("update user_bank set balance=balance+$finalAmount where uuid='$uuid';")
+        mysql.execute("update user_bank set balance=balance+$finalAmount where uuid='$uuid';")
 
         addLog(uuid,plugin, note, finalAmount,true)
 
+        return true
     }
 
     /**
@@ -199,17 +204,19 @@ object Bank {
     @Synchronized
     fun withdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String):Boolean{
 
+        if (!bankEnable)return false
+
         if (amount <rate)return false
 
         if (!hasAccount(uuid)){
-            createAccount(uuid)
+            return false
         }
 
         val finalAmount = floor(amount/rate)
 
         if (getBalance(uuid) < finalAmount)return false
 
-        mysqlQueue.add("update user_bank set balance=balance-${finalAmount} where uuid='$uuid';")
+        mysql.execute("update user_bank set balance=balance-${finalAmount} where uuid='$uuid';")
 
         addLog(uuid,plugin, note, finalAmount,false)
 
@@ -300,15 +307,6 @@ object Bank {
 
         for (log in moneyLog){
 
-//            Bukkit.getScheduler().runTask(plugin) {
-//                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-//                        "mmail send-tag &b&lMan10OfflineBank ${log.key.name} &c&l[入出金情報] Man10OfflineBank " +
-//                                "&e&l${format.format(date)}の入出金情報です;" +
-//                                "§e入金額:§a§l${format(log.value.deposit)};" +
-//                                "§e出金額:§c§l${format(log.value.withdraw)};" +
-//                                "§e取引回数:§a入金:${log.value.depositCount}回,§c出金:§c${log.value.withdrawCount}回")
-//            }
-
             MailConsole.sendMail("&b&lMan10OfflineBank",log.key.uniqueId.toString()," §c§l[入出金情報] Man10OfflineBank","Man10OfflineBank",
                     "§e§l${format.format(date)}の入出金情報です;" +
                             "§e入金額:§a§l${format(log.value.deposit)};" +
@@ -316,32 +314,6 @@ object Bank {
                             "§e取引回数:§a入金:${log.value.depositCount}回,§c出金:§c${log.value.withdrawCount}回",MailSenderType.CUSTOM)
 
         }
-
-    }
-
-    class MoneyData{
-        var withdraw = 0.0
-        var deposit = 0.0
-        var withdrawCount = 0
-        var depositCount = 0
-    }
-
-
-    /////////////////
-    //query queue
-    ////////////////
-    fun mysqlQueue(){
-        Thread {
-            val sql = MySQLManager(plugin, "Man10OfflineBank Queue")
-            try {
-                while (true) {
-                    val take = mysqlQueue.take()
-                    sql.execute(take)
-                }
-            } catch (e: InterruptedException) {
-
-            }
-        }.start()
 
     }
 
@@ -368,4 +340,13 @@ object Bank {
         }.start()
 
     }
+
+    class MoneyData{
+        var withdraw = 0.0
+        var deposit = 0.0
+        var withdrawCount = 0
+        var depositCount = 0
+    }
+
+
 }

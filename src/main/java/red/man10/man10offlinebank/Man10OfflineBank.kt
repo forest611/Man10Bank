@@ -1,6 +1,7 @@
 package red.man10.man10offlinebank
 
 import org.apache.commons.lang.math.NumberUtils
+import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -8,6 +9,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
+import red.man10.man10offlinebank.MySQLManager.Companion.mysqlQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -38,6 +40,8 @@ class Man10OfflineBank : JavaPlugin(),Listener {
         var fee = 0.00
 
         var rate = 1.0
+
+        var bankEnable = true
 
     }
 
@@ -294,6 +298,25 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                 }
             }
 
+            if (cmd == "off"){
+                if (!sender.hasPermission(OP))return false
+
+                bankEnable = false
+                Bukkit.broadcastMessage("§e§lMan10Bankが閉じました！")
+                return true
+
+            }
+
+            if (cmd == "on"){
+                if (!sender.hasPermission(OP))return false
+
+                bankEnable = true
+
+                Bukkit.broadcastMessage("§e§lMan10Bankが開きました！")
+                return true
+
+            }
+
             if (cmd == "reload"){
                 if (!sender.hasPermission(OP))return false
 
@@ -381,7 +404,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
         es = Executors.newCachedThreadPool()
 
-        Bank.mysqlQueue()
+        mysqlQueue()
 
         vault = VaultManager(this)
 
