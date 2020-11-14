@@ -1,5 +1,6 @@
 package red.man10.man10offlinebank
 
+import net.testusuke.open.man10mail.DataBase.MailConsole
 import org.apache.commons.lang.math.NumberUtils
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
@@ -43,12 +44,45 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
         var bankEnable = true
 
+        var isInstallMail = false
+
     }
 
     private val checking = HashMap<Player,Command>()
 
-
     lateinit var es : ExecutorService
+
+    override fun onEnable() {
+        // Plugin startup logic
+
+        plugin = this
+
+        saveDefaultConfig()
+
+        es = Executors.newCachedThreadPool()
+
+        mysqlQueue()
+
+        vault = VaultManager(this)
+
+        fee = config.getDouble("fee",1.0)
+        rate = config.getDouble("rate",1.0)
+
+        server.pluginManager.registerEvents(this,this)
+
+        if (server.pluginManager.getPlugin("Man10Mail") !=null){
+            isInstallMail = true
+            Bank.mailThread()
+        }
+
+//        Bank.mailThread()
+
+    }
+
+    override fun onDisable() {
+        // Plugin shutdown logic
+        es.shutdown()
+    }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
 
@@ -394,33 +428,6 @@ class Man10OfflineBank : JavaPlugin(),Listener {
         return false
     }
 
-
-    override fun onEnable() {
-        // Plugin startup logic
-
-        plugin = this
-
-        saveDefaultConfig()
-
-        es = Executors.newCachedThreadPool()
-
-        mysqlQueue()
-
-        vault = VaultManager(this)
-
-        fee = config.getDouble("fee",1.0)
-        rate = config.getDouble("rate",1.0)
-
-        server.pluginManager.registerEvents(this,this)
-
-        Bank.mailThread()
-
-    }
-
-    override fun onDisable() {
-        // Plugin shutdown logic
-        es.shutdown()
-    }
 
     @EventHandler
     fun login(e:PlayerJoinEvent){
