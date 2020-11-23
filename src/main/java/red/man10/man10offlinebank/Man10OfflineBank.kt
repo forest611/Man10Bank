@@ -178,12 +178,16 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                 if (sender !is Player)return false
 
-                if (!NumberUtils.isNumber(args[1])){
-                    sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
-                    return true
+                //入金額
+                val amount : Double = if (args[1] == "all"){
+                    vault.getBalance(sender.uniqueId)
+                }else{
+                    if (!NumberUtils.isNumber(args[1])){
+                        sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
+                        return true
+                    }
+                    args[1].toDouble()
                 }
-
-                val amount = args[1].toDouble()
 
                 if (amount < 1){
                     sendMsg(sender,"§c§l1未満の値は入金出来ません！")
@@ -211,19 +215,23 @@ class Man10OfflineBank : JavaPlugin(),Listener {
             if ((cmd == "withdraw" || cmd == "w") && args.size == 2){
                 if (sender !is Player)return false
 
-                if (!NumberUtils.isNumber(args[1])){
-                    sendMsg(sender,"§c§l出金する額を半角数字で入力してください！")
-                    return true
-                }
-
-                var amount = args[1].toDouble()
-
-                if (amount < 1){
-                    sendMsg(sender,"§c§l1未満の値は出金出来ません！")
-                    return true
-                }
-
                 es.execute {
+
+                    var amount = if (args[1] == "all"){
+                        Bank.getBalance(sender.uniqueId)
+                    }else{
+                        if (!NumberUtils.isNumber(args[1])){
+                            sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
+                            return@execute
+                        }
+                        args[1].toDouble()
+                    }
+
+                    if (amount < 1){
+                        sendMsg(sender,"§c§l1未満の値は出金出来ません！")
+                        return@execute
+                    }
+
                     if (!Bank.withdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand")){
                         sendMsg(sender,"§c§l出金失敗！口座残高が足りません！")
                         return@execute
