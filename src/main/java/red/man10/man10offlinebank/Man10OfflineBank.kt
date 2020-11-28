@@ -194,13 +194,11 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                     return true
                 }
 
-                if (vault.getBalance(sender.uniqueId)<amount){
+                if (!vault.withdraw(sender.uniqueId,amount)){
                     sendMsg(sender,"§c§l入金失敗！、所持金が足りません！")
                     return true
 
                 }
-
-                !vault.withdraw(sender.uniqueId,amount)
 
                 es.execute {
                     Bank.deposit(sender.uniqueId,amount,this,"PlayerDepositOnCommand")
@@ -218,7 +216,7 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                 es.execute {
 
                     var amount = if (args[1] == "all"){
-                        Bank.getBalance(sender.uniqueId)
+                        Bank.getBalance(sender.uniqueId)*rate
                     }else{
                         if (!NumberUtils.isNumber(args[1])){
                             sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
