@@ -27,26 +27,20 @@ object Bank {
     fun hasAccount(uuid:UUID):Boolean{
 
 
-        if (bool == null){
+        val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid'")?:return false
 
-
-            val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid'")?:return false
-
-            if (rs.next()) {
-
-                mysql.close()
-                rs.close()
-
-                return true
-            }
+        if (rs.next()) {
 
             mysql.close()
             rs.close()
 
-            return false
-
+            return true
         }
-        return bool
+
+        mysql.close()
+        rs.close()
+
+        return false
 
     }
 
@@ -64,7 +58,6 @@ object Bank {
 
         addLog(uuid,plugin,"CreateAccount",0.0,true)
 
-        hasAccount[uuid] = true
 
         return true
     }
