@@ -19,31 +19,26 @@ import kotlin.math.floor
 
 object Bank {
 
-    private val hasAccount = ConcurrentHashMap<UUID,Boolean>()
-    private val mysql : MySQLManager = MySQLManager(plugin,"Man10OfflineBank")
+    private var mysql : MySQLManager = MySQLManager(plugin,"Man10OfflineBank")
 
     //////////////////////////////////
     //口座を持っているかどうか
     //////////////////////////////////
     fun hasAccount(uuid:UUID):Boolean{
 
-        val bool = hasAccount[uuid]
 
         if (bool == null){
 
-//            val mysql = MySQLManager(plugin,"Man10OfflineBank")
 
             val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid'")?:return false
 
             if (rs.next()) {
-                hasAccount[uuid] = true
 
                 mysql.close()
                 rs.close()
 
                 return true
             }
-            hasAccount[uuid] = false
 
             mysql.close()
             rs.close()
@@ -110,8 +105,6 @@ object Bank {
 
         if (!hasAccount(uuid))return 0.0
 
-//        val mysql = MySQLManager(plugin,"Man10OfflineBank")
-
         val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid' for update;")?:return bal
 
         if (!rs.next()){
@@ -177,11 +170,11 @@ object Bank {
 
         if (!bankEnable)return false
 
-        if (amount <rate)return false
-
         if (!hasAccount(uuid)){
             createAccount(uuid)
         }
+
+        if (amount <rate)return false
 
         val finalAmount = floor(amount/ rate)
 
@@ -338,6 +331,15 @@ object Bank {
             }
 
         }.start()
+
+    }
+
+    fun reload(){
+        Bukkit.getLogger().info("Start Reload Man10Bank")
+
+        mysql = MySQLManager(plugin,"Man10OfflineBank")
+
+        Bukkit.getLogger().info("Finish Reload Man10Bank")
 
     }
 

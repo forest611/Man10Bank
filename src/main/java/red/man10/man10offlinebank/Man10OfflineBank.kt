@@ -366,6 +366,8 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                     reloadConfig()
 
                     fee = config.getDouble("fee")
+
+                    Bank.reload()
                 }
 
             }
