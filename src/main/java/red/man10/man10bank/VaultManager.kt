@@ -49,12 +49,12 @@ class VaultManager(private val plugin: JavaPlugin) {
     //      引き出し
     /////////////////////////////////////
     fun withdraw(uuid: UUID, money: Double): Boolean {
+
+        if (getBalance(uuid) < money)return false
+
         val p = Bukkit.getOfflinePlayer(uuid)
         val resp = economy!!.withdrawPlayer(p.name, money)
         if (resp.transactionSuccess()) {
-
-            if (getBalance(uuid) < money)return false
-
             if (p.isOnline) {
                 p.player!!.sendMessage(ChatColor.YELLOW.toString() + "$" + money + "支払いました")
             }
