@@ -1,4 +1,4 @@
-package red.man10.man10offlinebank
+package red.man10.man10bank
 
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.*

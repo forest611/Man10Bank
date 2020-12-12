@@ -1,4 +1,4 @@
-package red.man10.man10offlinebank
+package red.man10.man10bank
 
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
@@ -7,7 +7,6 @@ import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Statement
-import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.logging.Level
 
@@ -209,7 +208,7 @@ class MySQLManager(private val plugin: JavaPlugin, private val conName: String) 
         @Synchronized
         fun mysqlQueue(){
             Thread {
-                val mysql = MySQLManager(Man10OfflineBank.plugin, "Man10OfflineBank Queue")
+                val mysql = MySQLManager(Man10Bank.plugin, "Man10OfflineBank Queue")
                 try {
                     while (true) {
                         val take = mysqlQueue.take()

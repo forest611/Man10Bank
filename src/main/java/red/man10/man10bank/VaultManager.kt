@@ -1,4 +1,4 @@
-package red.man10.man10offlinebank
+package red.man10.man10bank
 
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.Bukkit

@@ -1,19 +1,17 @@
-package red.man10.man10offlinebank
+package red.man10.man10bank
 
 import net.testusuke.open.man10mail.DataBase.MailConsole
 import net.testusuke.open.man10mail.DataBase.MailSenderType
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.plugin.java.JavaPlugin
-import red.man10.man10offlinebank.Man10OfflineBank.Companion.bankEnable
-import red.man10.man10offlinebank.Man10OfflineBank.Companion.format
-import red.man10.man10offlinebank.Man10OfflineBank.Companion.plugin
-import red.man10.man10offlinebank.Man10OfflineBank.Companion.rate
-import red.man10.man10offlinebank.MySQLManager.Companion.mysqlQueue
+import red.man10.man10bank.Man10Bank.Companion.bankEnable
+import red.man10.man10bank.Man10Bank.Companion.format
+import red.man10.man10bank.Man10Bank.Companion.plugin
+import red.man10.man10bank.Man10Bank.Companion.rate
+import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.LinkedBlockingQueue
 import kotlin.collections.HashMap
 import kotlin.math.floor
 
@@ -194,9 +192,7 @@ object Bank {
 
         if (amount <rate)return false
 
-        if (!hasAccount(uuid)){
-            return false
-        }
+        if (!hasAccount(uuid))return false
 
         val finalAmount = floor(amount/rate)
 
@@ -206,6 +202,24 @@ object Bank {
 
         addLog(uuid,plugin, note, finalAmount,false)
 
+
+        return true
+    }
+
+    /**
+     * mbal to mbal
+     */
+    fun transfer(fromUUID: UUID,toUUID: UUID,plugin: JavaPlugin,amount: Double):Boolean{
+
+        if (!bankEnable)return false
+
+//        if (amount< rate)return false
+
+        if (!hasAccount(fromUUID))return false
+
+        if (!withdraw(fromUUID,amount,plugin,"transferTo'${toUUID}'"))return false
+
+        deposit(toUUID,amount,plugin,"transferFrom'${fromUUID}'")
 
         return true
     }

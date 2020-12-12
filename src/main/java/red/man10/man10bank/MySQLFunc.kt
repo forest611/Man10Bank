@@ -1,10 +1,9 @@
-package red.man10.man10offlinebank
+package red.man10.man10bank
 
 import org.bukkit.Bukkit
 
 import java.sql.Connection
 import java.sql.DriverManager
-import java.sql.SQLException
 import java.util.logging.Level
 
 class MySQLFunc(host: String, db: String, user: String, pass: String, port: String) {

@@ -1,6 +1,5 @@
-package red.man10.man10offlinebank
+package red.man10.man10bank
 
-import net.testusuke.open.man10mail.DataBase.MailConsole
 import org.apache.commons.lang.math.NumberUtils
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
@@ -10,18 +9,18 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
-import red.man10.man10offlinebank.MySQLManager.Companion.mysqlQueue
+import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class Man10OfflineBank : JavaPlugin(),Listener {
+class Man10Bank : JavaPlugin(),Listener {
 
     companion object{
         private const val prefix = "§l[§e§lMan10Bank§f§l]"
 
         lateinit var vault : VaultManager
 
-        lateinit var plugin : Man10OfflineBank
+        lateinit var plugin : Man10Bank
 
         fun sendMsg(p:Player,msg:String){
             p.sendMessage(prefix+msg)
@@ -225,8 +224,8 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                         args[1].toDouble()
                     }
 
-                    if (amount < 1){
-                        sendMsg(sender,"§c§l1未満の値は出金出来ません！")
+                    if (amount < 0){
+                        sendMsg(sender,"§c§l0未満の値は出金出来ません！")
                         return@execute
                     }
 
@@ -261,8 +260,8 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                 val amount = args[2].toDouble()
 
-                if (amount < 1){
-                    sendMsg(sender,"§c§l1未満の値は入金出来ません！")
+                if (amount < 0){
+                    sendMsg(sender,"§c§l0未満の値は入金出来ません！")
                     return true
                 }
 
@@ -294,8 +293,8 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                 val amount = args[2].toDouble()
 
-                if (amount < 1){
-                    sendMsg(sender,"§c§l1未満の値は入金出来ません！")
+                if (amount < 0){
+                    sendMsg(sender,"§c§l0未満の値は入金出来ません！")
                     return true
                 }
 
@@ -322,8 +321,8 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
                 val amount = args[2].toDouble()
 
-                if (amount < 1){
-                    sendMsg(sender,"§c§l1未満の値は入金出来ません！")
+                if (amount < 0){
+                    sendMsg(sender,"§c§l0未満の値は入金出来ません！")
                     return true
                 }
 
@@ -389,8 +388,8 @@ class Man10OfflineBank : JavaPlugin(),Listener {
 
             val amount = args[1].toDouble()
 
-            if (amount <0.1){
-                sendMsg(sender,"§c§l0.1未満の額は送金できません！")
+            if (amount <0){
+                sendMsg(sender,"§c§l0未満の額は送金できません！")
                 return true
             }
 
@@ -418,20 +417,25 @@ class Man10OfflineBank : JavaPlugin(),Listener {
                     return@execute
                 }
 
-                if (vault.getBalance(sender.uniqueId)<amount){
-                    sendMsg(sender,"§c§l送金する残高が足りません！")
+                if (!Bank.transfer(uuid,sender.uniqueId, plugin,amount)){
+                    sendMsg(sender,"Man10Bankに指定金額が入っていない可能性があります！")
                     return@execute
-
                 }
 
-                !vault.withdraw(sender.uniqueId,amount)
-
-                Bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}")
-
                 sendMsg(sender,"§a§l送金成功！")
+
+//                if (vault.getBalance(sender.uniqueId)<amount){
+//                    sendMsg(sender,"§c§l送金する残高が足りません！")
+//                    return@execute
+//
+//                }
+//
+//                !vault.withdraw(sender.uniqueId,amount)
+//
+//                Bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}")
+
             }
         }
-
 
         return false
     }
