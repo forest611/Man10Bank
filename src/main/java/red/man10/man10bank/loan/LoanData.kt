@@ -94,7 +94,10 @@ class LoanData {
 
     }
 
-    fun payback(): Double {
+    /**
+     * @param p 手形の持ち主
+     */
+    fun payback(p:Player): Double {
 
         if (nowAmount <= 0.0)return -1.0
 
@@ -124,7 +127,13 @@ class LoanData {
 
         }
 
+        if (nowAmount>0){
+            Bukkit.getScheduler().runTask(plugin, Runnable { getNote() })
+        }
+
         save(nowAmount)
+
+        Bank.deposit(p.uniqueId,paybackAmount, plugin,"paybackMoney")
 
         return paybackAmount
     }

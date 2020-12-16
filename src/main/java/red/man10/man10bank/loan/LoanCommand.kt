@@ -17,7 +17,7 @@ import kotlin.collections.HashMap
 
 class LoanCommand : CommandExecutor{
 
-    val cacheMap = HashMap<Player,Cache>()
+    private val cacheMap = HashMap<Player,Cache>()
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
 
@@ -40,10 +40,19 @@ class LoanCommand : CommandExecutor{
                 return true
             }
 
-            val data = LoanData()
-            data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
+            Thread{
 
-            cache.lend.inventory.addItem(data.getNote())
+                val data = LoanData()
+                data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
+
+                cache.lend.inventory.addItem(data.getNote())
+
+            }.start()
+
+            sender.sendMessage("§a§l借金の契約が成立しました！")
+            cache.borrow.sendMessage("§a§l借金の契約が成立しました！")
+
+            cacheMap.remove(sender)
 
             return true
         }

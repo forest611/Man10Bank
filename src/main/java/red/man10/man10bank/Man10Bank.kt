@@ -10,6 +10,8 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
+import red.man10.man10bank.loan.Event
+import red.man10.man10bank.loan.LoanCommand
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -70,6 +72,9 @@ class Man10Bank : JavaPlugin(),Listener {
         rate = config.getDouble("rate",1.0)
 
         server.pluginManager.registerEvents(this,this)
+        server.pluginManager.registerEvents(Event(),this)
+
+        getCommand("mlend")!!.setExecutor(LoanCommand())
 
         if (server.pluginManager.getPlugin("Man10Mail") !=null){
             isInstallMail = true
