@@ -27,7 +27,7 @@ class LoanData {
 
     fun create(lend:Player, borrow: Player, borrowedAmount : Double, rate:Double, paybackDay:Int):Int{
 
-        if (!Bank.withdraw(lend.uniqueId,(borrowedAmount* Man10Bank.loanFee), plugin,"LoanCreate"))return -1
+        if (!Bank.withdraw(lend.uniqueId,(borrowedAmount* Man10Bank.loanFee), plugin,"LoanCreate"))return -2
 
         Bank.deposit(lend.uniqueId,borrowedAmount, plugin,"LoanCreate")
 
@@ -46,9 +46,9 @@ class LoanData {
                 "'${lend.uniqueId}', " +
                 "'${borrow.name}', " +
                 "'${borrow.uniqueId}', " +
-                "now()', " +
-                "'(SELECT FROM_UNIXTIME(${paybackDate.time})'), " +
-                "$nowAmount)")
+                "now(), " +
+                "(SELECT FROM_UNIXTIME(${paybackDate.time})), " +
+                "$nowAmount);")
 
         val rs = mysql.query("SELECT id from loan_table order by id desc limit 1;")?:return -1
         rs.next()
@@ -145,11 +145,13 @@ class LoanData {
 
         meta.setCustomModelData(10)
 
-        meta.setDisplayName("§c§l約束の手形")
+        meta.setDisplayName("§c§l約束手形 §7§l(Promissory Note)")
         meta.lore = mutableListOf(
-            "債務者:${Bukkit.getOfflinePlayer(borrow).name}",
-            "手形の有効日:${SimpleDateFormat("yyyy/MM/dd").format(paybackDate)}",
-            "残りの返済金額:${Man10Bank.format(nowAmount)}")
+            "§4§l========[Man10Bank]========",
+            "   §7§l債務者:  ${Bukkit.getOfflinePlayer(borrow).name}",
+            "   §8§l有効日:  ${SimpleDateFormat("yyyy/MM/dd").format(paybackDate)}",
+            "   §7§l返済金額:${Man10Bank.format(nowAmount)}",
+            "§4§l==========================")
 
         meta.persistentDataContainer.set(NamespacedKey(plugin,"id"), PersistentDataType.INTEGER,id)
 

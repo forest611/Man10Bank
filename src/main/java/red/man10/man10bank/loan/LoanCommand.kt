@@ -50,7 +50,13 @@ class LoanCommand : CommandExecutor{
             Thread{
 
                 val data = LoanData()
-                data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
+                val id = data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
+
+                if (id == -1){
+                    sender.sendMessage("§c§l相手のお金が足りませんでした")
+                    cache.lend.sendMessage("§c§lお金が足りません！Man10Bankにお金を入れてください！")
+                    return@Thread
+                }
 
                 cache.lend.inventory.addItem(data.getNote())
 
@@ -73,11 +79,12 @@ class LoanCommand : CommandExecutor{
                 return true
             }
 
-            sender.sendMessage("§c§借金の提案を拒否しました！")
-            cache.lend.sendMessage("§c§相手が借金の提案を拒否しました！")
+            sender.sendMessage("§c借金の提案を拒否しました！")
+            cache.lend.sendMessage("§c相手が借金の提案を拒否しました！")
 
             cacheMap.remove(sender)
 
+            return true
         }
 
         //////////////////////////////////////////
