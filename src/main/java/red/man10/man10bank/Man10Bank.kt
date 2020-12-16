@@ -41,6 +41,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
         var rate = 1.0
 
+        var loanFee = 1.1
+
         var bankEnable = true
 
         var isInstallMail = false
