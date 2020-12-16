@@ -8,6 +8,7 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank
+import java.util.*
 
 class Event : Listener{
 
@@ -29,6 +30,11 @@ class Event : Listener{
 
         Thread{
             val data = LoanData.lendMap[id]?:LoanData().load(id)?:return@Thread
+
+            if (Date().before(data.paybackDate)){
+                p.sendMessage("§cこの手形はまだ有効ではありません！")
+                return@Thread
+            }
 
             data.payback(p)
         }.start()
