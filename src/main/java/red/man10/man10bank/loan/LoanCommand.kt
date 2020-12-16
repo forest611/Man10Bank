@@ -25,8 +25,15 @@ class LoanCommand : CommandExecutor{
 
         if (sender !is Player)return true
 
+        if (args.size!=4 && args.size != 1) {
+
+            sender.sendMessage("§a/mlend <プレイヤー> <金額> <期間(日)> <金利(0.0〜0.5)>")
+            sender.sendMessage("§a金額の10%を手数料としていただきます")
+            return true
+        }
+
         //mlend player amount day rate
-        if (args[0] == "success"){
+        if (args[0] == "allow"){
 
             val cache = cacheMap[sender]
 
@@ -55,6 +62,22 @@ class LoanCommand : CommandExecutor{
             cacheMap.remove(sender)
 
             return true
+        }
+
+        if (args[0] == "deny"){
+
+            val cache = cacheMap[sender]
+
+            if (cache == null){
+                sender.sendMessage("§cあなたに借金の提案は来ていません！")
+                return true
+            }
+
+            sender.sendMessage("§c§借金の提案を拒否しました！")
+            cache.lend.sendMessage("§c§相手が借金の提案を拒否しました！")
+
+            cacheMap.remove(sender)
+
         }
 
         //////////////////////////////////////////
@@ -90,14 +113,14 @@ class LoanCommand : CommandExecutor{
         }
 
         val sdf = SimpleDateFormat("yyyy/MM/dd")
-        sdf.format(LoanData.calcDate(day))
 
         borrow.sendMessage("§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
         borrow.sendMessage("§e§kXX§b§l借金の提案§e§kXX")
         borrow.sendMessage("§e貸し出される金額:${Man10Bank.format(amount)}")
         borrow.sendMessage("§e返済する金額:${Man10Bank.format(LoanData.calcRate(amount,day,rate))}")
-        borrow.sendMessage("§e返済日:$sdf")
-        sendHoverText(borrow,"§b§l§n[借りる]","§c借りたら必ず返しましょう！","/mlend success")
+        borrow.sendMessage("§e返済日:$${sdf.format(LoanData.calcDate(day))}")
+        sendHoverText(borrow,"§b§l§n[借りる]","§c借りたら必ず返しましょう！","/mlend allow")
+        sendHoverText(borrow,"§c§l§n[拒否する]","§c正しい判断かもしれない","/mlend deny")
         borrow.sendMessage("§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
 
         val cache = Cache()

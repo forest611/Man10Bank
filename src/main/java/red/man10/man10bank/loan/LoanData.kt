@@ -140,8 +140,10 @@ class LoanData {
 
     fun getNote():ItemStack{
 
-        val note = ItemStack(Material.IRON_NUGGET)
+        val note = ItemStack(Material.PINK_DYE)
         val meta = note.itemMeta
+
+        meta.setCustomModelData(10)
 
         meta.setDisplayName("§c§l約束の手形")
         meta.lore = mutableListOf(
