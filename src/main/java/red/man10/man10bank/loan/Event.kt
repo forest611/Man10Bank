@@ -1,5 +1,6 @@
 package red.man10.man10bank.loan
 
+import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -26,8 +27,6 @@ class Event : Listener{
 
         val id = item.itemMeta.persistentDataContainer[NamespacedKey(Man10Bank.plugin,"id"), PersistentDataType.INTEGER]?:return
 
-        p.inventory.remove(item)
-
         Thread{
             val data = LoanData.lendMap[id]?:LoanData().load(id)?:return@Thread
 
@@ -35,6 +34,8 @@ class Event : Listener{
                 p.sendMessage("§cこの手形はまだ有効ではありません！")
                 return@Thread
             }
+
+            Bukkit.getScheduler().runTask(Man10Bank.plugin, Runnable { p.inventory.remove(item) })
 
             data.payback(p)
         }.start()
