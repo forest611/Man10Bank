@@ -1,24 +1,28 @@
 package red.man10.man10bank.loan
 
+import org.bukkit.Bukkit
+import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
+import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.MySQLManager
+import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.HashMap
 import kotlin.math.floor
 
 class LoanData {
 
 
-    lateinit var borrow: UUID
-
-    var nowAmount : Double = 0.0
-
-    var id : Int = 0
-
-    lateinit var borrowDate : Date
     lateinit var paybackDate : Date
+    lateinit var borrow: UUID
+    var nowAmount : Double = 0.0
+    var id : Int = 0
 
 
     fun create(lend:Player, borrow: Player, borrowedAmount : Double, rate:Double, paybackDay:Int):Int{
@@ -27,15 +31,12 @@ class LoanData {
 
         Bank.deposit(lend.uniqueId,borrowedAmount, plugin,"LoanCreate")
 
-        nowAmount = floor(borrowedAmount * (1.0+rate))
+        //30日を基準に金利が設定される
+        nowAmount = calcRate(borrowedAmount,paybackDay,rate)
 
         this.borrow = borrow.uniqueId
 
-        borrowDate = Date()
-        val cal = Calendar.getInstance()
-        cal.time = borrowDate
-        cal.add(Calendar.DAY_OF_YEAR,paybackDay)
-        paybackDate = cal.time
+        paybackDate = calcDate(paybackDay)
 
         val mysql = MySQLManager(plugin,"Man10Loan")
 
@@ -46,7 +47,7 @@ class LoanData {
                 "'${borrow.name}', " +
                 "'${borrow.uniqueId}', " +
                 "now()', " +
-                "(SELECT FROM_UNIXTIME(${paybackDate.time})), " +
+                "'(SELECT FROM_UNIXTIME(${paybackDate.time})'), " +
                 "$nowAmount)")
 
         val rs = mysql.query("SELECT id from loan_table order by id desc limit 1;")?:return -1
@@ -57,11 +58,13 @@ class LoanData {
         rs.close()
         mysql.close()
 
+        lendMap[id] = this
+
         return id
 
     }
 
-    fun load(): LoanData? {
+    fun load(id:Int): LoanData? {
 
         val mysql = MySQLManager(plugin,"Man10Loan")
 
@@ -72,9 +75,12 @@ class LoanData {
         borrow = UUID.fromString(rs.getString("borrow_uuid"))
         nowAmount = rs.getDouble("amount")
         paybackDate = rs.getDate("payback_date")
+        this.id = rs.getInt("id")
 
         rs.close()
         mysql.close()
+
+        lendMap[id] = this
 
         return this
 
@@ -121,6 +127,40 @@ class LoanData {
         save(nowAmount)
 
         return paybackAmount
+    }
+
+    fun getNote():ItemStack{
+
+        val note = ItemStack(Material.IRON_NUGGET)
+        val meta = note.itemMeta
+
+        meta.setDisplayName("§c§l約束の手形")
+        meta.lore = mutableListOf(
+            "債務者:${Bukkit.getOfflinePlayer(borrow).name}",
+            "手形の有効日:${SimpleDateFormat("yyyy/MM/dd").format(paybackDate)}",
+            "残りの返済金額:${Man10Bank.format(nowAmount)}")
+
+        meta.persistentDataContainer.set(NamespacedKey(plugin,"id"), PersistentDataType.INTEGER,id)
+
+        note.itemMeta = meta
+
+        return note
+    }
+
+    companion object{
+        fun calcDate(day:Int):Date{
+            val cal = Calendar.getInstance()
+            cal.time = Date()
+            cal.add(Calendar.DAY_OF_YEAR,day)
+
+            return cal.time
+        }
+
+        fun calcRate(amount:Double,day:Int,rate:Double): Double {
+            return floor(amount * (1.0+(day/30*rate)))
+        }
+
+        val lendMap = ConcurrentHashMap<Int,LoanData>()
     }
 
 }
