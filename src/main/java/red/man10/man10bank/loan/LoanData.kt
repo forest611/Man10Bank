@@ -9,6 +9,7 @@ import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.plugin
+import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.MySQLManager
 import java.text.SimpleDateFormat
 import java.util.*
@@ -28,7 +29,7 @@ class LoanData {
 
         if (!Bank.withdraw(lend.uniqueId,(borrowedAmount* Man10Bank.loanFee), plugin,"LoanCreate"))return -1
 
-        Bank.deposit(lend.uniqueId,borrowedAmount, plugin,"LoanCreate")
+        Bank.deposit(borrow.uniqueId,borrowedAmount, plugin,"LoanCreate")
 
         //30日を基準に金利が設定される
         nowAmount = calcRate(borrowedAmount,paybackDay,rate)
@@ -129,15 +130,19 @@ class LoanData {
         val borrowPlayer = Bukkit.getOfflinePlayer(borrow)
 
         if (borrowPlayer.isOnline && paybackAmount>0){
-            Man10Bank.sendMsg(borrowPlayer.player!!,"§e手形の持ち主から借金の回収が行われました！")
+            sendMsg(borrowPlayer.player!!,"§e手形の持ち主から借金の回収が行われました！")
+            sendMsg(p,"§e${Man10Bank.format(paybackAmount)}円回収成功しました！")
         }
 
         if (nowAmount>0){
             Bukkit.getScheduler().runTask(plugin, Runnable { getNote() })
+        }else{
+            sendMsg(p,"§e全額回収し終わりました！")
 
             if (borrowPlayer.isOnline){
-                Man10Bank.sendMsg(borrowPlayer.player!!,"§e全額完済し終わりました！お疲れ様です！")
+                sendMsg(borrowPlayer.player!!,"§e全額完済し終わりました！お疲れ様です！")
             }
+
         }
 
         save(nowAmount)

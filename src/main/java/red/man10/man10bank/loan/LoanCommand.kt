@@ -90,6 +90,11 @@ class LoanCommand : CommandExecutor{
 
         //////////////////////////////////////////
 
+//        if (sender.name == args[0]){
+//            sendMsg(sender,"§c自分に借金の提示はできません")
+//            return true
+//        }
+
         val borrow = Bukkit.getPlayer(args[0])
 
         if (borrow == null){
