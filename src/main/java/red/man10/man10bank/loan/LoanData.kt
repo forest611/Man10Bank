@@ -102,6 +102,9 @@ class LoanData {
      */
     fun payback(p:Player) {
 
+        val borrowPlayer = Bukkit.getOfflinePlayer(borrow)
+        val isOnline = borrowPlayer.isOnline
+
         if (nowAmount <= 0.0)return
 
         val man10Bank = Bank.getBalance(borrow)
@@ -127,9 +130,9 @@ class LoanData {
 
 
 //        val takeBalance = floor(rate*(if (balance<nowAmount)balance else nowAmount))
-        val takeBalance = if (balance<nowAmount)balance else nowAmount* rate
+        val takeBalance = if (balance<(nowAmount*rate))balance else nowAmount* rate
 
-        if (takeBalance != 0.0 && Man10Bank.vault.withdraw(borrow,takeBalance)){
+        if (isOnline && takeBalance != 0.0 && Man10Bank.vault.withdraw(borrow,takeBalance)){
 
             nowAmount -= floor(takeBalance / rate)
 
@@ -140,9 +143,7 @@ class LoanData {
 
         }
 
-        val borrowPlayer = Bukkit.getOfflinePlayer(borrow)
-
-        if (borrowPlayer.isOnline){
+        if (isOnline){
             sendMsg(borrowPlayer.player!!,"§e手形の持ち主から借金の回収が行われました！")
         }
 
@@ -154,7 +155,7 @@ class LoanData {
 
             sendMsg(p,"§e全額回収し終わりました！")
 
-            if (borrowPlayer.isOnline){
+            if (isOnline){
                 sendMsg(borrowPlayer.player!!,"§e全額完済し終わりました！お疲れ様です！")
             }
 
