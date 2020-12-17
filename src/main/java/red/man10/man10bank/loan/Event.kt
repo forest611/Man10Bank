@@ -27,6 +27,13 @@ class Event : Listener{
 
         val id = item.itemMeta.persistentDataContainer[NamespacedKey(Man10Bank.plugin,"id"), PersistentDataType.INTEGER]?:return
 
+        e.isCancelled = true
+
+        if (!LoanData.enable){
+            Man10Bank.sendMsg(p, "§a現在借金の貸し出しなどはできません！")
+            return
+        }
+
         Thread{
             val data = LoanData.lendMap[id]?:LoanData().load(id)?:return@Thread
 

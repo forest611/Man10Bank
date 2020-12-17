@@ -204,6 +204,8 @@ class LoanData {
         }
 
         val lendMap = ConcurrentHashMap<Int,LoanData>()
+
+        var enable = true
     }
 
 }

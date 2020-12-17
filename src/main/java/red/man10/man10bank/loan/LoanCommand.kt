@@ -20,6 +20,9 @@ class LoanCommand : CommandExecutor{
 
     private val cacheMap = HashMap<Player,Cache>()
 
+    private val USER = "man10lend.user"
+    private val OP = "man10lend.op"
+
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
 
         if (label!="mlend")return false
@@ -31,10 +34,34 @@ class LoanCommand : CommandExecutor{
             sendMsg(sender,"§a/mlend <プレイヤー> <金額> <期間(日)> <金利(0.0〜0.5)>")
             sendMsg(sender,"§a金額の10%を手数料としていただきます")
             return true
+
+        }
+
+        if (args[0] == "off"){
+            if (!sender.hasPermission(OP))return false
+            LoanData.enable = true
+            return true
+        }
+
+        if (args[0] == "on"){
+
+            if (!sender.hasPermission(OP))return false
+            LoanData.enable = true
+            return true
+
+        }
+
+        if (!LoanData.enable){
+
+            sendMsg(sender,"§a現在借金の貸し出しなどはできません！")
+            return true
+
         }
 
         //mlend player amount day rate
         if (args[0] == "allow"){
+
+            if (!sender.hasPermission(USER)){ return false}
 
             val cache = cacheMap[sender]
 
@@ -54,9 +81,11 @@ class LoanCommand : CommandExecutor{
                 val id = data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
 
                 if (id == -1){
+
                     sendMsg(sender,"§c§l相手のお金が足りませんでした")
                     sendMsg(cache.lend,"§c§lお金が足りません！Man10Bankにお金を入れてください！")
                     return@Thread
+
                 }
 
                 cache.lend.inventory.addItem(data.getNote())
@@ -88,17 +117,27 @@ class LoanCommand : CommandExecutor{
             return true
         }
 
-        //////////////////////////////////////////
+        /////////////////貸し出しコマンド/////////////////////////
 
-//        if (sender.name == args[0]){
-//            sendMsg(sender,"§c自分に借金の提示はできません")
-//            return true
-//        }
+        if (!sender.hasPermission(USER)){
+            sendMsg(sender,"§4お金を貸し出す権限がありません！")
+            return true
+        }
+
+        if (sender.name == args[0]){
+            sendMsg(sender,"§c自分に借金の提示はできません")
+            return true
+        }
 
         val borrow = Bukkit.getPlayer(args[0])
 
         if (borrow == null){
             sendMsg(sender,"§cそのプレイヤーはオフラインです")
+            return true
+        }
+
+        if (!borrow.hasPermission(USER)){
+            sendMsg(sender,"§4貸し出す相手に権限がありません")
             return true
         }
 
