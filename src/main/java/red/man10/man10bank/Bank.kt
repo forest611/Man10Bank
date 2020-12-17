@@ -126,34 +126,6 @@ object Bank {
     }
 
     /**
-     * ユーザー名からuuidを取得する
-     *
-     *@return 口座が存在しなかったらnullを返す
-     */
-    fun getUUID(player:String):UUID?{
-
-        val mysql = MySQLManager(plugin,"Man10OfflineBank")
-
-        val rs = mysql.query("SELECT uuid FROM user_bank WHERE player='$player';")?:return null
-
-        if (rs.next()){
-            val uuid = UUID.fromString(rs.getString("uuid"))
-
-            mysql.close()
-            rs.close()
-
-            return uuid
-        }
-
-        mysql.close()
-        rs.close()
-
-        return null
-
-    }
-
-
-    /**
      * オフライン口座に入金する
      *
      * @param plugin 入金したプラグイン
@@ -209,6 +181,33 @@ object Bank {
 
 
         return true
+    }
+
+    /**
+     * ユーザー名からuuidを取得する
+     *
+     *@return 口座が存在しなかったらnullを返す
+     */
+    fun getUUID(player:String):UUID?{
+
+        val mysql = MySQLManager(plugin,"Man10OfflineBank")
+
+        val rs = mysql.query("SELECT uuid FROM user_bank WHERE player='$player';")?:return null
+
+        if (rs.next()){
+            val uuid = UUID.fromString(rs.getString("uuid"))
+
+            mysql.close()
+            rs.close()
+
+            return uuid
+        }
+
+        mysql.close()
+        rs.close()
+
+        return null
+
     }
 
     /**
