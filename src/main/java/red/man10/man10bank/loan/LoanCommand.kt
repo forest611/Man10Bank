@@ -122,6 +122,11 @@ class LoanCommand : CommandExecutor{
                 return true
             }
 
+            if (day>365){
+                sendMsg(sender,"§c返済期限は一年以下にしてください！")
+                return true
+            }
+
             if (amount>Man10Bank.loanMax){
                 sendMsg(sender,"§${Man10Bank.loanMax}以下に設定してください！")
                 return true
