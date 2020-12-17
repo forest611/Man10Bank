@@ -9,6 +9,7 @@ import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.plugin
+import red.man10.man10bank.Man10Bank.Companion.rate
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.MySQLManager
 import java.text.SimpleDateFormat
@@ -27,9 +28,11 @@ class LoanData {
 
     fun create(lend:Player, borrow: Player, borrowedAmount : Double, rate:Double, paybackDay:Int):Int{
 
-        if (!Bank.withdraw(lend.uniqueId,(borrowedAmount* Man10Bank.loanFee), plugin,"LoanCreate"))return -1
+        val finalAmount = borrowedAmount* Man10Bank.rate
 
-        Bank.deposit(borrow.uniqueId,borrowedAmount, plugin,"LoanCreate")
+        if (!Bank.withdraw(lend.uniqueId,(finalAmount* Man10Bank.loanFee), plugin,"LoanCreate"))return -1
+
+        Bank.deposit(borrow.uniqueId,finalAmount, plugin,"LoanCreate")
 
         //30日を基準に金利が設定される
         nowAmount = calcRate(borrowedAmount,paybackDay,rate)
@@ -97,46 +100,58 @@ class LoanData {
     /**
      * @param p 手形の持ち主
      */
-    fun payback(p:Player): Double {
+    fun payback(p:Player) {
 
-        if (nowAmount <= 0.0)return -1.0
+        if (nowAmount <= 0.0)return
 
         val man10Bank = Bank.getBalance(borrow)
 
         val balance = Man10Bank.vault.getBalance(borrow)
 
-        var paybackAmount = 0.0
+//        var paybackBank = 0.0
 
-        val takeMan10Bank = if (man10Bank<nowAmount)man10Bank else nowAmount
+        val takeMan10Bank = rate*(if (man10Bank<nowAmount)man10Bank else nowAmount)
 
         if (takeMan10Bank != 0.0 && Bank.withdraw(borrow,takeMan10Bank, plugin,"paybackMoney")){
 
-            nowAmount -=takeMan10Bank
+            nowAmount -= takeMan10Bank/4
 
-            paybackAmount +=takeMan10Bank
+//            paybackBank +=takeMan10Bank
+
+            if (takeMan10Bank>0){
+                sendMsg(p,"§eMan10Bankから${Man10Bank.format(takeMan10Bank/4)}円回収成功しました！")
+                Bank.deposit(p.uniqueId,takeMan10Bank, plugin,"paybackMoneyFromBank")
+            }
 
         }
 
-        val takeBalance = if (balance<nowAmount)balance else nowAmount
+
+//        val takeBalance = floor(rate*(if (balance<nowAmount)balance else nowAmount))
+        val takeBalance = if (balance<nowAmount)balance else nowAmount* rate
 
         if (takeBalance != 0.0 && Man10Bank.vault.withdraw(borrow,takeBalance)){
 
-            nowAmount -= takeBalance
+            nowAmount -= floor(takeBalance / rate)
 
-            paybackAmount += takeBalance
+            if (takeBalance>0){
+                sendMsg(p,"§e所持金から${Man10Bank.format(takeBalance)}円回収成功しました！${if (rate!=1.0) " (レート差あり)" else ""}")
+                Bank.deposit(p.uniqueId,takeBalance, plugin,"paybackMoneyFromBalance")
+            }
 
         }
 
         val borrowPlayer = Bukkit.getOfflinePlayer(borrow)
 
-        if (borrowPlayer.isOnline && paybackAmount>0){
+        if (borrowPlayer.isOnline){
             sendMsg(borrowPlayer.player!!,"§e手形の持ち主から借金の回収が行われました！")
-            sendMsg(p,"§e${Man10Bank.format(paybackAmount)}円回収成功しました！")
         }
 
         if (nowAmount>0){
+
             Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.addItem(getNote()) })
+
         }else{
+
             sendMsg(p,"§e全額回収し終わりました！")
 
             if (borrowPlayer.isOnline){
@@ -147,9 +162,9 @@ class LoanData {
 
         save(nowAmount)
 
-        Bank.deposit(p.uniqueId,paybackAmount, plugin,"paybackMoney")
+//        Bank.deposit(p.uniqueId,paybackBank, plugin,"paybackMoney")
 
-        return paybackAmount
+//        return paybackBank
     }
 
     fun getNote():ItemStack{

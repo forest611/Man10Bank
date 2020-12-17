@@ -372,6 +372,7 @@ class Man10Bank : JavaPlugin(),Listener {
                     reloadConfig()
 
                     fee = config.getDouble("fee")
+                    rate = config.getDouble("rate")
 
                     Bank.reload()
                 }

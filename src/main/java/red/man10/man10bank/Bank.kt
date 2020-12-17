@@ -109,7 +109,7 @@ object Bank {
 
     @Synchronized
     fun setBalance(uuid:UUID,amount: Double){
-        if (amount <0.1)return
+        if (amount <0.0)return
 
         if (!hasAccount(uuid)){
             createAccount(uuid)
