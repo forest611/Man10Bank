@@ -9,6 +9,7 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import java.text.SimpleDateFormat
 import java.util.*
@@ -166,7 +167,7 @@ class LoanCommand : CommandExecutor{
         if (command != null) {
             clickEvent = ClickEvent(ClickEvent.Action.RUN_COMMAND, command)
         }
-        val message = ComponentBuilder(text).event(hoverEvent).event(clickEvent).create()
+        val message = ComponentBuilder(prefix+text).event(hoverEvent).event(clickEvent).create()
         p.spigot().sendMessage(*message)
     }
 

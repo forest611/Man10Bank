@@ -18,7 +18,7 @@ import java.util.concurrent.Executors
 class Man10Bank : JavaPlugin(),Listener {
 
     companion object{
-        private const val prefix = "§l[§e§lMan10Bank§f§l]"
+        const val prefix = "§l[§e§lMan10Bank§f§l]"
 
         lateinit var vault : VaultManager
 

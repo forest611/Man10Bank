@@ -126,17 +126,23 @@ class LoanData {
 
         }
 
+        val borrowPlayer = Bukkit.getOfflinePlayer(borrow)
+
+        if (borrowPlayer.isOnline && paybackAmount>0){
+            Man10Bank.sendMsg(borrowPlayer.player!!,"§e手形の持ち主から借金の回収が行われました！")
+        }
+
         if (nowAmount>0){
             Bukkit.getScheduler().runTask(plugin, Runnable { getNote() })
+
+            if (borrowPlayer.isOnline){
+                Man10Bank.sendMsg(borrowPlayer.player!!,"§e全額完済し終わりました！お疲れ様です！")
+            }
         }
 
         save(nowAmount)
 
         Bank.deposit(p.uniqueId,paybackAmount, plugin,"paybackMoney")
-
-        if (Bukkit.getOfflinePlayer(borrow).isOnline){
-            Man10Bank.sendMsg(Bukkit.getOfflinePlayer(borrow).player!!,"§e手形の持ち主から借金の回収が行われました！")
-        }
 
         return paybackAmount
     }
