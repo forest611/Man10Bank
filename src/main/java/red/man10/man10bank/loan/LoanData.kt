@@ -135,7 +135,7 @@ class LoanData {
         }
 
         if (nowAmount>0){
-            Bukkit.getScheduler().runTask(plugin, Runnable { getNote() })
+            Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.addItem(getNote()) })
         }else{
             sendMsg(p,"§e全額回収し終わりました！")
 
