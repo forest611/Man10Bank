@@ -13,7 +13,6 @@ import red.man10.man10bank.MySQLManager
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.HashMap
 import kotlin.math.floor
 
 class LoanData {
@@ -47,7 +46,7 @@ class LoanData {
                 "'${borrow.name}', " +
                 "'${borrow.uniqueId}', " +
                 "now(), " +
-                "(SELECT FROM_UNIXTIME(${paybackDate.time})), " +
+                "'${SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(paybackDate.time)}', " +
                 "$nowAmount);")
 
         val rs = mysql.query("SELECT id from loan_table order by id desc limit 1;")?:return -2
