@@ -22,6 +22,7 @@ object Bank {
     //////////////////////////////////
     //口座を持っているかどうか
     //////////////////////////////////
+    @Synchronized
     fun hasAccount(uuid:UUID):Boolean{
 
 
@@ -45,6 +46,7 @@ object Bank {
     /////////////////////////////////////
     //新規口座作成 既に持っていたら作らない
     /////////////////////////////////////
+    @Synchronized
     private fun createAccount(uuid: UUID):Boolean{
 
         if (hasAccount(uuid))return false
@@ -94,7 +96,10 @@ object Bank {
 
         var bal = 0.0
 
-        if (!hasAccount(uuid))return 0.0
+        if (!hasAccount(uuid)){
+            createAccount(uuid)
+            return 0.0
+        }
 
         val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid' for update;")?:return bal
 
@@ -161,9 +166,9 @@ object Bank {
 
         if (!bankEnable)return false
 
-        if (!hasAccount(uuid)){
-            createAccount(uuid)
-        }
+//        if (!hasAccount(uuid)){
+//            createAccount(uuid)
+//        }
 
         if (amount <rate)return false
 
@@ -192,7 +197,7 @@ object Bank {
 
         if (amount <rate)return false
 
-        if (!hasAccount(uuid))return false
+//        if (!hasAccount(uuid))return false
 
         val finalAmount = floor(amount/rate)
 
