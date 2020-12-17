@@ -13,6 +13,7 @@ import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.math.floor
 
 class LoanCommand : CommandExecutor{
 
@@ -101,7 +102,7 @@ class LoanCommand : CommandExecutor{
 
         try {
 
-            amount = args[1].toDouble()
+            amount = floor(args[1].toDouble())
             day = args[2].toInt()
             rate = args[3].toDouble()
 
