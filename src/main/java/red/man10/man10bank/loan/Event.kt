@@ -31,7 +31,7 @@ class Event : Listener{
             val data = LoanData.lendMap[id]?:LoanData().load(id)?:return@Thread
 
             if (Date().before(data.paybackDate)){
-                p.sendMessage("§cこの手形はまだ有効ではありません！")
+                Man10Bank.sendMsg(p,"§cこの手形はまだ有効ではありません！")
                 return@Thread
             }
 

@@ -135,6 +135,10 @@ class LoanData {
 
         Bank.deposit(p.uniqueId,paybackAmount, plugin,"paybackMoney")
 
+        if (Bukkit.getOfflinePlayer(borrow).isOnline){
+            Man10Bank.sendMsg(Bukkit.getOfflinePlayer(borrow).player!!,"§e手形の持ち主から借金の回収が行われました！")
+        }
+
         return paybackAmount
     }
 

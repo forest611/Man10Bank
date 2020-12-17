@@ -10,6 +10,7 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -27,8 +28,8 @@ class LoanCommand : CommandExecutor{
 
         if (args.size!=4 && args.size != 1) {
 
-            sender.sendMessage("§a/mlend <プレイヤー> <金額> <期間(日)> <金利(0.0〜0.5)>")
-            sender.sendMessage("§a金額の10%を手数料としていただきます")
+            sendMsg(sender,"§a/mlend <プレイヤー> <金額> <期間(日)> <金利(0.0〜0.5)>")
+            sendMsg(sender,"§a金額の10%を手数料としていただきます")
             return true
         }
 
@@ -38,12 +39,12 @@ class LoanCommand : CommandExecutor{
             val cache = cacheMap[sender]
 
             if (cache == null){
-                sender.sendMessage("§cあなたに借金の提案は来ていません！")
+                sendMsg(sender,"§cあなたに借金の提案は来ていません！")
                 return true
             }
 
             if (!cache.lend.isOnline){
-                sender.sendMessage("§c§l提案者がログアウトしました")
+                sendMsg(sender,"§c§l提案者がログアウトしました")
                 return true
             }
 
@@ -53,8 +54,8 @@ class LoanCommand : CommandExecutor{
                 val id = data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
 
                 if (id == -1){
-                    sender.sendMessage("§c§l相手のお金が足りませんでした")
-                    cache.lend.sendMessage("§c§lお金が足りません！Man10Bankにお金を入れてください！")
+                    sendMsg(sender,"§c§l相手のお金が足りませんでした")
+                    sendMsg(cache.lend,"§c§lお金が足りません！Man10Bankにお金を入れてください！")
                     return@Thread
                 }
 
@@ -62,8 +63,8 @@ class LoanCommand : CommandExecutor{
 
             }.start()
 
-            sender.sendMessage("§a§l借金の契約が成立しました！")
-            cache.borrow.sendMessage("§a§l借金の契約が成立しました！")
+            sendMsg(sender,"§a§l借金の契約が成立しました！")
+            sendMsg(cache.lend,"§a§l借金の契約が成立しました！")
 
             cacheMap.remove(sender)
 
@@ -75,11 +76,11 @@ class LoanCommand : CommandExecutor{
             val cache = cacheMap[sender]
 
             if (cache == null){
-                sender.sendMessage("§cあなたに借金の提案は来ていません！")
+                sendMsg(sender,"§cあなたに借金の提案は来ていません！")
                 return true
             }
 
-            sender.sendMessage("§c借金の提案を拒否しました！")
+            sendMsg(sender,"§c借金の提案を拒否しました！")
             cache.lend.sendMessage("§c相手が借金の提案を拒否しました！")
 
             cacheMap.remove(sender)
@@ -92,7 +93,7 @@ class LoanCommand : CommandExecutor{
         val borrow = Bukkit.getPlayer(args[0])
 
         if (borrow == null){
-            sender.sendMessage("§cそのプレイヤーはオフラインです")
+            sendMsg(sender,"§cそのプレイヤーはオフラインです")
             return true
         }
 
@@ -106,29 +107,31 @@ class LoanCommand : CommandExecutor{
             rate = args[3].toDouble()
 
             if (rate > 0.5){
-                sender.sendMessage("§c金利は0.5以下にしてください！")
+                sendMsg(sender,"§c金利は0.5以下にしてください！")
                 return true
             }
 
-            if (amount < 1 || day <1){
-                sender.sendMessage("§c数値エラー")
+            if (amount < 1 || day < 0){
+                sendMsg(sender,"§c数値エラー")
                 return true
             }
         }catch (e:Exception){
-            sender.sendMessage("§c入力に問題があります！")
+            sendMsg(sender,"§c入力に問題があります！")
             return true
         }
 
         val sdf = SimpleDateFormat("yyyy/MM/dd")
 
-        borrow.sendMessage("§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
-        borrow.sendMessage("§e§kXX§b§l借金の提案§e§kXX")
-        borrow.sendMessage("§e貸し出される金額:${Man10Bank.format(amount)}")
-        borrow.sendMessage("§e返済する金額:${Man10Bank.format(LoanData.calcRate(amount,day,rate))}")
-        borrow.sendMessage("§e返済日:$${sdf.format(LoanData.calcDate(day))}")
+        sendMsg(sender,"§a§l借金の提案を相手に提示しました")
+
+        sendMsg(borrow,"§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
+        sendMsg(borrow,"§e§kXX§b§l借金の提案§e§kXX")
+        sendMsg(borrow,"§e貸し出される金額:${Man10Bank.format(amount)}")
+        sendMsg(borrow,"§e返済する金額:${Man10Bank.format(LoanData.calcRate(amount,day,rate))}")
+        sendMsg(borrow,"§e返済日:$${sdf.format(LoanData.calcDate(day))}")
         sendHoverText(borrow,"§b§l§n[借りる]","§c借りたら必ず返しましょう！","/mlend allow")
         sendHoverText(borrow,"§c§l§n[拒否する]","§c正しい判断かもしれない","/mlend deny")
-        borrow.sendMessage("§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
+        sendMsg(borrow,"§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
 
         val cache = Cache()
         cache.amount = amount
