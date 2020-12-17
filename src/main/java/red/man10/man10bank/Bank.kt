@@ -101,7 +101,7 @@ object Bank {
             return 0.0
         }
 
-        val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid' for update;")?:return bal
+        val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid';")?:return bal
 
         if (!rs.next()){
             return bal
