@@ -102,6 +102,7 @@ class LoanCommand : CommandExecutor{
         val rate : Double
 
         try {
+
             amount = args[1].toDouble()
             day = args[2].toInt()
             rate = args[3].toDouble()
@@ -115,6 +116,12 @@ class LoanCommand : CommandExecutor{
                 sendMsg(sender,"§c数値エラー")
                 return true
             }
+
+            if (amount>Man10Bank.loanMax){
+                sendMsg(sender,"§${Man10Bank.loanMax}以下に設定してください！")
+                return true
+            }
+
         }catch (e:Exception){
             sendMsg(sender,"§c入力に問題があります！")
             return true

@@ -39,15 +39,14 @@ class Man10Bank : JavaPlugin(),Listener {
         const val OP = "man10bank.op"
         const val USER = "man10bank.user"
 
-        var fee = 0.00
-
-        var rate = 1.0
-
-        var loanFee = 1.1
+        var fee : Double = 0.00
+        var rate : Double = 1.0
 
         var bankEnable = true
-
         var isInstallMail = false
+
+        var loanFee : Double = 1.1
+        var loanMax : Double = 10000000.0
 
     }
 
@@ -70,6 +69,9 @@ class Man10Bank : JavaPlugin(),Listener {
 
         fee = config.getDouble("fee",1.0)
         rate = config.getDouble("rate",1.0)
+
+        loanFee = config.getDouble("loanfee",1.1)
+        loanMax = config.getDouble("loanmax",10000000.0)
 
         server.pluginManager.registerEvents(this,this)
         server.pluginManager.registerEvents(Event(),this)

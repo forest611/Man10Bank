@@ -27,7 +27,7 @@ class LoanData {
 
     fun create(lend:Player, borrow: Player, borrowedAmount : Double, rate:Double, paybackDay:Int):Int{
 
-        if (!Bank.withdraw(lend.uniqueId,(borrowedAmount* Man10Bank.loanFee), plugin,"LoanCreate"))return -2
+        if (!Bank.withdraw(lend.uniqueId,(borrowedAmount* Man10Bank.loanFee), plugin,"LoanCreate"))return -1
 
         Bank.deposit(lend.uniqueId,borrowedAmount, plugin,"LoanCreate")
 
@@ -50,7 +50,7 @@ class LoanData {
                 "(SELECT FROM_UNIXTIME(${paybackDate.time})), " +
                 "$nowAmount);")
 
-        val rs = mysql.query("SELECT id from loan_table order by id desc limit 1;")?:return -1
+        val rs = mysql.query("SELECT id from loan_table order by id desc limit 1;")?:return -2
         rs.next()
 
         id = rs.getInt("id")
