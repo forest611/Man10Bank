@@ -13,12 +13,13 @@ import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.HashMap
 import kotlin.math.floor
 
 class LoanCommand : CommandExecutor{
 
-    private val cacheMap = HashMap<Player,Cache>()
+    private val cacheMap = ConcurrentHashMap<Player,Cache>()
 
     private val USER = "man10lend.user"
     private val OP = "man10lend.op"
@@ -75,10 +76,12 @@ class LoanCommand : CommandExecutor{
                 return true
             }
 
+            var id = 0
+
             Thread{
 
                 val data = LoanData()
-                val id = data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
+                id = data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
 
                 if (id == -1){
 
@@ -90,12 +93,12 @@ class LoanCommand : CommandExecutor{
 
                 cache.lend.inventory.addItem(data.getNote())
 
+                sendMsg(sender,"§a§l借金の契約が成立しました！")
+                sendMsg(cache.lend,"§a§l借金の契約が成立しました！")
+
+                cacheMap.remove(sender)
+
             }.start()
-
-            sendMsg(sender,"§a§l借金の契約が成立しました！")
-            sendMsg(cache.lend,"§a§l借金の契約が成立しました！")
-
-            cacheMap.remove(sender)
 
             return true
         }

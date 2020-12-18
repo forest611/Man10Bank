@@ -378,6 +378,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
                     fee = config.getDouble("fee")
                     rate = config.getDouble("rate")
+                    loanMax = config.getDouble("loanmax")
+                    loanFee = config.getDouble("loanfee")
 
                     Bank.reload()
                 }

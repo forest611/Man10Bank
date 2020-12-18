@@ -117,12 +117,12 @@ class LoanData {
 
         if (takeMan10Bank != 0.0 && Bank.withdraw(borrow,takeMan10Bank, plugin,"paybackMoney")){
 
-            nowAmount -= takeMan10Bank/4
+            nowAmount -= takeMan10Bank/ rate
 
 //            paybackBank +=takeMan10Bank
 
             if (takeMan10Bank>0){
-                sendMsg(p,"§eMan10Bankから${Man10Bank.format(takeMan10Bank/4)}円回収成功しました！")
+                sendMsg(p,"§eMan10Bankから${Man10Bank.format(takeMan10Bank/rate)}円回収成功しました！")
                 Bank.deposit(p.uniqueId,takeMan10Bank, plugin,"paybackMoneyFromBank")
             }
 
