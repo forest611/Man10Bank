@@ -185,6 +185,7 @@ class LoanCommand : CommandExecutor{
 
         sendMsg(borrow,"§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
         sendMsg(borrow,"§e§kXX§b§l借金の提案§e§kXX")
+        sendMsg(borrow,"§e提案者:${sender.name}")
         sendMsg(borrow,"§e貸し出される金額:${Man10Bank.format(amount)}")
         sendMsg(borrow,"§e返済する金額:${Man10Bank.format(LoanData.calcRate(amount,day,rate))}")
         sendMsg(borrow,"§e返済日:$${sdf.format(LoanData.calcDate(day))}")
