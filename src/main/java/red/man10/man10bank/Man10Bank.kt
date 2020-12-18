@@ -186,6 +186,9 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 if (sender !is Player)return false
 
+                if (!isEnabled)return false
+
+
                 //入金額
                 val amount : Double = if (args[1] == "all"){
                     vault.getBalance(sender.uniqueId)
@@ -220,6 +223,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
             if ((cmd == "withdraw" || cmd == "w") && args.size == 2){
                 if (sender !is Player)return false
+
+                if (!isEnabled)return false
 
                 es.execute {
 
@@ -388,6 +393,8 @@ class Man10Bank : JavaPlugin(),Listener {
         if (label == "mpay"){
 
             if (!sender.hasPermission(USER))return true
+
+            if (!isEnabled)return false
 
             if (args.size != 2)return false
 
