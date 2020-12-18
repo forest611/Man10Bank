@@ -171,7 +171,7 @@ class LoanData {
             "§4§l========[Man10Bank]========",
             "   §7§l債務者:  ${Bukkit.getOfflinePlayer(borrow).name}",
             "   §8§l有効日:  ${SimpleDateFormat("yyyy/MM/dd").format(paybackDate)}",
-            "   §7§l金　額:${Man10Bank.format(nowAmount)}",
+            "   §7§l返金額:  ${Man10Bank.format(nowAmount)}",
             "§4§l==========================")
 
         meta.persistentDataContainer.set(NamespacedKey(plugin,"id"), PersistentDataType.INTEGER,id)
