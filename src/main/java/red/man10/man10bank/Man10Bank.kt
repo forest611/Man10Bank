@@ -461,5 +461,6 @@ class Man10Bank : JavaPlugin(),Listener {
     @EventHandler
     fun login(e:PlayerJoinEvent){
         e.player.performCommand("mbal")
+        Bank.changeName(e.player)
     }
 }

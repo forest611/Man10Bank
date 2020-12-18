@@ -4,6 +4,7 @@ import net.testusuke.open.man10mail.DataBase.MailConsole
 import net.testusuke.open.man10mail.DataBase.MailSenderType
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
+import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.Man10Bank.Companion.bankEnable
 import red.man10.man10bank.Man10Bank.Companion.format
@@ -208,6 +209,10 @@ object Bank {
 
         return null
 
+    }
+
+    fun changeName(player: Player){
+        mysqlQueue.add("update user_bank set player='${player.name}' where uuid='${player.uniqueId}';")
     }
 
     /**
