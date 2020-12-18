@@ -434,22 +434,20 @@ class Man10Bank : JavaPlugin(),Listener {
                     return@execute
                 }
 
-                if (!Bank.transfer(sender.uniqueId,uuid, plugin,amount)){
-                    sendMsg(sender,"Man10Bankに指定金額が入っていない可能性があります！")
-                    return@execute
-                }
+//                if (!Bank.transfer(sender.uniqueId,uuid, plugin,amount)){
+//                    sendMsg(sender,"Man10Bankに指定金額が入っていない可能性があります！")
+//                    return@execute
+//                }
 
                 sendMsg(sender,"§a§l送金成功！")
 
-//                if (vault.getBalance(sender.uniqueId)<amount){
-//                    sendMsg(sender,"§c§l送金する残高が足りません！")
-//                    return@execute
-//
-//                }
-//
-//                !vault.withdraw(sender.uniqueId,amount)
-//
-//                Bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}")
+                if (!vault.withdraw(sender.uniqueId,amount)){
+                    sendMsg(sender,"§c§l送金する残高が足りません！")
+                    return@execute
+
+                }
+
+                Bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}")
 
             }
         }
