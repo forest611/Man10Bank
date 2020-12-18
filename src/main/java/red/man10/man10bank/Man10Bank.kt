@@ -434,7 +434,7 @@ class Man10Bank : JavaPlugin(),Listener {
                     return@execute
                 }
 
-                if (!Bank.transfer(uuid,sender.uniqueId, plugin,amount)){
+                if (!Bank.transfer(sender.uniqueId,uuid, plugin,amount)){
                     sendMsg(sender,"Man10Bankに指定金額が入っていない可能性があります！")
                     return@execute
                 }
