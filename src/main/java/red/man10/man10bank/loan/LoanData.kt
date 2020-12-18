@@ -111,15 +111,11 @@ class LoanData {
 
         val balance = Man10Bank.vault.getBalance(borrow)
 
-//        var paybackBank = 0.0
-
-        val takeMan10Bank = rate*(if (man10Bank<nowAmount)man10Bank else nowAmount)
+        val takeMan10Bank = floor(rate*(if (man10Bank<nowAmount)man10Bank else nowAmount))
 
         if (takeMan10Bank != 0.0 && Bank.withdraw(borrow,takeMan10Bank, plugin,"paybackMoney")){
 
             nowAmount -= takeMan10Bank/ rate
-
-//            paybackBank +=takeMan10Bank
 
             if (takeMan10Bank>0){
                 sendMsg(p,"§eMan10Bankから${Man10Bank.format(takeMan10Bank/rate)}円回収成功しました！")
@@ -128,9 +124,7 @@ class LoanData {
 
         }
 
-
-//        val takeBalance = floor(rate*(if (balance<nowAmount)balance else nowAmount))
-        val takeBalance = if (balance<(nowAmount*rate))balance else nowAmount* rate
+        val takeBalance = floor(if (balance<(nowAmount*rate))balance else nowAmount* rate)
 
         if (isOnline && takeBalance != 0.0 && Man10Bank.vault.withdraw(borrow,takeBalance)){
 
@@ -144,7 +138,7 @@ class LoanData {
         }
 
         if (isOnline){
-            sendMsg(borrowPlayer.player!!,"§e手形の持ち主から借金の回収が行われました！")
+            sendMsg(borrowPlayer.player!!,"§e${p.name}から借金の回収が行われました！")
         }
 
         if (nowAmount>0){
@@ -163,9 +157,6 @@ class LoanData {
 
         save(nowAmount)
 
-//        Bank.deposit(p.uniqueId,paybackBank, plugin,"paybackMoney")
-
-//        return paybackBank
     }
 
     fun getNote():ItemStack{
