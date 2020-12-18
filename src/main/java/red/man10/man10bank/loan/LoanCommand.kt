@@ -76,12 +76,10 @@ class LoanCommand : CommandExecutor{
                 return true
             }
 
-            var id = 0
-
             Thread{
 
                 val data = LoanData()
-                id = data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
+                val id = data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
 
                 if (id == -1){
 
@@ -159,7 +157,7 @@ class LoanCommand : CommandExecutor{
                 return true
             }
 
-            if (amount < 1 || day < 0){
+            if (amount < 1 || day < 0 || rate<0.0){
                 sendMsg(sender,"§c数値エラー")
                 return true
             }
