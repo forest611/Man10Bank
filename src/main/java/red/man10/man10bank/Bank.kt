@@ -110,6 +110,9 @@ object Bank {
 
         bal = rs.getDouble("balance")
 
+        rs.close()
+        mysql.close()
+
         return bal
     }
 
