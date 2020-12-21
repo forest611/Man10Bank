@@ -441,8 +441,6 @@ class Man10Bank : JavaPlugin(),Listener {
 //                    return@execute
 //                }
 
-                sendMsg(sender,"§a§l送金成功！")
-
                 if (!vault.withdraw(sender.uniqueId,amount)){
                     sendMsg(sender,"§c§l送金する残高が足りません！")
                     return@execute
@@ -451,6 +449,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 Bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}")
 
+                sendMsg(sender,"§a§l送金成功！")
             }
         }
 
