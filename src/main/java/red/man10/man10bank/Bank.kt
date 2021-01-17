@@ -1,19 +1,15 @@
 package red.man10.man10bank
 
-import net.testusuke.open.man10mail.DataBase.MailConsole
-import net.testusuke.open.man10mail.DataBase.MailSenderType
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.Man10Bank.Companion.bankEnable
-import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.rate
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.math.floor
 
 object Bank {
@@ -283,51 +279,6 @@ object Bank {
         return amount
     }
 
-    fun sendProfitAndLossMail(){
-
-        val moneyLog = HashMap<OfflinePlayer,MoneyData>()
-
-        val format = SimpleDateFormat("yyyy-MM-dd")
-        val date = Date()
-
-        val mysql = MySQLManager(plugin,"Man10Bank profit and loss")
-
-        val rs = mysql.query("select * from money_log where date>${format.format(date)} and amount != 0;")?:return
-
-        while (rs.next()){
-
-            val p = Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("uuid")))
-
-            val isDeposit = rs.getInt("deposit") == 1
-
-            val data = moneyLog[p] ?: MoneyData()
-
-            if (isDeposit){
-                data.deposit = data.deposit+ rs.getDouble("amount")
-                data.depositCount ++
-            }else{
-                data.withdraw = data.withdraw+ rs.getDouble("amount")
-                data.withdrawCount ++
-            }
-
-            moneyLog[p] = data
-
-        }
-
-        rs.close()
-        mysql.close()
-
-        for (log in moneyLog){
-
-            MailConsole.sendMail("&b&lMan10OfflineBank",log.key.uniqueId.toString()," §c§l[入出金情報] Man10OfflineBank","Man10OfflineBank",
-                    "§e§l${format.format(date)}の入出金情報です;" +
-                            "§e入金額:§a§l${format(log.value.deposit)};" +
-                            "§e出金額:§c§l${format(log.value.withdraw)};" +
-                            "§e取引回数:§a入金:${log.value.depositCount}回,§c出金:§c${log.value.withdrawCount}回",MailSenderType.CUSTOM)
-
-        }
-
-    }
 
     fun calcLog(deposit:Boolean,p:Player): Double {
 
@@ -349,29 +300,6 @@ object Bank {
         return amount
     }
 
-    fun mailThread(){
-
-        Thread{
-
-            var sent = false
-
-            while (true){
-
-                val calender = Calendar.getInstance()
-
-                if (calender.get(Calendar.MINUTE) == 59 && calender.get(Calendar.HOUR_OF_DAY) == 23 && !sent){
-                    sendProfitAndLossMail()
-                    sent = true
-                }else if(sent){
-                    sent = false
-                }
-
-                Thread.sleep(60000)
-            }
-
-        }.start()
-
-    }
 
     fun reload(){
         Bukkit.getLogger().info("Start Reload Man10Bank")
@@ -381,13 +309,5 @@ object Bank {
         Bukkit.getLogger().info("Finish Reload Man10Bank")
 
     }
-
-    class MoneyData{
-        var withdraw = 0.0
-        var deposit = 0.0
-        var withdrawCount = 0
-        var depositCount = 0
-    }
-
 
 }

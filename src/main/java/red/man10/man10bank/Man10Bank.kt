@@ -43,7 +43,6 @@ class Man10Bank : JavaPlugin(),Listener {
         var rate : Double = 1.0
 
         var bankEnable = true
-        var isInstallMail = false
 
         var loanFee : Double = 1.1
         var loanMax : Double = 10000000.0
@@ -77,11 +76,6 @@ class Man10Bank : JavaPlugin(),Listener {
         server.pluginManager.registerEvents(Event(),this)
 
         getCommand("mlend")!!.setExecutor(LoanCommand())
-
-        if (server.pluginManager.getPlugin("Man10Mail") !=null){
-            isInstallMail = true
-            Bank.mailThread()
-        }
 
     }
 
