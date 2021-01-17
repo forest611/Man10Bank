@@ -83,8 +83,6 @@ class Man10Bank : JavaPlugin(),Listener {
             Bank.mailThread()
         }
 
-//        Bank.mailThread()
-
     }
 
     override fun onDisable() {
@@ -171,13 +169,24 @@ class Man10Bank : JavaPlugin(),Listener {
                 sendMsg(sender,"§e/mbal withdraw(w) <金額>: 口座のお金を、出金する")
             }
 
-            if (cmd == "mail"){
-                if (!sender.hasPermission(OP))return false
+            if (cmd == "log"){
 
-                Thread{
-                    Bank.sendProfitAndLossMail()
-                }.start()
-                sender.sendMessage("送信完了")
+                if (sender !is Player)return false
+
+                sendMsg(sender,"計算中...")
+
+                es.execute{
+
+                    val deposit = format(Bank.calcLog(true,sender))
+                    val withdraw = format(Bank.calcLog(false,sender))
+
+                    sendMsg(sender,"§e§l今月の入出金額の合計")
+
+                    sendMsg(sender,"§a§l入金額:${deposit}")
+                    sendMsg(sender,"§c§l出金額:${withdraw}")
+
+                }
+
                 return true
             }
 

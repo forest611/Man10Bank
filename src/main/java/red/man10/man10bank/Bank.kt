@@ -329,6 +329,26 @@ object Bank {
 
     }
 
+    fun calcLog(deposit:Boolean,p:Player): Double {
+
+        val mysql = MySQLManager(plugin,"Man10Bank Calc Log")
+
+        val format = SimpleDateFormat("yyyy-MM-01 00:00:00")
+
+        Bukkit.getLogger().info(format.format(Date()))
+
+        val rs = mysql.query("select sum(amount) from money_log where date>'${format.format(Date())}' and uuid='${p.uniqueId}' and deposit=${if (deposit) 1 else 0}")?:return -1.0
+
+        rs.next()
+
+        val amount = rs.getDouble(1)
+
+        rs.close()
+        mysql.close()
+
+        return amount
+    }
+
     fun mailThread(){
 
         Thread{
