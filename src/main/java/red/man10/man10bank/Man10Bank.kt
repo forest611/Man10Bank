@@ -45,6 +45,7 @@ class Man10Bank : JavaPlugin(),Listener {
         var bankEnable = true
 
         var loanFee : Double = 1.1
+        var loanRate : Double = 1.0
         var loanMax : Double = 10000000.0
 
     }

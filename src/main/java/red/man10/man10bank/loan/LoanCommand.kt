@@ -9,6 +9,7 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Man10Bank.Companion.loanRate
 import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import java.text.SimpleDateFormat
@@ -32,7 +33,7 @@ class LoanCommand : CommandExecutor{
 
         if (args.size!=4 && args.size != 1) {
 
-            sendMsg(sender,"§a/mlend <プレイヤー> <金額> <期間(日)> <金利(0.0〜0.5)>")
+            sendMsg(sender,"§a/mlend <プレイヤー> <金額> <期間(日)> <金利(0.0〜${loanRate})>")
             sendMsg(sender,"§a金額の10%を手数料としていただきます")
             return true
 
@@ -152,8 +153,8 @@ class LoanCommand : CommandExecutor{
             day = args[2].toInt()
             rate = args[3].toDouble()
 
-            if (rate > 0.5){
-                sendMsg(sender,"§c金利は0.5以下にしてください！")
+            if (rate > Man10Bank.loanRate){
+                sendMsg(sender,"§c金利は${Man10Bank.loanRate}以下にしてください！")
                 return true
             }
 
