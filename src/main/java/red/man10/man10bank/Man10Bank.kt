@@ -72,6 +72,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
         loanFee = config.getDouble("loanfee",1.1)
         loanMax = config.getDouble("loanmax",10000000.0)
+        loanRate = config.getDouble("loanfee",1.0)
 
         server.pluginManager.registerEvents(this,this)
         server.pluginManager.registerEvents(Event(),this)
