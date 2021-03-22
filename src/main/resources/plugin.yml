@@ -16,3 +16,5 @@ commands:
     default: op
   mlend:
     default: op
+  pay:
+    default: op
