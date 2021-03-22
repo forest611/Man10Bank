@@ -397,6 +397,58 @@ class Man10Bank : JavaPlugin(),Listener {
 
         if (sender !is Player)return false
 
+
+        if (label == "pay"){
+            if (!sender.hasPermission(USER))return true
+
+            if (!isEnabled)return false
+
+            if (args.size != 2)return false
+
+            if (!NumberUtils.isNumber(args[1])){
+                sendMsg(sender,"§c§l/pay <ユーザー名> <金額>")
+                return true
+            }
+
+            val amount = args[1].toDouble()
+
+            if (amount <0){
+                sendMsg(sender,"§c§l0未満の額は送金できません！")
+                return true
+            }
+
+            if (checking[sender] == null||checking[sender]!! != command){
+
+                sendMsg(sender,"§7§l送金金額:${format(amount)}")
+                sendMsg(sender,"§7§l送金相手:${args[0]}")
+                sendMsg(sender,"§7§l確認のため、もう一度入力してください")
+
+                checking[sender] = command
+
+                return true
+            }
+
+            checking.remove(sender)
+
+            sendMsg(sender,"§e§l現在入金中・・・")
+
+            val p = Bukkit.getPlayer(args[0])
+
+            if (p==null){
+                sendMsg(sender,"§c§l送金相手がオフラインの可能性があります")
+                return true
+            }
+
+            if (!vault.withdraw(sender.uniqueId,amount)){
+                sendMsg(sender,"§c§l送金する残高が足りません！")
+            }
+
+            vault.deposit(p.uniqueId,amount)
+
+            sendMsg(sender,"§a§l送金成功！")
+            sendMsg(p,"§a${sender.name}から${format(amount)}円送金されました")
+        }
+
         if (label == "mpay"){
 
             if (!sender.hasPermission(USER))return true
@@ -441,12 +493,8 @@ class Man10Bank : JavaPlugin(),Listener {
                     return@execute
                 }
 
-//                if (!Bank.transfer(sender.uniqueId,uuid, plugin,amount)){
-//                    sendMsg(sender,"Man10Bankに指定金額が入っていない可能性があります！")
-//                    return@execute
-//                }
 
-                if (!vault.withdraw(sender.uniqueId,amount)){
+                if (!Bank.withdraw(sender.uniqueId,amount,this,"RemittanceTo${args[0]}")){
                     sendMsg(sender,"§c§l送金する残高が足りません！")
                     return@execute
 
@@ -455,6 +503,9 @@ class Man10Bank : JavaPlugin(),Listener {
                 Bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}")
 
                 sendMsg(sender,"§a§l送金成功！")
+
+                val p = Bukkit.getPlayer(uuid)?:return@execute
+                sendMsg(p,"§a${sender.name}から${format(amount)}円送金されました")
             }
         }
 
