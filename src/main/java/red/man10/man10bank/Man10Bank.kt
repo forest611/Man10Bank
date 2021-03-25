@@ -441,6 +441,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
             if (!vault.withdraw(sender.uniqueId,amount)){
                 sendMsg(sender,"§c§l送金する残高が足りません！")
+                return true
             }
 
             vault.deposit(p.uniqueId,amount)
