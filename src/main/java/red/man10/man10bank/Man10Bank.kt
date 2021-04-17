@@ -143,7 +143,7 @@ class Man10Bank : JavaPlugin(),Listener {
                     val uuid = Bank.getUUID(args[1])
 
                     if (uuid == null){
-                        sendMsg(sender,"まだ口座が解説されていない可能性があります")
+                        sendMsg(sender,"まだ口座が開設されていない可能性があります")
                         return@execute
                     }
 
@@ -198,7 +198,7 @@ class Man10Bank : JavaPlugin(),Listener {
                 val amount : Double = if (args[1] == "all"){
                     vault.getBalance(sender.uniqueId)
                 }else{
-                    if (!NumberUtils.isNumber(args[1])){
+                    if (!NumberUtils.isDigits(args[1])){
                         sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
                         return true
                     }
@@ -236,7 +236,7 @@ class Man10Bank : JavaPlugin(),Listener {
                     var amount = if (args[1] == "all"){
                         Bank.getBalance(sender.uniqueId)*rate
                     }else{
-                        if (!NumberUtils.isNumber(args[1])){
+                        if (!NumberUtils.isDigits(args[1])){
                             sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
                             return@execute
                         }
@@ -272,7 +272,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 if (!sender.hasPermission(OP))return true
 
-                if (!NumberUtils.isNumber(args[2])){
+                if (!NumberUtils.isDigits(args[2])){
                     sendMsg(sender,"§c§l回収する額を半角数字で入力してください！")
                     return true
                 }
@@ -305,7 +305,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 if (!sender.hasPermission(OP))return true
 
-                if (!NumberUtils.isNumber(args[2])){
+                if (!NumberUtils.isDigits(args[2])){
                     sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
                     return true
                 }
@@ -333,7 +333,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 if (!sender.hasPermission(OP))return true
 
-                if (!NumberUtils.isNumber(args[2])){
+                if (!NumberUtils.isDigits(args[2])){
                     sendMsg(sender,"§c§l設定する額を半角数字で入力してください！")
                     return true
                 }
@@ -405,7 +405,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
             if (args.size != 2)return false
 
-            if (!NumberUtils.isNumber(args[1])){
+            if (!NumberUtils.isDigits(args[1])){
                 sendMsg(sender,"§c§l/pay <ユーザー名> <金額>")
                 return true
             }
@@ -458,7 +458,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
             if (args.size != 2)return false
 
-            if (!NumberUtils.isNumber(args[1])){
+            if (!NumberUtils.isDigits(args[1])){
                 sendMsg(sender,"§c§l/mpay <ユーザー名> <金額>")
                 return true
             }
