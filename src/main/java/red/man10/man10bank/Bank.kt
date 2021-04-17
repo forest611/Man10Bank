@@ -5,8 +5,10 @@ import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.Man10Bank.Companion.bankEnable
+import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.rate
+import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import java.text.SimpleDateFormat
 import java.util.*
@@ -150,6 +152,12 @@ object Bank {
 
         addLog(uuid,plugin, note, finalAmount,true)
 
+        val p = Bukkit.getOfflinePlayer(uuid)
+
+        if (p.isOnline){
+            sendMsg(p.player!!,"§e${format(amount)}円入金がありました。")
+        }
+
         return true
     }
 
@@ -179,6 +187,11 @@ object Bank {
 
         addLog(uuid,plugin, note, finalAmount,false)
 
+        val p = Bukkit.getOfflinePlayer(uuid)
+
+        if (p.isOnline){
+            sendMsg(p.player!!,"§e${format(amount)}円出金されました。")
+        }
 
         return true
     }
