@@ -1,5 +1,7 @@
 package red.man10.man10bank
 
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickEvent
 import org.apache.commons.lang.math.NumberUtils
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
@@ -19,6 +21,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
     companion object{
         const val prefix = "§l[§e§lMan10Bank§f§l]"
+        val prefixComponent = Component.text(prefix)
 
         lateinit var vault : VaultManager
 
@@ -33,7 +36,7 @@ class Man10Bank : JavaPlugin(),Listener {
         }
 
         fun format(double: Double):String{
-            return String.format("%,.1f",double)
+            return String.format("%,.0f",double)
         }
 
         const val OP = "man10bank.op"
@@ -52,7 +55,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
     private val checking = HashMap<Player,Command>()
 
-    lateinit var es : ExecutorService
+    private lateinit var es : ExecutorService
 
     override fun onEnable() {
         // Plugin startup logic
@@ -114,18 +117,25 @@ class Man10Bank : JavaPlugin(),Listener {
 
         }
 
-        if (label == "mbal"){
+        if (label == "bal" || label == "mbal"){
 
             if (args.isEmpty()){
 
                 if (sender !is Player)return false
 
-                sendMsg(sender,"現在取得中....")
+//                sendMsg(sender,"現在取得中....")
 
                 es.execute{
-                    sendMsg(sender,"§e§l==========現在の銀行口座残高==========")
-                    sendMsg(sender,"§b§kXX§e§l${format(Bank.getBalance(sender.uniqueId))}§b§kXX")
+//                    sendMsg(sender,"§e§l==========現在の資産状況==========")
+                    sendMsg(sender,"§b§l所持金:    §e§l${format(vault.getBalance(sender.uniqueId))}円")
+                    sendMsg(sender,"§b§l銀行口座:   §e§l${format(Bank.getBalance(sender.uniqueId))}円")
 
+
+                    val deposit = Component.text("§b§l§n[入金]").clickEvent(ClickEvent.suggestCommand("/bal deposit "))
+                    val withdraw = Component.text("  §c§l§n[出金]").clickEvent(ClickEvent.suggestCommand("/bal withdraw "))
+                    val pay = Component.text("  §e§l§n[振込]").clickEvent(ClickEvent.suggestCommand("/mpay "))
+
+                    sender.sendMessage(prefixComponent.append(deposit).append(withdraw).append(pay))
                 }
 
                 return true
@@ -160,9 +170,9 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 if (sender !is Player)return false
                 sendMsg(sender,"§eMan10Bank")
-                sendMsg(sender,"§e/mbal : 口座残高を確認する")
-                sendMsg(sender,"§e/mbal deposit(d) <金額>: 所持金のいくらかを、口座に入金する")
-                sendMsg(sender,"§e/mbal withdraw(w) <金額>: 口座のお金を、出金する")
+                sendMsg(sender,"§e/bal : 口座残高を確認する")
+                sendMsg(sender,"§e/bal deposit(d) <金額>: 所持金のいくらかを、口座に入金する")
+                sendMsg(sender,"§e/bal withdraw(w) <金額>: 口座のお金を、出金する")
             }
 
             if (cmd == "log"){
@@ -198,11 +208,14 @@ class Man10Bank : JavaPlugin(),Listener {
                 val amount : Double = if (args[1] == "all"){
                     vault.getBalance(sender.uniqueId)
                 }else{
-                    if (!NumberUtils.isDigits(args[1])){
+
+                    val a = args[1].replace(",","")
+
+                    if (!NumberUtils.isDigits(a)){
                         sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
                         return true
                     }
-                    args[1].toDouble()
+                    a.toDouble()
                 }
 
                 if (amount < 1){
@@ -236,11 +249,14 @@ class Man10Bank : JavaPlugin(),Listener {
                     var amount = if (args[1] == "all"){
                         Bank.getBalance(sender.uniqueId)*rate
                     }else{
-                        if (!NumberUtils.isDigits(args[1])){
+
+                        val a = args[1].replace(",","")
+
+                        if (!NumberUtils.isDigits(a)){
                             sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
                             return@execute
                         }
-                        args[1].toDouble()
+                        a.toDouble()
                     }
 
                     if (amount < 0){
@@ -272,12 +288,14 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 if (!sender.hasPermission(OP))return true
 
-                if (!NumberUtils.isDigits(args[2])){
+                val a = args[2].replace(",","")
+
+                if (!NumberUtils.isDigits(a)){
                     sendMsg(sender,"§c§l回収する額を半角数字で入力してください！")
                     return true
                 }
 
-                val amount = args[2].toDouble()
+                val amount = a.toDouble()
 
                 if (amount < 0){
                     sendMsg(sender,"§c§l0未満の値は入金出来ません！")
@@ -305,12 +323,14 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 if (!sender.hasPermission(OP))return true
 
-                if (!NumberUtils.isDigits(args[2])){
+                val a = args[2].replace(",","")
+
+                if (!NumberUtils.isDigits(a)){
                     sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
                     return true
                 }
 
-                val amount = args[2].toDouble()
+                val amount = a.toDouble()
 
                 if (amount < 0){
                     sendMsg(sender,"§c§l0未満の値は入金出来ません！")
@@ -333,12 +353,14 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 if (!sender.hasPermission(OP))return true
 
-                if (!NumberUtils.isDigits(args[2])){
+                val a = args[2].replace(",","")
+
+                if (!NumberUtils.isDigits(a)){
                     sendMsg(sender,"§c§l設定する額を半角数字で入力してください！")
                     return true
                 }
 
-                val amount = args[2].toDouble()
+                val amount = a.toDouble()
 
                 if (amount < 0){
                     sendMsg(sender,"§c§l0未満の値は入金出来ません！")
@@ -405,12 +427,14 @@ class Man10Bank : JavaPlugin(),Listener {
 
             if (args.size != 2)return false
 
-            if (!NumberUtils.isDigits(args[1])){
+            val a = args[1].replace(",","")
+
+            if (!NumberUtils.isDigits(a)){
                 sendMsg(sender,"§c§l/pay <ユーザー名> <金額>")
                 return true
             }
 
-            val amount = args[1].toDouble()
+            val amount = a.toDouble()
 
             if (amount <0){
                 sendMsg(sender,"§c§l0未満の額は送金できません！")
@@ -458,12 +482,14 @@ class Man10Bank : JavaPlugin(),Listener {
 
             if (args.size != 2)return false
 
-            if (!NumberUtils.isDigits(args[1])){
+            val a = args[1].replace(",","")
+
+            if (!NumberUtils.isDigits(a)){
                 sendMsg(sender,"§c§l/mpay <ユーザー名> <金額>")
                 return true
             }
 
-            val amount = args[1].toDouble()
+            val amount = a.toDouble()
 
             if (amount <0){
                 sendMsg(sender,"§c§l0未満の額は送金できません！")
@@ -513,10 +539,35 @@ class Man10Bank : JavaPlugin(),Listener {
         return false
     }
 
+    override fun onTabComplete(
+        sender: CommandSender,
+        command: Command,
+        alias: String,
+        args: Array<out String>
+    ): MutableList<String> {
+
+        if (alias == "bal" || alias == "mbal"){
+
+            if (args.size == 1){
+                return mutableListOf("deposit","withdraw","log","help")
+            }
+            return mutableListOf("1,000","10,000","100,000","1,000,000","10,000,000")
+        }
+
+        if (alias == "mpay" || alias == "pay"){
+
+            if (args.size == 2){
+                return mutableListOf("1,000","10,000","100,000","1,000,000","10,000,000")
+            }
+
+        }
+
+        return mutableListOf()
+    }
 
     @EventHandler
     fun login(e:PlayerJoinEvent){
-        e.player.performCommand("mbal")
+        e.player.performCommand("bal")
         Bank.changeName(e.player)
     }
 }
