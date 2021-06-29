@@ -14,8 +14,10 @@ import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.loan.Event
 import red.man10.man10bank.loan.LoanCommand
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.collections.HashMap
 
 class Man10Bank : JavaPlugin(),Listener {
 
@@ -127,8 +129,12 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 es.execute{
 //                    sendMsg(sender,"§e§l==========現在の資産状況==========")
+
+                    //時差による表示ずれ対策で、一旦所持金を呼び出す
+                    val amount = format(Bank.getBalance(sender.uniqueId))
+
                     sendMsg(sender,"§b§l所持金:    §e§l${format(vault.getBalance(sender.uniqueId))}円")
-                    sendMsg(sender,"§b§l銀行口座:   §e§l${format(Bank.getBalance(sender.uniqueId))}円")
+                    sendMsg(sender,"§b§l銀行口座:   §e§l${amount}円")
 
 
                     val deposit = Component.text("§b§l§n[入金]").clickEvent(ClickEvent.suggestCommand("/bal deposit "))
@@ -556,13 +562,24 @@ class Man10Bank : JavaPlugin(),Listener {
 
         if (alias == "mpay" || alias == "pay"){
 
+            if (args.size == 1 && args[0].isEmpty()){
+                return mutableListOf("/mpay <送る相手> <金額> で振込ができます")
+            }
+
             if (args.size == 2){
                 return mutableListOf("1,000","10,000","100,000","1,000,000","10,000,000")
             }
 
         }
 
-        return mutableListOf()
+        val list = mutableListOf<String>()
+
+        for (p in Bukkit.getOnlinePlayers()){
+            if (p.name == sender.name)continue
+            list.add(p.name)
+        }
+
+        return list
     }
 
     @EventHandler
