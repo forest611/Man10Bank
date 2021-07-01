@@ -57,7 +57,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
     private val checking = HashMap<Player,Command>()
 
-    private lateinit var es : ExecutorService
+    lateinit var es : ExecutorService
 
     override fun onEnable() {
         // Plugin startup logic
