@@ -9,6 +9,7 @@ import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.rate
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
+import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import java.text.SimpleDateFormat
 import java.util.*
@@ -57,6 +58,7 @@ object Bank {
 
         addLog(uuid,plugin,"CreateAccount",0.0,true)
 
+        vault.deposit(uuid,Man10Bank.firstMoney)
 
         return true
     }

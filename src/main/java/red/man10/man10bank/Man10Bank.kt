@@ -53,6 +53,8 @@ class Man10Bank : JavaPlugin(),Listener {
         var loanRate : Double = 1.0
         var loanMax : Double = 10000000.0
 
+        var firstMoney : Double = 10000.0 // お初に渡すお金の金額
+
     }
 
     private val checking = HashMap<Player,Command>()
@@ -78,6 +80,7 @@ class Man10Bank : JavaPlugin(),Listener {
         loanFee = config.getDouble("loanfee",1.1)
         loanMax = config.getDouble("loanmax",10000000.0)
         loanRate = config.getDouble("loanrate",1.0)
+        firstMoney = config.getDouble("firstmoney",10000.0)
 
         server.pluginManager.registerEvents(this,this)
         server.pluginManager.registerEvents(Event(),this)
