@@ -12,6 +12,8 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
+import red.man10.man10bank.atm.ATMInventory
+import red.man10.man10bank.atm.ATMListener
 import red.man10.man10bank.loan.Event
 import red.man10.man10bank.loan.LoanCommand
 import java.util.*
@@ -84,6 +86,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
         server.pluginManager.registerEvents(this,this)
         server.pluginManager.registerEvents(Event(),this)
+        server.pluginManager.registerEvents(ATMListener,this)
 
         getCommand("mlend")!!.setExecutor(LoanCommand())
 
@@ -95,6 +98,15 @@ class Man10Bank : JavaPlugin(),Listener {
     }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
+
+
+        if (label == "atm"){
+            if (sender !is Player)return false
+
+            if (!bankEnable)return false
+
+            ATMInventory.openMainMenu(sender)
+        }
 
         if (label == "mbaltop"){
 
@@ -211,8 +223,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 if (sender !is Player)return false
 
-                if (!isEnabled)return false
-
+                if (!bankEnable)return false
 
                 //入金額
                 val amount : Double = if (args[1] == "all"){
@@ -252,7 +263,7 @@ class Man10Bank : JavaPlugin(),Listener {
             if ((cmd == "withdraw" || cmd == "w") && args.size == 2){
                 if (sender !is Player)return false
 
-                if (!isEnabled)return false
+                if (!bankEnable)return false
 
                 es.execute {
 

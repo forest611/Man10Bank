@@ -6,8 +6,18 @@ import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Man10Bank.Companion.vault
+import red.man10.man10bank.atm.ATMInventory.InventoryID.*
 
 object ATMInventory {
+
+    val menuMap = HashMap<Player,InventoryID>()
+
+    enum class InventoryID{
+        MAIN_MENU,
+        WITHDRAW_MENU,
+        DEPOSIT_MENU
+    }
 
     fun openMainMenu(p:Player){
 
@@ -21,7 +31,7 @@ object ATMInventory {
         val dMeta = deposit.itemMeta
         dMeta.displayName(Component.text("§9§lアイテム通貨を預ける"))
         dMeta.lore(mutableListOf(Component.text("§e§l所持金").asComponent(),
-            Component.text(Man10Bank.format(Man10Bank.vault.getBalance(p.uniqueId))).asComponent()))
+            Component.text(Man10Bank.format(vault.getBalance(p.uniqueId))).asComponent()))
         deposit.itemMeta = dMeta
 
         inv.setItem(10,deposit)
@@ -32,13 +42,14 @@ object ATMInventory {
         val wMeta = withdraw.itemMeta
         wMeta.displayName(Component.text("§9§lアイテム通貨を引き出す"))
         wMeta.lore(mutableListOf(Component.text("§e§l所持金").asComponent(),
-            Component.text(Man10Bank.format(Man10Bank.vault.getBalance(p.uniqueId))).asComponent()))
+            Component.text(Man10Bank.format(vault.getBalance(p.uniqueId))).asComponent()))
         withdraw.itemMeta = wMeta
 
         inv.setItem(14,withdraw)
         inv.setItem(15,withdraw)
         inv.setItem(16,withdraw)
 
+        menuMap[p] = MAIN_MENU
         p.openInventory(inv)
     }
 
@@ -50,6 +61,23 @@ object ATMInventory {
             inv.setItem(i, ItemStack(Material.GRAY_STAINED_GLASS_PANE))
         }
 
+        var slot = 11
+
+        for (data in ATMData.moneyItems){
+
+            val item = data.value.clone()
+            val lore = item.lore()?: mutableListOf()
+            lore.add(Component.text("§e§l所持金").asComponent())
+            lore.add(Component.text(Man10Bank.format(vault.getBalance(p.uniqueId))).asComponent())
+            item.lore(lore)
+
+            inv.setItem(slot,item)
+
+            slot ++
+
+        }
+
+        menuMap[p] = WITHDRAW_MENU
         p.openInventory(inv)
     }
 
@@ -66,6 +94,7 @@ object ATMInventory {
         inv.setItem(49,quit)
         inv.setItem(50,quit)
 
+        menuMap[p] = DEPOSIT_MENU
         p.openInventory(inv)
 
     }

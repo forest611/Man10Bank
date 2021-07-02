@@ -2,24 +2,23 @@ package red.man10.man10bank.atm
 
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
+import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank.Companion.plugin
+import red.man10.man10bank.Man10Bank.Companion.sendMsg
+import red.man10.man10bank.Man10Bank.Companion.vault
 import java.util.concurrent.ConcurrentHashMap
 
 object ATMData {
 
-    val moneyItem = ConcurrentHashMap<Double,ItemStack>()
+    val moneyItems = ConcurrentHashMap<Double,ItemStack>()
     private val moneyAmount = listOf(10000.0,100000.0,1000000.0,10000000.0,100000000.0)//1万〜1億
 
     fun loadItem(){
-
         for (money in moneyAmount){
-
-            moneyItem[money] = plugin.config.getItemStack("$money")?: ItemStack(Material.STONE)
-
+            moneyItems[money] = plugin.config.getItemStack("money.$money")?: ItemStack(Material.STONE)
         }
-
     }
 
     fun setItem(itemStack: ItemStack,amount: Double){
@@ -27,16 +26,15 @@ object ATMData {
         if (!moneyAmount.contains(amount))return
 
         val meta = itemStack.itemMeta
-        meta.persistentDataContainer.set(NamespacedKey.fromString("money")!!, PersistentDataType.STRING,"$amount")
+        meta.persistentDataContainer.set(NamespacedKey.fromString("money")!!, PersistentDataType.DOUBLE,amount)
         itemStack.itemMeta = meta
 
-        moneyItem[amount] = itemStack
+        moneyItems[amount] = itemStack
 
         plugin.es.execute {
-            plugin.config.set("$amount",itemStack)
+            plugin.config.set("money.$amount",itemStack)
             plugin.saveConfig()
         }
-
     }
 
     fun getMoneyAmount(itemStack: ItemStack):Double{
@@ -50,14 +48,36 @@ object ATMData {
         return 0.0
     }
 
-    fun getMoneyType(itemStack: ItemStack):Double{
+    //お金じゃなかったら-1を返す
+    private fun getMoneyType(itemStack: ItemStack):Double{
+        return itemStack.itemMeta.persistentDataContainer[NamespacedKey.fromString("money")!!, PersistentDataType.DOUBLE]?:return -1.0
+    }
 
-        for (item in moneyItem){
-            if (item.value.isSimilar(itemStack))return item.key
-        }
+    fun deposit(p:Player,itemStack: ItemStack):Double{
 
-        return -1.0
+        val amount = getMoneyAmount(itemStack)
+
+        itemStack.amount = 0
+
+        vault.deposit(p.uniqueId,amount)
+
+        return amount
 
     }
 
+    fun withdraw(p:Player,itemStack: ItemStack){
+
+        val amount = getMoneyAmount(itemStack)
+
+        if (!moneyAmount.contains(amount))return
+
+        if (p.inventory.firstEmpty()==-1){
+            sendMsg(p,"§c§lインベントリが満タンです！")
+            return
+        }
+
+        vault.withdraw(p.uniqueId,amount)
+
+        p.inventory.addItem(itemStack)
+    }
 }
