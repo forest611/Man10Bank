@@ -143,8 +143,9 @@ class Man10Bank : JavaPlugin(),Listener {
                     val deposit = Component.text("§b§l§n[入金]").clickEvent(ClickEvent.suggestCommand("/bal deposit "))
                     val withdraw = Component.text("  §c§l§n[出金]").clickEvent(ClickEvent.suggestCommand("/bal withdraw "))
                     val pay = Component.text("  §e§l§n[振込]").clickEvent(ClickEvent.suggestCommand("/mpay "))
+                    val atm = Component.text("  §9§l§n[ATM]").clickEvent(ClickEvent.runCommand("/atm"))
 
-                    sender.sendMessage(prefixComponent.append(deposit).append(withdraw).append(pay))
+                    sender.sendMessage(prefixComponent.append(deposit).append(withdraw).append(pay).append(atm))
                 }
 
                 return true

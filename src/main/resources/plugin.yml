@@ -20,3 +20,5 @@ commands:
     default: op
   pay:
     default: op
+  atm:
+    default: op
