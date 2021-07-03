@@ -32,8 +32,7 @@ object ATMInventory {
         val deposit = ItemStack(Material.CHEST)
         val dMeta = deposit.itemMeta
         dMeta.displayName(Component.text("§9§lアイテム通貨を預ける"))
-        dMeta.lore(mutableListOf(Component.text("§e§l所持金").asComponent(),
-            Component.text("§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent()))
+        dMeta.lore(mutableListOf(Component.text("§e§l所持金:§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent()))
         deposit.itemMeta = dMeta
 
         inv.setItem(10,deposit)
@@ -43,8 +42,7 @@ object ATMInventory {
         val withdraw = ItemStack(Material.DISPENSER)
         val wMeta = withdraw.itemMeta
         wMeta.displayName(Component.text("§9§lアイテム通貨を引き出す"))
-        wMeta.lore(mutableListOf(Component.text("§e§l所持金").asComponent(),
-            Component.text("§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent()))
+        wMeta.lore(mutableListOf(Component.text("§e§l所持金:§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent()))
         withdraw.itemMeta = wMeta
 
         inv.setItem(14,withdraw)
@@ -69,8 +67,7 @@ object ATMInventory {
 
             val item = ATMData.moneyItems[money]!!.clone()
             val lore = item.lore()?: mutableListOf()
-            lore.add(Component.text("§e§l所持金").asComponent())
-            lore.add(Component.text("§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent())
+            lore.add(Component.text("§e§l所持金:§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent())
             item.lore(lore)
 
             inv.setItem(slot,item)
