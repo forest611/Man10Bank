@@ -8,12 +8,13 @@ import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
+import red.man10.man10bank.MySQLManager
 import java.util.concurrent.ConcurrentHashMap
 
 object ATMData {
 
     val moneyItems = ConcurrentHashMap<Double,ItemStack>()
-    val moneyAmount = listOf(10000.0,100000.0,1000000.0,10000000.0,100000000.0)//1万〜1億
+    val moneyAmount = listOf(100.0,1000.0,10000.0,100000.0,1000000.0)//100〜100万
 
     fun loadItem(){
         for (money in moneyAmount){
@@ -63,6 +64,7 @@ object ATMData {
 
         if (amount > 0){
             vault.deposit(p.uniqueId,amount)
+            addLog(p,amount,true)
         }
 
         return amount
@@ -82,6 +84,12 @@ object ATMData {
 
         if (vault.withdraw(p.uniqueId,amount)){
             p.inventory.addItem(moneyItems[amount]!!)
+            addLog(p,amount,false)
         }
+    }
+
+    private fun addLog(p:Player, amount: Double, deposit:Boolean){
+        MySQLManager.mysqlQueue.add("INSERT INTO atm_log (player, uuid, amount, deposit, date) " +
+                "VALUES ('${p.name}', '${p.uniqueId}', $amount, ${if (deposit) 1 else 0}, DEFAULT)")
     }
 }

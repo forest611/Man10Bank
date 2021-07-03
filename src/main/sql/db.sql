@@ -46,3 +46,15 @@ create table loan_table
 create index loan_table_player_uuid_index
 	on loan_table (borrow_player, borrow_uuid);
 
+create table atm_log
+(
+	id int auto_increment,
+	player varchar(16) null,
+	uuid varchar(36) null,
+	amount double null,
+	deposit boolean null,
+	date datetime default now() null,
+	constraint atm_log_pk
+		primary key (id)
+);
+
