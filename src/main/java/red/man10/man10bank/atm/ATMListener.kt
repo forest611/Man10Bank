@@ -18,14 +18,17 @@ object ATMListener : Listener {
         if (p !is Player)return
 
         val slot = e.slot
+        val id = ATMInventory.menuMap[p.uniqueId]?:return
 
-        when(ATMInventory.menuMap[p]?:return){
+        when(id){
 
             MAIN_MENU ->{
                 e.isCancelled = true
 
                 if (slot in 10..12){ATMInventory.openDepositMenu(p) }
                 if (slot in 14..16){ATMInventory.openWithdrawMenu(p)}
+
+                return
             }
 
             WITHDRAW_MENU ->{
@@ -35,6 +38,8 @@ object ATMListener : Listener {
                 val item = e.currentItem?:return
 
                 ATMData.withdraw(p,item)
+
+                return
             }
 
             DEPOSIT_MENU ->{
@@ -52,6 +57,8 @@ object ATMListener : Listener {
                     }
 
                     p.closeInventory()
+
+                    return
                 }
             }
         }
@@ -63,7 +70,7 @@ object ATMListener : Listener {
 
         val p = e.player as Player
 
-        if (ATMInventory.menuMap[p] == DEPOSIT_MENU){
+        if (ATMInventory.menuMap[p.uniqueId] == DEPOSIT_MENU){
             var amount = 0.0
 
             for (item in e.inventory.contents){
@@ -75,7 +82,7 @@ object ATMListener : Listener {
             }
         }
 
-        ATMInventory.menuMap.remove(p)
+        ATMInventory.menuMap.remove(p.uniqueId)
     }
 
 }

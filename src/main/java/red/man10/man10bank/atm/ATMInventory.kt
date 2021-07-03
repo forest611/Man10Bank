@@ -8,10 +8,12 @@ import org.bukkit.inventory.ItemStack
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.atm.ATMInventory.InventoryID.*
+import java.util.*
+import kotlin.collections.HashMap
 
 object ATMInventory {
 
-    val menuMap = HashMap<Player,InventoryID>()
+    val menuMap = HashMap<UUID,InventoryID>()
 
     enum class InventoryID{
         MAIN_MENU,
@@ -31,25 +33,25 @@ object ATMInventory {
         val dMeta = deposit.itemMeta
         dMeta.displayName(Component.text("§9§lアイテム通貨を預ける"))
         dMeta.lore(mutableListOf(Component.text("§e§l所持金").asComponent(),
-            Component.text(Man10Bank.format(vault.getBalance(p.uniqueId))).asComponent()))
+            Component.text("§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent()))
         deposit.itemMeta = dMeta
 
         inv.setItem(10,deposit)
         inv.setItem(11,deposit)
         inv.setItem(12,deposit)
 
-        val withdraw = ItemStack(Material.CHEST)
+        val withdraw = ItemStack(Material.DISPENSER)
         val wMeta = withdraw.itemMeta
         wMeta.displayName(Component.text("§9§lアイテム通貨を引き出す"))
         wMeta.lore(mutableListOf(Component.text("§e§l所持金").asComponent(),
-            Component.text(Man10Bank.format(vault.getBalance(p.uniqueId))).asComponent()))
+            Component.text("§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent()))
         withdraw.itemMeta = wMeta
 
         inv.setItem(14,withdraw)
         inv.setItem(15,withdraw)
         inv.setItem(16,withdraw)
 
-        menuMap[p] = MAIN_MENU
+        menuMap[p.uniqueId] = MAIN_MENU
         p.openInventory(inv)
     }
 
@@ -68,7 +70,7 @@ object ATMInventory {
             val item = data.value.clone()
             val lore = item.lore()?: mutableListOf()
             lore.add(Component.text("§e§l所持金").asComponent())
-            lore.add(Component.text(Man10Bank.format(vault.getBalance(p.uniqueId))).asComponent())
+            lore.add(Component.text("§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent())
             item.lore(lore)
 
             inv.setItem(slot,item)
@@ -77,7 +79,7 @@ object ATMInventory {
 
         }
 
-        menuMap[p] = WITHDRAW_MENU
+        menuMap[p.uniqueId] = WITHDRAW_MENU
         p.openInventory(inv)
     }
 
@@ -90,11 +92,11 @@ object ATMInventory {
         qMeta.displayName(Component.text("§b§l預けて閉じる"))
         quit.itemMeta = qMeta
 
-        inv.setItem(48,quit)
-        inv.setItem(49,quit)
-        inv.setItem(50,quit)
+        for (i in 45..53){
+            inv.setItem(i,quit)
+        }
 
-        menuMap[p] = DEPOSIT_MENU
+        menuMap[p.uniqueId] = DEPOSIT_MENU
         p.openInventory(inv)
 
     }

@@ -85,6 +85,8 @@ class Man10Bank : JavaPlugin(),Listener {
         loanRate = config.getDouble("loanrate",1.0)
         firstMoney = config.getDouble("firstmoney",10000.0)
 
+        ATMData.loadItem()
+
         server.pluginManager.registerEvents(this,this)
         server.pluginManager.registerEvents(Event(),this)
         server.pluginManager.registerEvents(ATMListener,this)
