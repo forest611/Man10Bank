@@ -12,6 +12,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
+import red.man10.man10bank.atm.ATMData
 import red.man10.man10bank.atm.ATMInventory
 import red.man10.man10bank.atm.ATMListener
 import red.man10.man10bank.loan.Event
@@ -103,9 +104,25 @@ class Man10Bank : JavaPlugin(),Listener {
         if (label == "atm"){
             if (sender !is Player)return false
 
-            if (!bankEnable)return false
+            if (args.isEmpty()){
+                if (!bankEnable)return false
+                ATMInventory.openMainMenu(sender)
+                return true
+            }
 
-            ATMInventory.openMainMenu(sender)
+            when(args[0]){
+
+                "setmoney"->{
+
+                    val amount = args[1].toDoubleOrNull() ?: return true
+
+                    val ret = ATMData.setItem(sender.inventory.itemInMainHand,amount)
+
+                    if (ret){
+                        sendMsg(sender,"設定完了:${amount}")
+                    }
+                }
+            }
         }
 
         if (label == "mbaltop"){

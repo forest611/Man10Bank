@@ -21,9 +21,9 @@ object ATMData {
         }
     }
 
-    fun setItem(itemStack: ItemStack,amount: Double){
+    fun setItem(itemStack: ItemStack,amount: Double):Boolean{
 
-        if (!moneyAmount.contains(amount))return
+        if (!moneyAmount.contains(amount))return false
 
         val meta = itemStack.itemMeta
         meta.persistentDataContainer.set(NamespacedKey.fromString("money")!!, PersistentDataType.DOUBLE,amount)
@@ -35,6 +35,8 @@ object ATMData {
             plugin.config.set("money.$amount",itemStack)
             plugin.saveConfig()
         }
+
+        return true
     }
 
     fun getMoneyAmount(itemStack: ItemStack):Double{
