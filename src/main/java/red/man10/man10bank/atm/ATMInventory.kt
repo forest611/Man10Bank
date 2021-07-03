@@ -13,7 +13,7 @@ import kotlin.collections.HashMap
 
 object ATMInventory {
 
-    val menuMap = HashMap<UUID,InventoryID>()
+    val menuMap = mutableMapOf<UUID,InventoryID>()
 
     enum class InventoryID{
         MAIN_MENU,
@@ -51,8 +51,8 @@ object ATMInventory {
         inv.setItem(15,withdraw)
         inv.setItem(16,withdraw)
 
-        menuMap[p.uniqueId] = MAIN_MENU
         p.openInventory(inv)
+        menuMap[p.uniqueId] = MAIN_MENU
     }
 
     fun openWithdrawMenu(p:Player){
@@ -65,9 +65,9 @@ object ATMInventory {
 
         var slot = 11
 
-        for (data in ATMData.moneyItems){
+        for (money in  ATMData.moneyAmount.sorted()){
 
-            val item = data.value.clone()
+            val item = ATMData.moneyItems[money]!!.clone()
             val lore = item.lore()?: mutableListOf()
             lore.add(Component.text("§e§l所持金").asComponent())
             lore.add(Component.text("§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent())
@@ -79,8 +79,8 @@ object ATMInventory {
 
         }
 
-        menuMap[p.uniqueId] = WITHDRAW_MENU
         p.openInventory(inv)
+        menuMap[p.uniqueId] = WITHDRAW_MENU
     }
 
     fun openDepositMenu(p:Player){
@@ -96,9 +96,8 @@ object ATMInventory {
             inv.setItem(i,quit)
         }
 
-        menuMap[p.uniqueId] = DEPOSIT_MENU
         p.openInventory(inv)
-
+        menuMap[p.uniqueId] = DEPOSIT_MENU
     }
 
 }

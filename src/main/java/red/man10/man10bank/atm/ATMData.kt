@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 object ATMData {
 
     val moneyItems = ConcurrentHashMap<Double,ItemStack>()
-    private val moneyAmount = listOf(10000.0,100000.0,1000000.0,10000000.0,100000000.0)//1万〜1億
+    val moneyAmount = listOf(10000.0,100000.0,1000000.0,10000000.0,100000000.0)//1万〜1億
 
     fun loadItem(){
         for (money in moneyAmount){
@@ -61,7 +61,9 @@ object ATMData {
 
         itemStack.amount = 0
 
-        vault.deposit(p.uniqueId,amount)
+        if (itemStack.amount != 0){
+            vault.deposit(p.uniqueId,amount)
+        }
 
         return amount
 
@@ -73,13 +75,13 @@ object ATMData {
 
         if (!moneyAmount.contains(amount))return
 
-        if (p.inventory.firstEmpty()==-1){
-            sendMsg(p,"§c§lインベントリが満タンです！")
+        if (p.inventory.firstEmpty()==-1) {
+            sendMsg(p, "§c§lインベントリが満タンです！")
             return
         }
 
-        vault.withdraw(p.uniqueId,amount)
-
-        p.inventory.addItem(itemStack)
+        if (vault.withdraw(p.uniqueId,amount)){
+            p.inventory.addItem(moneyItems[amount]!!)
+        }
     }
 }

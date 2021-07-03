@@ -8,6 +8,9 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.atm.ATMInventory.InventoryID.*
+import red.man10.man10bank.atm.ATMInventory.menuMap
+import red.man10.man10bank.atm.ATMInventory.openDepositMenu
+import red.man10.man10bank.atm.ATMInventory.openWithdrawMenu
 
 object ATMListener : Listener {
 
@@ -18,15 +21,18 @@ object ATMListener : Listener {
         if (p !is Player)return
 
         val slot = e.slot
-        val id = ATMInventory.menuMap[p.uniqueId]?:return
+        val id = menuMap[p.uniqueId]?:return
 
         when(id){
 
             MAIN_MENU ->{
                 e.isCancelled = true
 
-                if (slot in 10..12){ATMInventory.openDepositMenu(p) }
-                if (slot in 14..16){ATMInventory.openWithdrawMenu(p)}
+                if (slot in 10..12){
+                    openDepositMenu(p) }
+                if (slot in 14..16){
+                    openWithdrawMenu(p)
+                }
 
                 return
             }
@@ -39,10 +45,14 @@ object ATMListener : Listener {
 
                 ATMData.withdraw(p,item)
 
+                openWithdrawMenu(p)
+
                 return
             }
 
             DEPOSIT_MENU ->{
+
+                if (e.clickedInventory != p.inventory){ e.isCancelled = true }
 
                 if (slot in 48..50){
 
@@ -70,7 +80,7 @@ object ATMListener : Listener {
 
         val p = e.player as Player
 
-        if (ATMInventory.menuMap[p.uniqueId] == DEPOSIT_MENU){
+        if (menuMap[p.uniqueId] == DEPOSIT_MENU){
             var amount = 0.0
 
             for (item in e.inventory.contents){
@@ -82,7 +92,8 @@ object ATMListener : Listener {
             }
         }
 
-        ATMInventory.menuMap.remove(p.uniqueId)
+        if (menuMap.containsKey(p.uniqueId)){
+            menuMap.remove(p.uniqueId)
+        }
     }
-
 }
