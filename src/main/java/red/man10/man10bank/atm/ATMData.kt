@@ -61,7 +61,7 @@ object ATMData {
 
         itemStack.amount = 0
 
-        if (itemStack.amount != 0){
+        if (amount > 0){
             vault.deposit(p.uniqueId,amount)
         }
 

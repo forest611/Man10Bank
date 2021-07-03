@@ -55,9 +55,9 @@ class VaultManager(private val plugin: JavaPlugin) {
         val p = Bukkit.getOfflinePlayer(uuid)
         val resp = economy!!.withdrawPlayer(p.name, money)
         if (resp.transactionSuccess()) {
-            if (p.isOnline) {
-                p.player!!.sendMessage(ChatColor.YELLOW.toString() + "$" + money + "支払いました")
-            }
+//            if (p.isOnline) {
+//                p.player!!.sendMessage(ChatColor.YELLOW.toString() + "$" + money + "支払いました")
+//            }
             return true
         }
         return false
@@ -70,9 +70,9 @@ class VaultManager(private val plugin: JavaPlugin) {
         val p = Bukkit.getOfflinePlayer(uuid)
         val resp = economy!!.depositPlayer(p.name, money)
         if (resp.transactionSuccess()) {
-            if (p.isOnline) {
-                p.player!!.sendMessage(ChatColor.YELLOW.toString() + "$" + money + "受取りました")
-            }
+//            if (p.isOnline) {
+//                p.player!!.sendMessage(ChatColor.YELLOW.toString() + "$" + money + "受取りました")
+//            }
             return true
         }
         return false

@@ -1,5 +1,6 @@
 package red.man10.man10bank.atm
 
+import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -52,13 +53,14 @@ object ATMListener : Listener {
 
             DEPOSIT_MENU ->{
 
-                if (e.clickedInventory != p.inventory){ e.isCancelled = true }
+                if (slot >= 45){
 
-                if (slot in 48..50){
+                    e.isCancelled = true
 
                     var amount = 0.0
 
                     for (item in e.inventory.contents){
+                        if (item ==null ||item.type == Material.AIR)continue
                         amount += ATMData.deposit(p,item)
                     }
 
@@ -84,6 +86,7 @@ object ATMListener : Listener {
             var amount = 0.0
 
             for (item in e.inventory.contents){
+                if (item ==null ||item.type == Material.AIR)continue
                 amount += ATMData.deposit(p,item)
             }
 
