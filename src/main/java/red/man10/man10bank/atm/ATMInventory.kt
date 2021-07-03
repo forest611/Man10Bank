@@ -14,6 +14,7 @@ import kotlin.collections.HashMap
 object ATMInventory {
 
     val menuMap = mutableMapOf<UUID,InventoryID>()
+    val slots = arrayOf(10,11,12,14,15,16)
 
     enum class InventoryID{
         MAIN_MENU,
@@ -61,7 +62,7 @@ object ATMInventory {
             inv.setItem(i, ItemStack(Material.GRAY_STAINED_GLASS_PANE))
         }
 
-        var slot = 11
+        var i = 0
 
         for (money in  ATMData.moneyAmount.sorted()){
 
@@ -70,9 +71,9 @@ object ATMInventory {
             lore.add(Component.text("§e§l所持金:§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent())
             item.lore(lore)
 
-            inv.setItem(slot,item)
+            inv.setItem(slots[i],item)
 
-            slot ++
+            i ++
 
         }
 

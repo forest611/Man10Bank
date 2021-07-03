@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap
 object ATMData {
 
     val moneyItems = ConcurrentHashMap<Double,ItemStack>()
-    val moneyAmount = listOf(100.0,1000.0,10000.0,100000.0,1000000.0)//100〜100万
+    val moneyAmount = listOf(10.0,100.0,1000.0,10000.0,100000.0,1000000.0)//100〜100万
 
     fun loadItem(){
         for (money in moneyAmount){
