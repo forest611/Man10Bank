@@ -4,8 +4,10 @@ import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.block.Action
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.event.player.PlayerInteractEvent
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.atm.ATMInventory.InventoryID.*
@@ -98,5 +100,19 @@ object ATMListener : Listener {
         if (menuMap.containsKey(p.uniqueId)){
             menuMap.remove(p.uniqueId)
         }
+    }
+    
+    @EventHandler
+    fun moneyClickEvent(e:PlayerInteractEvent){
+
+        if (!e.hasItem())return
+        if (e.action != Action.RIGHT_CLICK_BLOCK && e.action!=Action.RIGHT_CLICK_AIR)return
+
+        val item = e.item?:return
+
+        if (ATMData.getMoneyType(item) != -1.0)return
+
+        e.player.performCommand("atm")
+
     }
 }
