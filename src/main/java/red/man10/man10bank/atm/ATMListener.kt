@@ -110,9 +110,9 @@ object ATMListener : Listener {
 
         val item = e.item?:return
 
-        if (ATMData.getMoneyType(item) != -1.0)return
-
-        e.player.performCommand("atm")
+        if (ATMData.getMoneyType(item) != -1.0){
+            e.player.performCommand("atm")
+        }
 
     }
 }
