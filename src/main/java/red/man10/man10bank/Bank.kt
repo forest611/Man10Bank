@@ -7,7 +7,6 @@ import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.Man10Bank.Companion.bankEnable
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
-import red.man10.man10bank.Man10Bank.Companion.rate
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
@@ -146,9 +145,7 @@ object Bank {
 //            createAccount(uuid)
 //        }
 
-        if (amount <rate)return false
-
-        val finalAmount = floor(amount/ rate)
+        val finalAmount = floor(amount)
 
         mysql.execute("update user_bank set balance=balance+$finalAmount where uuid='$uuid';")
 
@@ -177,11 +174,9 @@ object Bank {
 
         if (!bankEnable)return false
 
-        if (amount <rate)return false
-
 //        if (!hasAccount(uuid))return false
 
-        val finalAmount = floor(amount/rate)
+        val finalAmount = floor(amount)
 
         if (getBalance(uuid) < finalAmount)return false
 

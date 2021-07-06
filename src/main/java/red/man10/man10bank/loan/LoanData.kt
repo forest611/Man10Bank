@@ -9,7 +9,6 @@ import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.plugin
-import red.man10.man10bank.Man10Bank.Companion.rate
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.MySQLManager
 import java.text.SimpleDateFormat
@@ -28,11 +27,9 @@ class LoanData {
 
     fun create(lend:Player, borrow: Player, borrowedAmount : Double, rate:Double, paybackDay:Int):Int{
 
-        val finalAmount = borrowedAmount* Man10Bank.rate
+        if (!Bank.withdraw(lend.uniqueId, (borrowedAmount * Man10Bank.loanFee), plugin,"LoanCreate"))return -1
 
-        if (!Bank.withdraw(lend.uniqueId,(finalAmount* Man10Bank.loanFee), plugin,"LoanCreate"))return -1
-
-        Bank.deposit(borrow.uniqueId,finalAmount, plugin,"LoanCreate")
+        Bank.deposit(borrow.uniqueId, borrowedAmount, plugin, "LoanCreate")
 
         //30日を基準に金利が設定される
         nowAmount = calcRate(borrowedAmount,paybackDay,rate)
@@ -111,27 +108,27 @@ class LoanData {
 
         val balance = Man10Bank.vault.getBalance(borrow)
 
-        val takeMan10Bank = floor(rate*(if (man10Bank<nowAmount)man10Bank else nowAmount))
+        val takeMan10Bank = floor(if (man10Bank<nowAmount)man10Bank else nowAmount)
 
         if (takeMan10Bank != 0.0 && Bank.withdraw(borrow,takeMan10Bank, plugin,"paybackMoney")){
 
-            nowAmount -= takeMan10Bank/ rate
+            nowAmount -= takeMan10Bank
 
             if (takeMan10Bank>0){
-                sendMsg(p,"§eMan10Bankから${Man10Bank.format(takeMan10Bank/rate)}円回収成功しました！")
+                sendMsg(p,"§eMan10Bankから${Man10Bank.format(takeMan10Bank)}円回収成功しました！")
                 Bank.deposit(p.uniqueId,takeMan10Bank, plugin,"paybackMoneyFromBank")
             }
 
         }
 
-        val takeBalance = floor(if (balance<(nowAmount*rate))balance else nowAmount* rate)
+        val takeBalance = floor(if (balance<(nowAmount))balance else nowAmount)
 
         if (isOnline && takeBalance != 0.0 && Man10Bank.vault.withdraw(borrow,takeBalance)){
 
-            nowAmount -= floor(takeBalance / rate)
+            nowAmount -= floor(takeBalance)
 
             if (takeBalance>0){
-                sendMsg(p,"§e所持金から${Man10Bank.format(takeBalance)}円回収成功しました！${if (rate!=1.0) " (レート差あり)" else ""}")
+                sendMsg(p,"§e所持金から${Man10Bank.format(takeBalance)}円回収成功しました！")
                 Bank.deposit(p.uniqueId,takeBalance, plugin,"paybackMoneyFromBalance")
             }
 

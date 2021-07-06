@@ -40,7 +40,7 @@ object ATMData {
         return true
     }
 
-    private fun getMoneyAmount(itemStack: ItemStack):Double{
+    fun getMoneyAmount(itemStack: ItemStack):Double{
 
         val type = getMoneyType(itemStack)
 

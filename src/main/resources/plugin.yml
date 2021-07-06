@@ -8,9 +8,15 @@ softdepend:
 main: red.man10.man10bank.Man10Bank
 api-version: 1.16
 commands:
-  mbal:
-    default: op
+#  mbal:
+#    default: op
   bal:
+    default: op
+  balance:
+    default: op
+  money:
+    default: op
+  bank:
     default: op
   mpay:
     default: op
@@ -21,4 +27,8 @@ commands:
   pay:
     default: op
   atm:
+    default: op
+  deposit:
+    default: op
+  withdraw:
     default: op

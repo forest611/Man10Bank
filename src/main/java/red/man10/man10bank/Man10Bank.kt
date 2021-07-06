@@ -1,9 +1,10 @@
 package red.man10.man10bank
 
-import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent
 import org.apache.commons.lang.math.NumberUtils
 import org.bukkit.Bukkit
+import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -17,6 +18,7 @@ import red.man10.man10bank.atm.ATMInventory
 import red.man10.man10bank.atm.ATMListener
 import red.man10.man10bank.loan.Event
 import red.man10.man10bank.loan.LoanCommand
+import java.text.Normalizer
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -26,7 +28,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
     companion object{
         const val prefix = "§l[§e§lMan10Bank§f§l]"
-        val prefixComponent = Component.text(prefix)
+        val prefixComponent = text(prefix)
 
         lateinit var vault : VaultManager
 
@@ -47,8 +49,8 @@ class Man10Bank : JavaPlugin(),Listener {
         const val OP = "man10bank.op"
         const val USER = "man10bank.user"
 
-        var fee : Double = 0.00
-        var rate : Double = 1.0
+//        var fee : Double = 0.00
+//        var rate : Double = 1.0
 
         var bankEnable = true
 
@@ -77,8 +79,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
         vault = VaultManager(this)
 
-        fee = config.getDouble("fee",1.0)
-        rate = config.getDouble("rate",1.0)
+//        fee = config.getDouble("fee",1.0)
+//        rate = config.getDouble("rate",1.0)
 
         loanFee = config.getDouble("loanfee",1.1)
         loanMax = config.getDouble("loanmax",10000000.0)
@@ -103,168 +105,298 @@ class Man10Bank : JavaPlugin(),Listener {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
 
 
-        if (label == "atm"){
-            if (sender !is Player)return false
+        when(label){
 
-            if (args.isEmpty()){
-                if (!bankEnable)return false
-                ATMInventory.openMainMenu(sender)
-                return true
-            }
+            "atm" ->{
+                if (sender !is Player)return false
 
-            when(args[0]){
+                if (args.isEmpty()){
+                    if (!bankEnable)return false
+                    ATMInventory.openMainMenu(sender)
+                    return true
+                }
 
-                "setmoney"->{
+                when(args[0]){
 
-                    val amount = args[1].toDoubleOrNull() ?: return true
+                    "setmoney"->{
 
-                    val ret = ATMData.setItem(sender.inventory.itemInMainHand,amount)
+                        val amount = args[1].toDoubleOrNull() ?: return true
 
-                    if (ret){
-                        sendMsg(sender,"設定完了:${amount}")
+                        val ret = ATMData.setItem(sender.inventory.itemInMainHand,amount)
+
+                        if (ret){
+                            sendMsg(sender,"設定完了:${amount}")
+                        }
                     }
                 }
-            }
-        }
-
-        if (label == "mbaltop"){
-
-            if (sender !is Player)return false
-
-            sendMsg(sender,"§e§l現在取得中....")
-
-            es.execute{
-
-                val list = Bank.balanceTop()?:return@execute
-
-                for (data in list){
-                    sendMsg(sender,"§b§l${data.first.name} : §e§l$ ${format(data.second)}")
-                }
-
-                sendMsg(sender,"§e§l合計口座残高")
-
-                sendMsg(sender,"§b§kXX§e§l${format(Bank.totalBalance())}§b§kXX")
-
-                sendMsg(sender,"§e§l平均口座残高")
-
-                sendMsg(sender,"§b§kXX§e§l${format(Bank.average())}§b§kXX")
 
             }
 
-        }
-
-        if (label == "bal" || label == "mbal"){
-
-            if (args.isEmpty()){
-
+            "mbaltop" ->{
                 if (sender !is Player)return false
 
-//                sendMsg(sender,"現在取得中....")
-
                 es.execute{
-//                    sendMsg(sender,"§e§l==========現在の資産状況==========")
 
-                    //時差による表示ずれ対策で、一旦所持金を呼び出す
-                    val amount = format(Bank.getBalance(sender.uniqueId))
+                    val list = Bank.balanceTop()?:return@execute
 
-                    sendMsg(sender,"§b§l所持金:    §e§l${format(vault.getBalance(sender.uniqueId))}円")
-                    sendMsg(sender,"§b§l銀行口座:   §e§l${amount}円")
-
-
-                    val deposit = Component.text("§b§l§n[入金]").clickEvent(ClickEvent.suggestCommand("/bal deposit "))
-                    val withdraw = Component.text("  §c§l§n[出金]").clickEvent(ClickEvent.suggestCommand("/bal withdraw "))
-                    val pay = Component.text("  §e§l§n[振込]").clickEvent(ClickEvent.suggestCommand("/mpay "))
-                    val atm = Component.text("  §9§l§n[ATM]").clickEvent(ClickEvent.runCommand("/atm"))
-
-                    sender.sendMessage(prefixComponent.append(deposit).append(withdraw).append(pay).append(atm))
-                }
-
-                return true
-            }
-
-            val cmd = args[0]
-
-            if (cmd == "user"&& args.size == 2){
-                if (sender !is Player)return false
-                if (!sender.hasPermission(OP))return true
-
-                sendMsg(sender,"現在取得中....")
-
-                es.execute{
-                    val uuid = Bank.getUUID(args[1])
-
-                    if (uuid == null){
-                        sendMsg(sender,"まだ口座が開設されていない可能性があります")
-                        return@execute
+                    for (data in list){
+                        sendMsg(sender,"§b§l${data.first.name} : §e§l$ ${format(data.second)}")
                     }
 
-                    sendMsg(sender,"§e§l==========現在の銀行口座残高==========")
-                    sendMsg(sender,"§b§kXX§e§l${format(Bank.getBalance(uuid))}§b§kXX")
+                    sendMsg(sender,"§e§l合計口座残高")
 
+                    sendMsg(sender,"§b§kXX§e§l${format(Bank.totalBalance())}§b§kXX")
+
+                    sendMsg(sender,"§e§l平均口座残高")
+
+                    sendMsg(sender,"§b§kXX§e§l${format(Bank.average())}§b§kXX")
+
+                }
+            }
+
+            "bal","balance","money","bank" ->{
+                if (args.isEmpty()){
+
+                    if (sender !is Player)return false
+
+                    es.execute{
+                        sendMsg(sender,"§e§l==========${sender.name}のお金==========")
+
+                        //時差による表示ずれ対策で、一旦所持金を呼び出す
+                        val bankAmount = format(Bank.getBalance(sender.uniqueId))
+
+                        var cash = 0.0
+
+                        for (item in sender.inventory.contents){
+                            if (item ==null ||item.type == Material.AIR)continue
+                            val money = ATMData.getMoneyAmount(item)
+                            cash+=money
+                        }
+
+                        sendMsg(sender," §b§l電子マネー:  §e§l${format(vault.getBalance(sender.uniqueId))}円")
+                        sendMsg(sender," §b§l現金:  §e§l${format(cash)}円")
+                        sendMsg(sender," §b§l銀行:  §e§l${bankAmount}円")
+
+                        val deposit = text("$prefix §b[電子マネーを銀行に入れる]  §n/deposit").clickEvent(ClickEvent.suggestCommand("/deposit "))
+                        val withdraw = text("$prefix §c[電子マネーを銀行から出す]  §n/withdraw").clickEvent(ClickEvent.suggestCommand("/withdraw "))
+                        val atm = text("$prefix §a[電子マネーのチャージ・現金化]  §n/atm").clickEvent(ClickEvent.runCommand("/atm"))
+                        val pay = text("$prefix §e[電子マネーを友達に送る]  §n/pay").clickEvent(ClickEvent.suggestCommand("/pay "))
+
+                        sender.sendMessage(pay)
+                        sender.sendMessage(atm)
+                        sender.sendMessage(deposit)
+                        sender.sendMessage(withdraw)
+
+                    }
+
+                    return true
+                }
+
+                when(args[0]){
+
+                    "log" ->{
+                        if (sender !is Player)return false
+
+                        es.execute{
+
+                            val deposit = format(Bank.calcLog(true,sender))
+                            val withdraw = format(Bank.calcLog(false,sender))
+
+                            sendMsg(sender,"§e§l今月の入出金額の合計")
+
+                            sendMsg(sender,"§a§l入金額:${deposit}")
+                            sendMsg(sender,"§c§l出金額:${withdraw}")
+                        }
+                        return true
+                    }
+
+                    "user" ->{
+                        if (sender !is Player)return false
+                        if (!sender.hasPermission(OP))return true
+
+                        sendMsg(sender,"現在取得中....")
+
+                        es.execute{
+                            val uuid = Bank.getUUID(args[1])
+
+                            if (uuid == null){
+                                sendMsg(sender,"まだ口座が開設されていない可能性があります")
+                                return@execute
+                            }
+
+                            sendMsg(sender,"§e§l==========現在の銀行口座残高==========")
+                            sendMsg(sender,"§b§kXX§e§l${format(Bank.getBalance(uuid))}§b§kXX")
+
+                        }
+
+                    }
+
+                    "take" ->{
+                        if (!sender.hasPermission(OP))return true
+
+                        val a = args[2].replace(",","")
+
+                        if (!NumberUtils.isDigits(a)){
+                            sendMsg(sender,"§c§l回収する額を半角数字で入力してください！")
+                            return true
+                        }
+
+                        val amount = a.toDouble()
+
+                        if (amount < 0){
+                            sendMsg(sender,"§c§l0未満の値は入金出来ません！")
+                            return true
+                        }
+
+                        es.execute {
+
+                            val uuid = Bank.getUUID(args[1])?: return@execute
+
+                            if (!Bank.withdraw(uuid,amount,this,"TakenByCommand")){
+                                Bank.setBalance(uuid,0.0)
+                                sendMsg(sender,"§a回収額が残高を上回っていたので、残高が0になりました")
+                                return@execute
+                            }
+                            sendMsg(sender,"§a${format(amount)}円回収しました")
+                            sendMsg(sender,"§a現在の残高：${format(Bank.getBalance(uuid))}")
+
+                        }
+                        return true
+
+                    }
+
+                    "give"->{
+                        if (!sender.hasPermission(OP))return true
+
+                        val a = args[2].replace(",","")
+
+                        if (!NumberUtils.isDigits(a)){
+                            sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
+                            return true
+                        }
+
+                        val amount = a.toDouble()
+
+                        if (amount < 0){
+                            sendMsg(sender,"§c§l0未満の値は入金出来ません！")
+                            return true
+                        }
+
+                        es.execute {
+
+                            val uuid =  Bank.getUUID(args[1])?: return@execute
+
+                            Bank.deposit(uuid,amount,this,"GivenFromServer")
+
+                            sendMsg(sender,"§a${format(amount)}円入金しました")
+                            sendMsg(sender,"§a現在の残高：${format(Bank.getBalance(uuid))}")
+
+                        }
+
+                    }
+
+                    "set"->{
+                        if (!sender.hasPermission(OP))return true
+
+                        val a = args[2].replace(",","")
+
+                        if (!NumberUtils.isDigits(a)){
+                            sendMsg(sender,"§c§l設定する額を半角数字で入力してください！")
+                            return true
+                        }
+
+                        val amount = a.toDouble()
+
+                        if (amount < 0){
+                            sendMsg(sender,"§c§l0未満の値は入金出来ません！")
+                            return true
+                        }
+
+                        es.execute {
+
+                            val uuid =  Bank.getUUID(args[1])?: return@execute
+
+                            Bank.setBalance(uuid,amount)
+
+                            sendMsg(sender,"§a${format(amount)}円に設定しました")
+
+                        }
+
+                    }
+
+                    "on" ->{
+                        if (!sender.hasPermission(OP))return false
+
+                        bankEnable = true
+
+                        Bukkit.broadcastMessage("§e§lMan10Bankが開きました！",)
+                        return true
+
+                    }
+
+                    "off" ->{
+                        if (!sender.hasPermission(OP))return false
+
+                        bankEnable = false
+                        Bukkit.broadcastMessage("§e§lMan10Bankが閉じました！")
+                        return true
+
+                    }
+
+                    "reload" ->{
+                        if (!sender.hasPermission(OP))return false
+
+                        es.execute{
+                            reloadConfig()
+
+//                            fee = config.getDouble("fee")
+//                            rate = config.getDouble("rate")
+                            loanMax = config.getDouble("loanmax")
+                            loanFee = config.getDouble("loanfee")
+
+                            Bank.reload()
+                            ATMData.loadItem()
+                        }
+
+                    }
                 }
 
             }
 
-            if (!sender.hasPermission(USER))return true
-
-            if (cmd == "help"){
-
-                if (sender !is Player)return false
-                sendMsg(sender,"§eMan10Bank")
-                sendMsg(sender,"§e/bal : 口座残高を確認する")
-                sendMsg(sender,"§e/bal deposit(d) <金額>: 所持金のいくらかを、口座に入金する")
-                sendMsg(sender,"§e/bal withdraw(w) <金額>: 口座のお金を、出金する")
-            }
-
-            if (cmd == "log"){
-
-                if (sender !is Player)return false
-
-                sendMsg(sender,"計算中...")
-
-                es.execute{
-
-                    val deposit = format(Bank.calcLog(true,sender))
-                    val withdraw = format(Bank.calcLog(false,sender))
-
-                    sendMsg(sender,"§e§l今月の入出金額の合計")
-
-                    sendMsg(sender,"§a§l入金額:${deposit}")
-                    sendMsg(sender,"§c§l出金額:${withdraw}")
-
-                }
-
-                return true
-            }
-
-            //deposit withdraw
-            if ((cmd == "deposit" || cmd == "d")&& args.size == 2){
+            "deposit" ->{
 
                 if (sender !is Player)return false
 
                 if (!bankEnable)return false
+
+                if (args.isEmpty()){
+                    sendMsg(sender,"§c§l/deposit <金額> : 銀行に電子マネーを入れる")
+                    return true
+                }
 
                 //入金額
-                val amount : Double = if (args[1] == "all"){
+                val amount : Double = if (args[0] == "all"){
                     vault.getBalance(sender.uniqueId)
                 }else{
 
-                    val a = args[1].replace(",","")
+                    val a = args[0].replace(",","")
 
-                    if (!NumberUtils.isDigits(a)){
-                        sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
+                    val b = ZenkakuToHankaku(a)
+
+                    if (b == -1.0){
+                        sendMsg(sender,"§c§l数字で入力してください！")
                         return true
                     }
-                    a.toDouble()
+                    b
                 }
 
                 if (amount < 1){
-                    sendMsg(sender,"§c§l1未満の値は入金出来ません！")
+                    sendMsg(sender,"§c§l1円以上を入力してください！")
                     return true
                 }
 
                 if (!vault.withdraw(sender.uniqueId,amount)){
-                    sendMsg(sender,"§c§l入金失敗！、所持金が足りません！")
+                    sendMsg(sender,"§c§l電子マネーが足りません！")
                     return true
 
                 }
@@ -272,348 +404,195 @@ class Man10Bank : JavaPlugin(),Listener {
                 es.execute {
                     Bank.deposit(sender.uniqueId,amount,this,"PlayerDepositOnCommand")
 
-                    sendMsg(sender,"§a§l入金成功！")
+                    sendMsg(sender,"§a§l入金できました！")
                 }
 
-
                 return true
+
+
             }
 
-            if ((cmd == "withdraw" || cmd == "w") && args.size == 2){
+            "withdraw" ->{
+
                 if (sender !is Player)return false
 
                 if (!bankEnable)return false
 
+                if (args.isEmpty()){
+                    sendMsg(sender,"§c§l/withdraw <金額> : 銀行から電子マネーを出す")
+                    return true
+                }
+
                 es.execute {
 
-                    var amount = if (args[1] == "all"){
-                        Bank.getBalance(sender.uniqueId)*rate
+                    val amount = if (args[0] == "all"){
+                        Bank.getBalance(sender.uniqueId)
                     }else{
 
-                        val a = args[1].replace(",","")
+                        val a = args[0].replace(",","")
 
-                        if (!NumberUtils.isDigits(a)){
-                            sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
+                        val b = ZenkakuToHankaku(a)
+
+                        if (b == -1.0){
+                            sendMsg(sender,"§c§l数字で入力してください！")
                             return@execute
                         }
-                        a.toDouble()
+                        b
                     }
 
-                    if (amount < 0){
-                        sendMsg(sender,"§c§l0未満の値は出金出来ません！")
+                    if (amount < 1){
+                        sendMsg(sender,"§c§l1円以上を入力してください！")
                         return@execute
                     }
 
                     if (!Bank.withdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand")){
-                        sendMsg(sender,"§c§l出金失敗！口座残高が足りません！")
+                        sendMsg(sender,"§c§l銀行のお金が足りません！")
                         return@execute
                     }
-
-                    val fee1 = (amount*fee)
-                    amount -= fee1
 
                     vault.deposit(sender.uniqueId,amount)
 
-                    sendMsg(sender,"§a§l出金成功！")
-                    if (fee1 != 0.0){
-                        sendMsg(sender,"§a$${format(fee1)}手数料を徴収しました")
-                    }
+                    sendMsg(sender,"§a§l出金できました！")
 
                 }
 
                 return true
             }
 
-            if (cmd == "take"){//mbal take <name> <amount>
+            "pay" ->{
+                if (!sender.hasPermission(USER))return true
 
-                if (!sender.hasPermission(OP))return true
+                if (sender !is Player)return false
 
-                val a = args[2].replace(",","")
+                if (!isEnabled)return false
 
-                if (!NumberUtils.isDigits(a)){
-                    sendMsg(sender,"§c§l回収する額を半角数字で入力してください！")
+                if (args.size != 2){
+                    sendMsg(sender,"§c§l/pay <送る相手> <金額> : 電子マネーを友達に振り込む")
+                    return false
+                }
+
+                val a = args[1].replace(",","")
+
+                val amount = ZenkakuToHankaku(a)
+
+                if (amount == -1.0){
+                    sendMsg(sender,"§c§l/pay <送る相手> <金額> : 電子マネーを友達に振り込む")
                     return true
                 }
 
-                val amount = a.toDouble()
-
-                if (amount < 0){
-                    sendMsg(sender,"§c§l0未満の値は入金出来ません！")
+                if (amount <1){
+                    sendMsg(sender,"§c§l1円以上を入力してください！")
                     return true
                 }
+
+                if (checking[sender] == null||checking[sender]!! != command){
+
+                    sendMsg(sender,"§7§l送る電子マネー:${format(amount)}円")
+                    sendMsg(sender,"§7§l送る相手:${args[0]}")
+                    sendMsg(sender,"§7§l確認のため、同じコマンドをもう一度入力してください")
+
+                    checking[sender] = command
+
+                    return true
+                }
+
+                checking.remove(sender)
+
+                val p = Bukkit.getPlayer(args[0])
+
+                if (p==null){
+                    sendMsg(sender,"§c§l送る相手がオフラインかもしれません")
+                    return true
+                }
+
+                if (!vault.withdraw(sender.uniqueId,amount)){
+                    sendMsg(sender,"§c§l送る電子マネーが足りません！")
+                    return true
+                }
+
+                vault.deposit(p.uniqueId,amount)
+
+                sendMsg(sender,"§a§l送金できました！")
+                sendMsg(p,"§a${sender.name}さんから${format(amount)}円送られました！")
+
+            }
+
+            "mpay" ->{
+                if (!sender.hasPermission(USER))return true
+
+                if (sender !is Player)return false
+
+                if (!isEnabled)return false
+
+                if (args.size != 2){
+                    sendMsg(sender,"§c§l/mpay <送る相手> <金額> : 銀行のお金を友達に振り込む")
+                    return false
+                }
+
+                val a = args[1].replace(",","")
+
+                val amount = ZenkakuToHankaku(a)
+
+                if (amount == -1.0){
+                    sendMsg(sender,"§c§l/mpay <送る相手> <金額> : 銀行のお金を友達に振り込む")
+                    return true
+                }
+
+                if (amount <1){
+                    sendMsg(sender,"§c§l1円以上を入力してください！")
+                    return true
+                }
+
+                if (checking[sender] == null||checking[sender]!! != command){
+
+                    sendMsg(sender,"§7§l送る銀行のお金:${format(amount)}円")
+                    sendMsg(sender,"§7§l送る相手:${args[0]}")
+                    sendMsg(sender,"§7§l確認のため、同じコマンドをもう一度入力してください")
+
+                    checking[sender] = command
+
+                    return true
+                }
+
+                checking.remove(sender)
 
                 es.execute {
+                    val uuid = Bank.getUUID(args[0])
 
-                    val uuid = Bank.getUUID(args[1])?: return@execute
-
-                    if (!Bank.withdraw(uuid,amount,this,"TakenByCommand")){
-                        Bank.setBalance(uuid,0.0)
-                        sendMsg(sender,"§a回収額が残高を上回っていたので、残高が0になりました")
+                    if (uuid == null){
+                        sendMsg(sender,"§c§l送金失敗！まだman10サーバーにきたことがない人かもしれません！")
                         return@execute
                     }
-                    sendMsg(sender,"§a${format(amount)}円回収しました")
-                    sendMsg(sender,"§a現在の残高：${format(Bank.getBalance(uuid))}")
 
-                }
-                return true
 
-            }
+                    if (!Bank.withdraw(sender.uniqueId,amount,this,"RemittanceTo${args[0]}")){
+                        sendMsg(sender,"§c§l送金する銀行のお金が足りません！")
+                        return@execute
 
-            if (cmd == "give"){
+                    }
 
-                if (!sender.hasPermission(OP))return true
+                    Bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}")
 
-                val a = args[2].replace(",","")
+                    sendMsg(sender,"§a§l送金成功！")
 
-                if (!NumberUtils.isDigits(a)){
-                    sendMsg(sender,"§c§l入金する額を半角数字で入力してください！")
-                    return true
+                    val p = Bukkit.getPlayer(uuid)?:return@execute
+                    sendMsg(p,"§a${sender.name}さんから${format(amount)}円送られました！")
                 }
 
-                val amount = a.toDouble()
-
-                if (amount < 0){
-                    sendMsg(sender,"§c§l0未満の値は入金出来ません！")
-                    return true
-                }
-
-                es.execute {
-
-                    val uuid =  Bank.getUUID(args[1])?: return@execute
-
-                    Bank.deposit(uuid,amount,this,"GivenFromServer")
-
-                    sendMsg(sender,"§a${format(amount)}円入金しました")
-                    sendMsg(sender,"§a現在の残高：${format(Bank.getBalance(uuid))}")
-
-                }
-            }
-
-            if (cmd == "set"){
-
-                if (!sender.hasPermission(OP))return true
-
-                val a = args[2].replace(",","")
-
-                if (!NumberUtils.isDigits(a)){
-                    sendMsg(sender,"§c§l設定する額を半角数字で入力してください！")
-                    return true
-                }
-
-                val amount = a.toDouble()
-
-                if (amount < 0){
-                    sendMsg(sender,"§c§l0未満の値は入金出来ません！")
-                    return true
-                }
-
-                es.execute {
-
-                    val uuid =  Bank.getUUID(args[1])?: return@execute
-
-                    Bank.setBalance(uuid,amount)
-
-                    sendMsg(sender,"§a${format(amount)}円に設定しました")
-
-                }
-            }
-
-            if (cmd == "off"){
-                if (!sender.hasPermission(OP))return false
-
-                bankEnable = false
-                Bukkit.broadcastMessage("§e§lMan10Bankが閉じました！")
-                return true
-
-            }
-
-            if (cmd == "on"){
-                if (!sender.hasPermission(OP))return false
-
-                bankEnable = true
-
-                Bukkit.broadcastMessage("§e§lMan10Bankが開きました！")
-                return true
-
-            }
-
-            if (cmd == "reload"){
-                if (!sender.hasPermission(OP))return false
-
-                es.execute{
-                    reloadConfig()
-
-                    fee = config.getDouble("fee")
-                    rate = config.getDouble("rate")
-                    loanMax = config.getDouble("loanmax")
-                    loanFee = config.getDouble("loanfee")
-
-                    Bank.reload()
-                }
-
-            }
-
-
-        }
-
-
-        if (sender !is Player)return false
-
-
-        if (label == "pay"){
-            if (!sender.hasPermission(USER))return true
-
-            if (!isEnabled)return false
-
-            if (args.size != 2)return false
-
-            val a = args[1].replace(",","")
-
-            if (!NumberUtils.isDigits(a)){
-                sendMsg(sender,"§c§l/pay <ユーザー名> <金額>")
-                return true
-            }
-
-            val amount = a.toDouble()
-
-            if (amount <0){
-                sendMsg(sender,"§c§l0未満の額は送金できません！")
-                return true
-            }
-
-            if (checking[sender] == null||checking[sender]!! != command){
-
-                sendMsg(sender,"§7§l送金金額:${format(amount)}")
-                sendMsg(sender,"§7§l送金相手:${args[0]}")
-                sendMsg(sender,"§7§l確認のため、もう一度入力してください")
-
-                checking[sender] = command
-
-                return true
-            }
-
-            checking.remove(sender)
-
-            sendMsg(sender,"§e§l現在入金中・・・")
-
-            val p = Bukkit.getPlayer(args[0])
-
-            if (p==null){
-                sendMsg(sender,"§c§l送金相手がオフラインの可能性があります")
-                return true
-            }
-
-            if (!vault.withdraw(sender.uniqueId,amount)){
-                sendMsg(sender,"§c§l送金する残高が足りません！")
-                return true
-            }
-
-            vault.deposit(p.uniqueId,amount)
-
-            sendMsg(sender,"§a§l送金成功！")
-            sendMsg(p,"§a${sender.name}から${format(amount)}円送金されました")
-        }
-
-        if (label == "mpay"){
-
-            if (!sender.hasPermission(USER))return true
-
-            if (!isEnabled)return false
-
-            if (args.size != 2)return false
-
-            val a = args[1].replace(",","")
-
-            if (!NumberUtils.isDigits(a)){
-                sendMsg(sender,"§c§l/mpay <ユーザー名> <金額>")
-                return true
-            }
-
-            val amount = a.toDouble()
-
-            if (amount <0){
-                sendMsg(sender,"§c§l0未満の額は送金できません！")
-                return true
-            }
-
-            if (checking[sender] == null||checking[sender]!! != command){
-
-                sendMsg(sender,"§7§l送金金額:${format(amount)}")
-                sendMsg(sender,"§7§l送金相手:${args[0]}")
-                sendMsg(sender,"§7§l確認のため、もう一度入力してください")
-
-                checking[sender] = command
-
-                return true
-            }
-
-            checking.remove(sender)
-
-            sendMsg(sender,"§e§l現在入金中・・・")
-
-
-            es.execute {
-                val uuid = Bank.getUUID(args[0])
-
-                if (uuid == null){
-                    sendMsg(sender,"§c§l存在しないユーザ、もしくは口座がありません！")
-                    return@execute
-                }
-
-
-                if (!Bank.withdraw(sender.uniqueId,amount,this,"RemittanceTo${args[0]}")){
-                    sendMsg(sender,"§c§l送金する残高が足りません！")
-                    return@execute
-
-                }
-
-                Bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}")
-
-                sendMsg(sender,"§a§l送金成功！")
-
-                val p = Bukkit.getPlayer(uuid)?:return@execute
-                sendMsg(p,"§a${sender.name}から${format(amount)}円送金されました")
             }
         }
 
         return false
     }
 
-    override fun onTabComplete(
-        sender: CommandSender,
-        command: Command,
-        alias: String,
-        args: Array<out String>
-    ): MutableList<String> {
 
-        if (alias == "bal" || alias == "mbal"){
+    fun ZenkakuToHankaku(number:String):Double{
 
-            if (args.size == 1){
-                return mutableListOf("deposit","withdraw","log","help")
-            }
-            return mutableListOf("1,000","10,000","100,000","1,000,000","10,000,000")
-        }
+        val normalize = Normalizer.normalize(number,Normalizer.Form.NFKC)
 
-        if (alias == "mpay" || alias == "pay"){
+        val double = normalize.toDoubleOrNull() ?: return -1.0
 
-            if (args.size == 1 && args[0].isEmpty()){
-                return mutableListOf("/mpay <送る相手> <金額> で振込ができます")
-            }
-
-            if (args.size == 2){
-                return mutableListOf("1,000","10,000","100,000","1,000,000","10,000,000")
-            }
-
-        }
-
-        val list = mutableListOf<String>()
-
-        for (p in Bukkit.getOnlinePlayers()){
-            if (p.name == sender.name)continue
-            list.add(p.name)
-        }
-
-        return list
+        return double
     }
 
     @EventHandler
