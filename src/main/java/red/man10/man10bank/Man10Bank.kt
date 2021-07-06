@@ -515,6 +515,8 @@ class Man10Bank : JavaPlugin(),Listener {
                 sendMsg(sender,"§a§l送金できました！")
                 sendMsg(p,"§a${sender.name}さんから${format(amount)}円送られました！")
 
+                return true
+
             }
 
             "mpay" ->{
@@ -579,10 +581,12 @@ class Man10Bank : JavaPlugin(),Listener {
                     sendMsg(p,"§a${sender.name}さんから${format(amount)}円送られました！")
                 }
 
+                return true
+
             }
         }
 
-        return false
+        return true
     }
 
     private val aliasList = mutableListOf("bal","balance","money","bank","deposit","withdraw")
