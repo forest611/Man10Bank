@@ -462,13 +462,13 @@ class Man10Bank : JavaPlugin(),Listener {
             "pay" ->{
                 if (!sender.hasPermission(USER))return true
 
-                if (sender !is Player)return false
+                if (sender !is Player)return true
 
-                if (!isEnabled)return false
+                if (!isEnabled)return true
 
                 if (args.size != 2){
                     sendMsg(sender,"§c§l/pay <送る相手> <金額> : 電子マネーを友達に振り込む")
-                    return false
+                    return true
                 }
 
                 val a = args[1].replace(",","")
@@ -520,9 +520,9 @@ class Man10Bank : JavaPlugin(),Listener {
             "mpay" ->{
                 if (!sender.hasPermission(USER))return true
 
-                if (sender !is Player)return false
+                if (sender !is Player)return true
 
-                if (!isEnabled)return false
+                if (!isEnabled)return true
 
                 if (args.size != 2){
                     sendMsg(sender,"§c§l/mpay <送る相手> <金額> : 銀行のお金を友達に振り込む")
@@ -585,8 +585,37 @@ class Man10Bank : JavaPlugin(),Listener {
         return false
     }
 
+    private val aliasList = mutableListOf("bal","balance","money","bank","deposit","withdraw")
 
-    fun ZenkakuToHankaku(number:String):Double{
+    override fun onTabComplete(
+        sender: CommandSender,
+        command: Command,
+        alias: String,
+        args: Array<out String>
+    ): MutableList<String> {
+
+        if (aliasList.contains(alias))return Collections.emptyList()
+
+        if (alias == "pay" || alias == "mpay"){
+
+            if (args.size > 1)return Collections.emptyList()
+
+            val pList = mutableListOf<String>()
+
+            for (p in Bukkit.getOnlinePlayers()){
+
+                if (p == sender)continue
+                pList.add("${p.name} ")
+            }
+
+            return pList
+        }
+
+        return Collections.emptyList()
+    }
+
+
+    private fun ZenkakuToHankaku(number:String):Double{
 
         val normalize = Normalizer.normalize(number,Normalizer.Form.NFKC)
 
