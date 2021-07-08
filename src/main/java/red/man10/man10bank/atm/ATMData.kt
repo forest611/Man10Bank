@@ -60,9 +60,8 @@ object ATMData {
 
         val amount = getMoneyAmount(itemStack)
 
-        itemStack.amount = 0
-
         if (amount > 0){
+            itemStack.amount = 0
             vault.deposit(p.uniqueId,amount)
             addLog(p,amount,true)
         }

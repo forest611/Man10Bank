@@ -63,7 +63,8 @@ object ATMListener : Listener {
 
                     var hasAnyItem = false
 
-                    for (item in e.inventory.contents){
+                    for (i in 0..44){
+                        val item = e.inventory.getItem(i)
                         if (item ==null ||item.type == Material.AIR)continue
 
                         val depositAmount = ATMData.deposit(p,item)
@@ -82,6 +83,7 @@ object ATMListener : Listener {
 
                     if (hasAnyItem){
                         sendMsg(p,"§c§l現金以外のアイテムが残っています！")
+                        return
                     }
                     p.closeInventory()
 

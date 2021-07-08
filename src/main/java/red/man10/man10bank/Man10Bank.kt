@@ -28,7 +28,6 @@ class Man10Bank : JavaPlugin(),Listener {
 
     companion object{
         const val prefix = "§l[§e§lMan10Bank§f§l]"
-        val prefixComponent = text(prefix)
 
         lateinit var vault : VaultManager
 

@@ -68,7 +68,7 @@ object ATMInventory {
 
             val item = ATMData.moneyItems[money]!!.clone()
             val lore = item.lore()?: mutableListOf()
-            lore.add(Component.text("§e§ld電子マネー:§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent())
+            lore.add(Component.text("§e§l電子マネー:§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent())
             item.lore(lore)
 
             inv.setItem(slots[i],item)
