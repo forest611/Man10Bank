@@ -32,8 +32,8 @@ object ATMInventory {
 
         val deposit = ItemStack(Material.CHEST)
         val dMeta = deposit.itemMeta
-        dMeta.displayName(Component.text("§9§lアイテム通貨を預ける"))
-        dMeta.lore(mutableListOf(Component.text("§e§l所持金:§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent()))
+        dMeta.displayName(Component.text("§9§l現金を預ける"))
+        dMeta.lore(mutableListOf(Component.text("§e§l電子マネー:§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent()))
         deposit.itemMeta = dMeta
 
         inv.setItem(10,deposit)
@@ -42,8 +42,8 @@ object ATMInventory {
 
         val withdraw = ItemStack(Material.DISPENSER)
         val wMeta = withdraw.itemMeta
-        wMeta.displayName(Component.text("§9§lアイテム通貨を引き出す"))
-        wMeta.lore(mutableListOf(Component.text("§e§l所持金:§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent()))
+        wMeta.displayName(Component.text("§9§l現金を引き出す"))
+        wMeta.lore(mutableListOf(Component.text("§e§l電子マネー:§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent()))
         withdraw.itemMeta = wMeta
 
         inv.setItem(14,withdraw)
@@ -56,7 +56,7 @@ object ATMInventory {
 
     fun openWithdrawMenu(p:Player){
 
-        val inv = Bukkit.createInventory(null,27, Component.text("§d§lMa§f§ln§a§l10§e§l[ATM]§9お金を引き出す"))
+        val inv = Bukkit.createInventory(null,27, Component.text("§d§lMa§f§ln§a§l10§e§l[ATM]§9現金を引き出す"))
 
         for(i in 0..26){
             inv.setItem(i, ItemStack(Material.GRAY_STAINED_GLASS_PANE))
@@ -68,7 +68,7 @@ object ATMInventory {
 
             val item = ATMData.moneyItems[money]!!.clone()
             val lore = item.lore()?: mutableListOf()
-            lore.add(Component.text("§e§l所持金:§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent())
+            lore.add(Component.text("§e§ld電子マネー:§b§l${Man10Bank.format(vault.getBalance(p.uniqueId))}").asComponent())
             item.lore(lore)
 
             inv.setItem(slots[i],item)
@@ -83,11 +83,11 @@ object ATMInventory {
 
     fun openDepositMenu(p:Player){
 
-        val inv = Bukkit.createInventory(null,54, Component.text("§d§lMa§f§ln§a§l10§e§l[ATM]§9お金を預ける"))
+        val inv = Bukkit.createInventory(null,54, Component.text("§d§lMa§f§ln§a§l10§e§l[ATM]§9現金を預ける"))
 
         val quit = ItemStack(Material.CYAN_STAINED_GLASS_PANE)
         val qMeta = quit.itemMeta
-        qMeta.displayName(Component.text("§b§l預けて閉じる"))
+        qMeta.displayName(Component.text("§b§l現金を預けて閉じる"))
         quit.itemMeta = qMeta
 
         for (i in 45..53){

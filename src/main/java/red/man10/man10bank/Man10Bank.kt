@@ -120,6 +120,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
                     "setmoney"->{
 
+                        if (!sender.hasPermission(OP))return false
+
                         val amount = args[1].toDoubleOrNull() ?: return true
 
                         val ret = ATMData.setItem(sender.inventory.itemInMainHand,amount)
