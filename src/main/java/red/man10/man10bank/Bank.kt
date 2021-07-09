@@ -46,7 +46,7 @@ object Bank {
     //新規口座作成 既に持っていたら作らない
     /////////////////////////////////////
     @Synchronized
-    private fun createAccount(uuid: UUID):Boolean{
+    fun createAccount(uuid: UUID):Boolean{
 
         if (hasAccount(uuid))return false
 
