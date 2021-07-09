@@ -1,11 +1,14 @@
 package red.man10.man10bank.history
 
 import org.bukkit.Bukkit
+import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.MySQLManager
 import red.man10.man10bank.atm.ATMData
+import java.util.*
+import kotlin.collections.HashMap
 
 object EstateData {
 
@@ -65,6 +68,42 @@ object EstateData {
         mysql.execute("INSERT INTO server_estate_history (vault, bank, estate, date, total) " +
                 "VALUES ($vaultSum, $bankSum, $estateSum, $total, now())")
 
+    }
+
+    fun getBalanceTotal():HashMap<String,Double>?{
+
+        val map = HashMap<String,Double>()
+
+        val rs = mysql.query("SELECT vault,bank,estate,total from server_estate_history ORDER BY date DESC LIMIT 1")?:return null
+        rs.next()
+        map["vault"] = rs.getDouble(1)
+        map["bank"] = rs.getDouble(2)
+        map["estate"] = rs.getDouble(3)
+        map["total"] = rs.getDouble(4)
+
+        rs.close()
+        mysql.close()
+        return map
+    }
+
+    fun getBalanceTop(): HashMap<OfflinePlayer, Double>? {
+
+        val map = HashMap<OfflinePlayer,Double>()
+
+        val rs = mysql.query("SELECT uuid,total FROM estate_tbl order by total desc limit 10;")?:return null
+
+        while (rs.next()){
+
+            val p = Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("uuid")))
+            val total = rs.getDouble("total")
+
+            map[p] = total
+        }
+
+        rs.close()
+        mysql.close()
+
+        return map
     }
 
     fun historyThread(){

@@ -142,19 +142,19 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 es.execute{
 
-                    val list = Bank.balanceTop()?:return@execute
+                    val balTopMap = EstateData.getBalanceTop()?:return@execute
 
-                    for (data in list){
-                        sendMsg(sender,"§b§l${data.first.name} : §e§l$ ${format(data.second)}")
+                    for (data in balTopMap){
+                        sendMsg(sender,"§b§l${data.key.name} : §e§l$ ${format(data.value)}")
                     }
 
-                    sendMsg(sender,"§e§l合計口座残高")
+                    val totalMap = EstateData.getBalanceTotal()?:return@execute
 
-                    sendMsg(sender,"§b§kXX§e§l${format(Bank.totalBalance())}§b§kXX")
+                    sendMsg(sender,"§e§l電子マネーの合計:${format(totalMap["vault"]?:0.0)}")
+                    sendMsg(sender,"§e§l現金の合計:${format(totalMap["estate"]?:0.0)}")
+                    sendMsg(sender,"§e§l銀行口座の合計:${format(totalMap["bank"]?:0.0)}")
+                    sendMsg(sender,"§e§l全て合計:${format(totalMap["total"]?:0.0)}")
 
-                    sendMsg(sender,"§e§l平均口座残高")
-
-                    sendMsg(sender,"§b§kXX§e§l${format(Bank.average())}§b§kXX")
 
                 }
             }

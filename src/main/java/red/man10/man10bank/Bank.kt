@@ -245,52 +245,52 @@ object Bank {
         return true
     }
 
-    fun balanceTop(): MutableList<Pair<OfflinePlayer, Double>>? {
+//    fun balanceTop(): MutableList<Pair<OfflinePlayer, Double>>? {
+//
+//        val list = mutableListOf<Pair<OfflinePlayer,Double>>()
+//
+//        val mysql = MySQLManager(plugin,"Man10Bank baltop")
+//
+//        val rs = mysql.query("select * from user_bank order by balance desc limit 10")?:return null
+//
+//        while (rs.next()){
+//            list.add(Pair(Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("uuid"))),rs.getDouble("balance")))
+//        }
+//
+//        rs.close()
+//        mysql.close()
+//
+//        return list
+//
+//    }
 
-        val list = mutableListOf<Pair<OfflinePlayer,Double>>()
-
-        val mysql = MySQLManager(plugin,"Man10Bank baltop")
-
-        val rs = mysql.query("select * from user_bank order by balance desc limit 10")?:return null
-
-        while (rs.next()){
-            list.add(Pair(Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("uuid"))),rs.getDouble("balance")))
-        }
-
-        rs.close()
-        mysql.close()
-
-        return list
-
-    }
-
-    fun totalBalance():Double{
-
-        val mysql = MySQLManager(plugin,"Man10Bank total")
-
-        val rs = mysql.query("select sum(balance) from user_bank")?:return 0.0
-        rs.next()
-
-        val amount = rs.getDouble(1)
-
-        rs.close()
-        mysql.close()
-        return amount
-
-    }
-
-    fun average():Double{
-        val mysql = MySQLManager(plugin,"Man10Bank total")
-
-        val rs = mysql.query("select avg(balance) from user_bank")?:return 0.0
-        rs.next()
-
-        val amount = rs.getDouble(1)
-
-        rs.close()
-        mysql.close()
-        return amount
-    }
+//    fun totalBalance():Double{
+//
+//        val mysql = MySQLManager(plugin,"Man10Bank total")
+//
+//        val rs = mysql.query("select sum(balance) from user_bank")?:return 0.0
+//        rs.next()
+//
+//        val amount = rs.getDouble(1)
+//
+//        rs.close()
+//        mysql.close()
+//        return amount
+//
+//    }
+//
+//    fun average():Double{
+//        val mysql = MySQLManager(plugin,"Man10Bank total")
+//
+//        val rs = mysql.query("select avg(balance) from user_bank")?:return 0.0
+//        rs.next()
+//
+//        val amount = rs.getDouble(1)
+//
+//        rs.close()
+//        mysql.close()
+//        return amount
+//    }
 
 
     fun calcLog(deposit:Boolean,p:Player): Double {
