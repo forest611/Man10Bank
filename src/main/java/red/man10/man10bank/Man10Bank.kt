@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent
 import org.apache.commons.lang.math.NumberUtils
 import org.bukkit.Bukkit
-import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -16,6 +15,7 @@ import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
 import red.man10.man10bank.atm.ATMInventory
 import red.man10.man10bank.atm.ATMListener
+import red.man10.man10bank.history.EstateData
 import red.man10.man10bank.loan.Event
 import red.man10.man10bank.loan.LoanCommand
 import java.text.Normalizer
@@ -94,6 +94,10 @@ class Man10Bank : JavaPlugin(),Listener {
 
         getCommand("mlend")!!.setExecutor(LoanCommand())
 
+        es.execute {
+            EstateData.historyThread()
+        }
+
     }
 
     override fun onDisable() {
@@ -166,13 +170,7 @@ class Man10Bank : JavaPlugin(),Listener {
                         //時差による表示ずれ対策で、一旦所持金を呼び出す
                         val bankAmount = format(Bank.getBalance(sender.uniqueId))
 
-                        var cash = 0.0
-
-                        for (item in sender.inventory.contents){
-                            if (item ==null ||item.type == Material.AIR)continue
-                            val money = ATMData.getMoneyAmount(item)
-                            cash+=money
-                        }
+                        val cash = ATMData.getInventoryMoney(sender) + ATMData.getEnderChestMoney(sender)
 
                         sendMsg(sender," §b§l電子マネー:  §e§l${format(vault.getBalance(sender.uniqueId))}円")
                         sendMsg(sender," §b§l現金:  §e§l${format(cash)}円")

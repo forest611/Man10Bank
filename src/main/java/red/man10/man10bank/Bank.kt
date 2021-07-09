@@ -10,6 +10,7 @@ import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
+import red.man10.man10bank.history.EstateData
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.floor
@@ -56,6 +57,8 @@ object Bank {
                 "VALUES ('${p.name}', '$uuid', 0);")
 
         addLog(uuid,plugin,"CreateAccount",0.0,true)
+
+        EstateData.createEstateData(p.player!!)
 
         vault.deposit(uuid,Man10Bank.firstMoney)
 
