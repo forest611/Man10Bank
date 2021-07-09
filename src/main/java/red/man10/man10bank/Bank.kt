@@ -58,8 +58,8 @@ object Bank {
 
         addLog(uuid,plugin,"CreateAccount",0.0,true)
 
-        EstateData.createEstateData(p.player!!)
-
+//        EstateData.createEstateData(p.player!!)
+//
         vault.deposit(uuid,Man10Bank.firstMoney)
 
         return true

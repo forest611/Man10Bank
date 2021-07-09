@@ -35,7 +35,7 @@ object EstateData {
         }
     }
 
-    private fun saveCurrentEstate(p:Player){
+    fun saveCurrentEstate(p:Player){
 
         val uuid = p.uniqueId
 
