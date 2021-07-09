@@ -67,6 +67,7 @@ create table estate_tbl
     vault double default 0 null,
     bank double default 0 null,
     estate double default 0 null,
+    crypto double default 0 null,
     total double default 0 null,
     constraint estate_tbl_pk
         primary key (id)
@@ -86,6 +87,7 @@ create table estate_history_tbl
     vault double default 0 null,
     bank double default 0 null,
     estate double default 0 null,
+    crypto double default 0 null,
     total double default 0 null,
     constraint estate_history_tbl_pk
         primary key (id)
@@ -98,7 +100,10 @@ create table server_estate_history
     vault double default 0 null,
     bank double default 0 null,
     estate double default 0 null,
+    crypto double default 0 null,
+    total double default 0 null,
     date datetime null,
     constraint server_estate_history_pk
         primary key (id)
 );
+
