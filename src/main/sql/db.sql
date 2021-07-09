@@ -58,3 +58,47 @@ create table atm_log
 		primary key (id)
 );
 
+create table estate_tbl
+(
+    id int auto_increment,
+    uuid varchar(36) not null,
+    date datetime null,
+    player varchar(16) null,
+    vault double default 0 null,
+    bank double default 0 null,
+    estate double default 0 null,
+    total double default 0 null,
+    constraint estate_tbl_pk
+        primary key (id)
+)
+comment '現在の個人の資産テーブル';
+
+create index estate_tbl_uuid_index
+    on estate_tbl (uuid);
+
+
+create table estate_history_tbl
+(
+    id int auto_increment,
+    uuid varchar(36) null,
+    date datetime default now() null,
+    player varchar(16) null,
+    vault double default 0 null,
+    bank double default 0 null,
+    estate double default 0 null,
+    total double default 0 null,
+    constraint estate_history_tbl_pk
+        primary key (id)
+);
+
+
+create table server_estate_history
+(
+    id int auto_increment,
+    vault double default 0 null,
+    bank double default 0 null,
+    estate double default 0 null,
+    date datetime null,
+    constraint server_estate_history_pk
+        primary key (id)
+);
