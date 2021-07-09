@@ -65,7 +65,7 @@ object EstateData {
         rs.close()
         mysql.close()
 
-        mysql.execute("INSERT INTO server_estate_history (vault, bank, estate, date, total) " +
+        mysql.execute("INSERT INTO server_estate_history (vault, bank, estate, total, date) " +
                 "VALUES ($vaultSum, $bankSum, $estateSum, $total, now())")
 
     }
@@ -117,9 +117,5 @@ object EstateData {
 
             Thread.sleep(interval)
         }
-
-
     }
-
-
 }
