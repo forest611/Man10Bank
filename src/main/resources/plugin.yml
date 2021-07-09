@@ -5,6 +5,7 @@ softdepend:
   - Vault
   - Man10CommonLibs
   - Man10Mail
+  - Essentials
 main: red.man10.man10bank.Man10Bank
 api-version: 1.16
 commands:

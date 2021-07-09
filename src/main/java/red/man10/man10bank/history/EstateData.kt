@@ -12,15 +12,35 @@ import kotlin.collections.HashMap
 
 object EstateData {
 
-    private const val interval = 36000000L
+//    private const val interval = 36000000L
+////    private const val interval = 60000L
     private val mysql = MySQLManager(Man10Bank.plugin,"Man10BankEstateHistory")
 
     private fun addEstateHistory(p:Player, vault:Double, bank:Double, estate:Double){
 
         val uuid = p.uniqueId
 
-        mysql.execute("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, estate, total) " +
-                "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank}, ${estate}, ${vault+bank+estate})")
+        val rs = mysql.query("SELECT * FROM estate_history_tbl ORDER BY date DESC 1")
+
+        if (rs==null || !rs.next()){
+            mysql.execute("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, estate, total) " +
+                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank}, ${estate}, ${vault+bank+estate})")
+
+            return
+        }
+
+        val lastVault = rs.getDouble("vault")
+        val lastBank = rs.getDouble("bank")
+        val lastEstate = rs.getDouble("estate")
+
+        mysql.close()
+        rs.close()
+
+        if (vault != lastVault || bank != lastBank || estate != lastEstate){
+            mysql.execute("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, estate, total) " +
+                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank}, ${estate}, ${vault+bank+estate})")
+
+        }
 
     }
 
@@ -44,7 +64,7 @@ object EstateData {
         val estate = ATMData.getEnderChestMoney(p) + ATMData.getInventoryMoney(p)
 
         mysql.execute("UPDATE estate_tbl SET " +
-                "date=now(), player='${p.name}', vault=${vault}, bank=${bank}, estate=${estate}, total=${vault+bank+estate} WHERE id=1")
+                "date=now(), player='${p.name}', vault=${vault}, bank=${bank}, estate=${estate}, total=${vault+bank+estate} WHERE uuid='${uuid}'")
 
 
         addEstateHistory(p, vault, bank, estate)
@@ -113,9 +133,12 @@ object EstateData {
                 saveCurrentEstate(p)
             }
 
+            //TODO:yy mm dd で処理する
             addServerHistory()
 
-            Thread.sleep(interval)
+            Bukkit.getLogger().info("SavedServerEstateHistory")
+
+            Thread.sleep(100000)
         }
     }
 }

@@ -154,7 +154,7 @@ class Man10Bank : JavaPlugin(),Listener {
                     sendMsg(sender,"§e§l電子マネーの合計:${format(totalMap["vault"]?:0.0)}")
                     sendMsg(sender,"§e§l現金の合計:${format(totalMap["estate"]?:0.0)}")
                     sendMsg(sender,"§e§l銀行口座の合計:${format(totalMap["bank"]?:0.0)}")
-                    sendMsg(sender,"§e§l全て合計:${format(totalMap["total"]?:0.0)}")
+                    sendMsg(sender,"§e§l全ての合計:${format(totalMap["total"]?:0.0)}")
 
 
                 }
