@@ -56,7 +56,7 @@ object ATMInventory {
 
     fun openWithdrawMenu(p:Player){
 
-        val inv = Bukkit.createInventory(null,27, Component.text("§d§lMa§f§ln§a§l10§e§l[ATM]§9電子マネーを現金にする(現金をクリック！)"))
+        val inv = Bukkit.createInventory(null,27, Component.text("§d§lMa§f§ln§a§l10§e§l[ATM]§9現金をクリックして引き出す"))
 
         for(i in 0..26){
             inv.setItem(i, ItemStack(Material.GRAY_STAINED_GLASS_PANE))
