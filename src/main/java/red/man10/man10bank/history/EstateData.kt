@@ -14,31 +14,36 @@ object EstateData {
 
     private val mysql = MySQLManager(Man10Bank.plugin,"Man10BankEstateHistory")
 
+    //ヒストリーに追加 TODO:テーブルのレコードを増やさないようにしつつ、負荷軽減方法を考える
     private fun addEstateHistory(p:Player, vault:Double, bank:Double, estate:Double){
 
         val uuid = p.uniqueId
+//
+//        val rs = mysql.query("SELECT * FROM estate_history_tbl ORDER BY date DESC 1")
+//
+//        if (rs==null || !rs.next()){
+//            mysql.execute("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, estate, total) " +
+//                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank}, ${estate}, ${vault+bank+estate})")
+//
+//            return
+//        }
+//
+//        val lastVault = rs.getDouble("vault")
+//        val lastBank = rs.getDouble("bank")
+//        val lastEstate = rs.getDouble("estate")
+//
+//        mysql.close()
+//        rs.close()
+//
+//        if (vault != lastVault || bank != lastBank || estate != lastEstate){
+//            mysql.execute("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, estate, total) " +
+//                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank}, ${estate}, ${vault+bank+estate})")
+//
+//        }
 
-        val rs = mysql.query("SELECT * FROM estate_history_tbl ORDER BY date DESC 1")
 
-        if (rs==null || !rs.next()){
-            mysql.execute("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, estate, total) " +
-                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank}, ${estate}, ${vault+bank+estate})")
-
-            return
-        }
-
-        val lastVault = rs.getDouble("vault")
-        val lastBank = rs.getDouble("bank")
-        val lastEstate = rs.getDouble("estate")
-
-        mysql.close()
-        rs.close()
-
-        if (vault != lastVault || bank != lastBank || estate != lastEstate){
-            mysql.execute("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, estate, total) " +
-                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank}, ${estate}, ${vault+bank+estate})")
-
-        }
+        MySQLManager.mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, estate, total) " +
+                "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank}, ${estate}, ${vault+bank+estate})")
 
     }
 
@@ -53,6 +58,30 @@ object EstateData {
         }
     }
 
+    //現在の資産を保存(オンラインのユーザー)
+    private fun saveCurrentEstate(){
+
+        val rs = mysql.query("SELECT * FROM estate_tbl ORDER BY date DESC 1")?:return
+
+        while (rs.next()){
+            val p = Bukkit.getPlayer(UUID.fromString(rs.getString("uuid")))?:continue
+            if (!p.isOnline)continue
+
+            val uuid = p.uniqueId
+
+            val vault = Man10Bank.vault.getBalance(uuid)
+            val bank = Bank.getBalance(uuid)
+            val estate = ATMData.getEnderChestMoney(p) + ATMData.getInventoryMoney(p)
+
+            mysql.execute("UPDATE estate_tbl SET " +
+                    "date=now(), player='${p.name}', vault=${vault}, bank=${bank}, estate=${estate}, total=${vault+bank+estate} WHERE uuid='${uuid}'")
+
+            addEstateHistory(p, vault, bank, estate)
+
+        }
+    }
+
+    //現在の資産を保存(特定のプレイヤーだけ)
     fun saveCurrentEstate(p:Player){
 
         val uuid = p.uniqueId
@@ -64,10 +93,10 @@ object EstateData {
         mysql.execute("UPDATE estate_tbl SET " +
                 "date=now(), player='${p.name}', vault=${vault}, bank=${bank}, estate=${estate}, total=${vault+bank+estate} WHERE uuid='${uuid}'")
 
-
         addEstateHistory(p, vault, bank, estate)
 
     }
+
 
     private fun addServerHistory(){
 
@@ -144,9 +173,7 @@ object EstateData {
     fun historyThread(){
 
         while (true){
-            for (p in Bukkit.getOnlinePlayers()){
-                saveCurrentEstate(p)
-            }
+            saveCurrentEstate()
 
             addServerHistory()
 

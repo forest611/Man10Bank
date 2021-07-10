@@ -103,7 +103,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
     override fun onDisable() {
         // Plugin shutdown logic
-        es.shutdown()
+        es.shutdownNow()
     }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
