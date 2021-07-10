@@ -88,6 +88,7 @@ class Man10Bank : JavaPlugin(),Listener {
         loanMax = config.getDouble("loanmax",10000000.0)
         loanRate = config.getDouble("loanrate",1.0)
         firstMoney = config.getDouble("firstmoney",10000.0)
+        loggingServerHistory = config.getBoolean("loggingServerHistory",false)
 
         ATMData.loadItem()
 
