@@ -60,6 +60,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
         var firstMoney : Double = 10000.0 // お初に渡すお金の金額
 
+        var loggingServerHistory = false
+
     }
 
     private val checking = HashMap<Player,Command>()
@@ -619,13 +621,11 @@ class Man10Bank : JavaPlugin(),Listener {
     }
 
 
-    private fun ZenkakuToHankaku(number:String):Double{
+    private fun ZenkakuToHankaku(number: String): Double {
 
-        val normalize = Normalizer.normalize(number,Normalizer.Form.NFKC)
+        val normalize = Normalizer.normalize(number, Normalizer.Form.NFKC)
 
-        val double = normalize.toDoubleOrNull() ?: return -1.0
-
-        return double
+        return normalize.toDoubleOrNull() ?: return -1.0
     }
 
     @EventHandler
