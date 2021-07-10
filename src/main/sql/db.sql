@@ -96,18 +96,21 @@ create table estate_history_tbl
 
 create table server_estate_history
 (
-    id int auto_increment,
-    vault double default 0 null,
-    bank double default 0 null,
-    estate double default 0 null,
-    crypto double default 0 null,
-    total double default 0 null,
-    year int null,
-    month int null,
-    day int null,
-    hour int null,
-    date datetime null,
-    constraint server_estate_history_pk
-        primary key (id)
+	id int auto_increment,
+	vault double null,
+	bank double default 0 null,
+	estate double default 0 null,
+	crypto double default 0 null,
+	total double default 0 null,
+	year int null,
+	month int null,
+	day int null,
+	hour int null,
+	date datetime default now() null,
+	constraint server_estate_history_pk
+		primary key (id)
 );
+
+create index server_estate_history_year_month_day_hour_index
+	on server_estate_history (year, month, day, hour);
 
