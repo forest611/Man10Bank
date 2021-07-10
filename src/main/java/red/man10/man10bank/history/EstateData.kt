@@ -80,10 +80,7 @@ object EstateData {
         val hour = calender.get(Calendar.HOUR_OF_DAY)
 
         val rs1 = mysql.query("select * from server_estate_history where " +
-                "year=$year and" +
-                "month=$month and" +
-                "day=$day and" +
-                "hour=$hour;")
+                "year=$year and month=$month and day=$day and hour=$hour;")
 
         if (rs1 != null&&rs1.next()){
             rs1.close()
@@ -155,7 +152,7 @@ object EstateData {
 
             Bukkit.getLogger().info("SavedServerEstateHistory")
 
-            Thread.sleep(60000)
+            Thread.sleep(600000)
         }
     }
 }
