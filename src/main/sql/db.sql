@@ -106,7 +106,7 @@ create table server_estate_history
     mm int null,
     dd int null,
     hh int null,
---    date datetime null,
+    date datetime null,
     constraint server_estate_history_pk
         primary key (id)
 );
