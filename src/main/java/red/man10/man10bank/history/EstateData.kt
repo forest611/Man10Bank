@@ -19,7 +19,7 @@ object EstateData {
 
         val uuid = p.uniqueId
 
-        val rs = mysql.query("SELECT * FROM estate_history_tbl ORDER BY date DESC 1")
+        val rs = mysql.query("SELECT * FROM estate_history_tbl WHERE uuid='${p.uniqueId}' ORDER BY date DESC 1")
 
         if (rs==null || !rs.next()){
             mysql.execute("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, estate, total) " +
