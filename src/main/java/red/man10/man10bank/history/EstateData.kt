@@ -12,8 +12,6 @@ import kotlin.collections.HashMap
 
 object EstateData {
 
-//    private const val interval = 36000000L
-////    private const val interval = 60000L
     private val mysql = MySQLManager(Man10Bank.plugin,"Man10BankEstateHistory")
 
     private fun addEstateHistory(p:Player, vault:Double, bank:Double, estate:Double){
@@ -157,7 +155,7 @@ object EstateData {
 
             Bukkit.getLogger().info("SavedServerEstateHistory")
 
-            Thread.sleep(600000)
+            Thread.sleep(60000)
         }
     }
 }
