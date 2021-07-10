@@ -73,6 +73,26 @@ object EstateData {
 
     private fun addServerHistory(){
 
+        val calender = Calendar.getInstance()
+        calender.time = Date()
+
+        val year = calender.get(Calendar.YEAR)
+        val month = calender.get(Calendar.MONTH)
+        val day = calender.get(Calendar.DAY_OF_MONTH)
+        val hour = calender.get(Calendar.HOUR_OF_DAY)
+
+        val rs1 = mysql.query("select * from server_estate_history where " +
+                "year=$year," +
+                "month=$month," +
+                "day=$day," +
+                "hour=$hour;")
+
+        if (rs1 != null&&rs1.next()){
+            rs1.close()
+            mysql.close()
+            return
+        }
+
         val rs = mysql.query("select sum(vault),sum(bank),sum(estate) from estate_tbl")?:return
 
         rs.next()
@@ -85,8 +105,8 @@ object EstateData {
         rs.close()
         mysql.close()
 
-        mysql.execute("INSERT INTO server_estate_history (vault, bank, estate, total, date) " +
-                "VALUES ($vaultSum, $bankSum, $estateSum, $total, now())")
+        mysql.execute("INSERT INTO server_estate_history (vault, bank, estate, total,year,month,day,hour, date) " +
+                "VALUES ($vaultSum, $bankSum, $estateSum, $total,$year,$month,$day,$hour, now())")
 
     }
 
@@ -133,12 +153,11 @@ object EstateData {
                 saveCurrentEstate(p)
             }
 
-            //TODO:yy mm dd で処理する
             addServerHistory()
 
             Bukkit.getLogger().info("SavedServerEstateHistory")
 
-            Thread.sleep(100000)
+            Thread.sleep(600000)
         }
     }
 }

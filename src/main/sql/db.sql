@@ -102,10 +102,10 @@ create table server_estate_history
     estate double default 0 null,
     crypto double default 0 null,
     total double default 0 null,
-    yyyy int null,
-    mm int null,
-    dd int null,
-    hh int null,
+    year int null,
+    month int null,
+    day int null,
+    hour int null,
     date datetime null,
     constraint server_estate_history_pk
         primary key (id)
