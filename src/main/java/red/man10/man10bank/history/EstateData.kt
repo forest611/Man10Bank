@@ -19,7 +19,7 @@ object EstateData {
 
         val uuid = p.uniqueId
 
-        val rs = mysql.query("SELECT * FROM estate_history_tbl WHERE uuid='${p.uniqueId}' ORDER BY date DESC 1")
+        val rs = mysql.query("SELECT * FROM estate_history_tbl WHERE uuid='${p.uniqueId}' ORDER BY date DESC LIMIT 1")
 
         if (rs==null || !rs.next()){
             mysql.execute("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, estate, total) " +
@@ -61,7 +61,7 @@ object EstateData {
     //現在の資産を保存(オンラインのユーザー)
     private fun saveCurrentEstate(){
 
-        val rs = mysql.query("SELECT * FROM estate_tbl ORDER BY date DESC 1")?:return
+        val rs = mysql.query("SELECT * FROM estate_tbl ORDER BY date DESC LIMIT 1")?:return
 
         while (rs.next()){
             val p = Bukkit.getPlayer(UUID.fromString(rs.getString("uuid")))?:continue
