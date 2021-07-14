@@ -49,9 +49,6 @@ class Man10Bank : JavaPlugin(),Listener {
         const val OP = "man10bank.op"
         const val USER = "man10bank.user"
 
-//        var fee : Double = 0.00
-//        var rate : Double = 1.0
-
         var bankEnable = true
 
         var loanFee : Double = 1.0
@@ -81,9 +78,6 @@ class Man10Bank : JavaPlugin(),Listener {
 
         vault = VaultManager(this)
 
-//        fee = config.getDouble("fee",1.0)
-//        rate = config.getDouble("rate",1.0)
-
         loanFee = config.getDouble("loanfee",1.1)
         loanMax = config.getDouble("loanmax",10000000.0)
         loanRate = config.getDouble("loanrate",1.0)
@@ -98,9 +92,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
         getCommand("mlend")!!.setExecutor(LoanCommand())
 
-        es.execute {
-            EstateData.historyThread()
-        }
+        es.execute { EstateData.historyThread() }
 
     }
 
@@ -332,7 +324,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                         bankEnable = true
 
-                        Bukkit.broadcastMessage("§e§lMan10Bankが開きました！",)
+                        Bukkit.broadcast(text("§e§lMan10Bankが開きました！"))
                         return true
 
                     }
@@ -341,7 +333,7 @@ class Man10Bank : JavaPlugin(),Listener {
                         if (!sender.hasPermission(OP))return false
 
                         bankEnable = false
-                        Bukkit.broadcastMessage("§e§lMan10Bankが閉じました！")
+                        Bukkit.broadcast(text("§e§lMan10Bankが閉じました！"))
                         return true
 
                     }
@@ -351,11 +343,6 @@ class Man10Bank : JavaPlugin(),Listener {
 
                         es.execute{
                             reloadConfig()
-
-//                            fee = config.getDouble("fee")
-//                            rate = config.getDouble("rate")
-                            loanMax = config.getDouble("loanmax")
-                            loanFee = config.getDouble("loanfee")
 
                             Bank.reload()
                             ATMData.loadItem()
