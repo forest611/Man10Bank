@@ -326,7 +326,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 val p = if (args[0].isEmpty()) sender else Bukkit.getOfflinePlayer(args[0])
 
-                if ((p.name == sender.name) && !sender.hasPermission(OP))return true
+                if ((p.name != sender.name) && !sender.hasPermission(OP))return true
 
                 es.execute{
                     sendMsg(sender,"§e§l==========${p.name}のお金==========")
