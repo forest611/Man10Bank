@@ -156,36 +156,7 @@ class Man10Bank : JavaPlugin(),Listener {
             }
 
             "bal","balance","money","bank" ->{
-                if (args.isEmpty()){
 
-                    if (sender !is Player)return false
-
-                    es.execute{
-                        sendMsg(sender,"§e§l==========${sender.name}のお金==========")
-
-                        //時差による表示ずれ対策で、一旦所持金を呼び出す
-                        val bankAmount = format(Bank.getBalance(sender.uniqueId))
-
-                        val cash = ATMData.getInventoryMoney(sender) + ATMData.getEnderChestMoney(sender)
-
-                        sendMsg(sender," §b§l電子マネー:  §e§l${format(vault.getBalance(sender.uniqueId))}円")
-                        sendMsg(sender," §b§l現金:  §e§l${format(cash)}円")
-                        sendMsg(sender," §b§l銀行:  §e§l${bankAmount}円")
-
-                        val deposit = text("$prefix §b[電子マネーを銀行に入れる]  §n/deposit").clickEvent(ClickEvent.suggestCommand("/deposit "))
-                        val withdraw = text("$prefix §c[電子マネーを銀行から出す]  §n/withdraw").clickEvent(ClickEvent.suggestCommand("/withdraw "))
-                        val atm = text("$prefix §a[電子マネーのチャージ・現金化]  §n/atm").clickEvent(ClickEvent.runCommand("/atm"))
-                        val pay = text("$prefix §e[電子マネーを友達に送る]  §n/pay").clickEvent(ClickEvent.suggestCommand("/pay "))
-
-                        sender.sendMessage(pay)
-                        sender.sendMessage(atm)
-                        sender.sendMessage(deposit)
-                        sender.sendMessage(withdraw)
-
-                    }
-
-                    return true
-                }
 
                 when(args[0]){
 
@@ -350,6 +321,46 @@ class Man10Bank : JavaPlugin(),Listener {
 
                     }
                 }
+
+                if (sender !is Player)return false
+
+                val p = if (args[0].isEmpty()) sender else Bukkit.getOfflinePlayer(args[0])
+
+                if ((p.name == sender.name) && !sender.hasPermission(OP))return true
+
+                es.execute{
+                    sendMsg(sender,"§e§l==========${p.name}のお金==========")
+
+                    //時差による表示ずれ対策で、一旦所持金を呼び出す
+                    val bankAmount = format(Bank.getBalance(p.uniqueId))
+
+                    var cash = -1.0
+
+                    if (p.player != null){
+                        cash = ATMData.getInventoryMoney(p.player!!) + ATMData.getEnderChestMoney(p.player!!)
+                    }
+
+
+                    sendMsg(sender," §b§l電子マネー:  §e§l${format(vault.getBalance(p.uniqueId))}円")
+                    sendMsg(sender," §b§l現金:  §e§l${format(cash)}円")
+                    sendMsg(sender," §b§l銀行:  §e§l${bankAmount}円")
+
+                    if (p.name == sender.name){
+                        val deposit = text("$prefix §b[電子マネーを銀行に入れる]  §n/deposit").clickEvent(ClickEvent.suggestCommand("/deposit "))
+                        val withdraw = text("$prefix §c[電子マネーを銀行から出す]  §n/withdraw").clickEvent(ClickEvent.suggestCommand("/withdraw "))
+                        val atm = text("$prefix §a[電子マネーのチャージ・現金化]  §n/atm").clickEvent(ClickEvent.runCommand("/atm"))
+                        val pay = text("$prefix §e[電子マネーを友達に送る]  §n/pay").clickEvent(ClickEvent.suggestCommand("/pay "))
+
+                        sender.sendMessage(pay)
+                        sender.sendMessage(atm)
+                        sender.sendMessage(deposit)
+                        sender.sendMessage(withdraw)
+
+                    }
+
+
+                }
+
 
             }
 
