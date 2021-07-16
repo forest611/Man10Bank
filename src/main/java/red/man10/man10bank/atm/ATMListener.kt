@@ -78,7 +78,7 @@ object ATMListener : Listener {
                     }
 
                     if (amount > 0.0){
-                        sendMsg(p,"§e§l${format(amount)}円預け入れました！")
+                        sendMsg(p,"§e§l${format(amount)}円チャージしました！")
                     }
 
                     if (hasAnyItem){
@@ -108,7 +108,7 @@ object ATMListener : Listener {
             }
 
             if (amount > 0.0){
-                sendMsg(p,"§e§l${format(amount)}円預け入れました！")
+                sendMsg(p,"§e§l${format(amount)}円チャージしました！")
             }
         }
 
