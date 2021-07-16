@@ -342,7 +342,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
 
                     sendMsg(sender," §b§l電子マネー:  §e§l${format(vault.getBalance(p.uniqueId))}円")
-                    sendMsg(sender," §b§l現金:  §e§l${format(cash)}円")
+                    sendMsg(sender," §b§l現金:  §e§l${format(cash)}円(オフラインの場合は-1と表示されます)")
                     sendMsg(sender," §b§l銀行:  §e§l${bankAmount}円")
 
                     if (p.name == sender.name){
