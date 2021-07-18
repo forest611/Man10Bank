@@ -53,6 +53,8 @@ object ATMData {
 
     //お金じゃなかったら-1を返す
     fun getMoneyType(itemStack: ItemStack):Double{
+        if (!itemStack.hasItemMeta())return -1.0
+
         return itemStack.itemMeta.persistentDataContainer[NamespacedKey.fromString("money")!!, PersistentDataType.DOUBLE]?:return -1.0
     }
 
