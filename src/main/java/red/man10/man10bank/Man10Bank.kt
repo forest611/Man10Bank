@@ -137,7 +137,7 @@ class Man10Bank : JavaPlugin(),Listener {
                     val balTopMap = EstateData.getBalanceTop()?:return@execute
 
                     for (data in balTopMap){
-                        sendMsg(sender,"§b§l${data.key.name} : §e§l$ ${format(data.value)}")
+                        sendMsg(sender,"§b§l${data.first.name} : §e§l$ ${format(data.second)}")
                     }
 
                     val totalMap = EstateData.getBalanceTotal()?:return@execute

@@ -150,24 +150,24 @@ object EstateData {
         return map
     }
 
-    fun getBalanceTop(): HashMap<OfflinePlayer, Double>? {
+    fun getBalanceTop(): MutableList<Pair<OfflinePlayer, Double>> {
 
-        val map = HashMap<OfflinePlayer,Double>()
+        val list = mutableListOf<Pair<OfflinePlayer,Double>>()
 
-        val rs = mysql.query("SELECT uuid,total FROM estate_tbl order by total desc limit 10;")?:return null
+        val rs = mysql.query("SELECT uuid,total FROM estate_tbl order by total desc limit 10;")?:return list
 
         while (rs.next()){
 
             val p = Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("uuid")))
             val total = rs.getDouble("total")
 
-            map[p] = total
+            list.add(Pair(p,total))
         }
 
         rs.close()
         mysql.close()
 
-        return map
+        return list
     }
 
     fun historyThread(){
