@@ -130,22 +130,36 @@ class Man10Bank : JavaPlugin(),Listener {
             }
 
             "mbaltop" ->{
-                if (sender !is Player)return false
-
                 es.execute{
 
-                    val balTopMap = EstateData.getBalanceTop()?:return@execute
-
-                    for (data in balTopMap){
-                        sendMsg(sender,"§b§l${data.first.name} : §e§l$ ${format(data.second)}")
-                    }
-
+                    val balTopMap = EstateData.getBalanceTop()
                     val totalMap = EstateData.getBalanceTotal()?:return@execute
 
-                    sendMsg(sender,"§e§l電子マネーの合計:${format(totalMap["vault"]?:0.0)}")
-                    sendMsg(sender,"§e§l現金の合計:${format(totalMap["estate"]?:0.0)}")
-                    sendMsg(sender,"§e§l銀行口座の合計:${format(totalMap["bank"]?:0.0)}")
-                    sendMsg(sender,"§e§l全ての合計:${format(totalMap["total"]?:0.0)}")
+                    var i = 1
+
+                    if (sender is Player){
+                        for (data in balTopMap){
+                            sendMsg(sender,"§7§l${i}.§b§l${data.first.name} : §e§l$ ${format(data.second)}")
+                            i++
+                        }
+
+                        sendMsg(sender,"§e§l電子マネーの合計:${format(totalMap["vault"]?:0.0)}")
+                        sendMsg(sender,"§e§l現金の合計:${format(totalMap["estate"]?:0.0)}")
+                        sendMsg(sender,"§e§l銀行口座の合計:${format(totalMap["bank"]?:0.0)}")
+                        sendMsg(sender,"§e§l全ての合計:${format(totalMap["total"]?:0.0)}")
+
+                        return@execute
+                    }
+
+                    for (data in balTopMap){
+                        sender.sendMessage("§7§l${i}.§b§l${data.first.name} : §e§l$ ${format(data.second)}")
+                        i++
+                    }
+
+                    sender.sendMessage("§e§l電子マネーの合計:${format(totalMap["vault"]?:0.0)}")
+                    sender.sendMessage("§e§l現金の合計:${format(totalMap["estate"]?:0.0)}")
+                    sender.sendMessage("§e§l銀行口座の合計:${format(totalMap["bank"]?:0.0)}")
+                    sender.sendMessage("§e§l全ての合計:${format(totalMap["total"]?:0.0)}")
 
 
                 }
