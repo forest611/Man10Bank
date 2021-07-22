@@ -131,18 +131,18 @@ class Man10Bank : JavaPlugin(),Listener {
 
             "mbaltop" ->{
 
-                val page = args[0].toIntOrNull()?:1
+                val page = if (args.isEmpty()) 1 else args[0].toIntOrNull()?:1
 
                 es.execute{
 
                     val balTopMap = EstateData.getBalanceTop(page)
                     val totalMap = EstateData.getBalanceTotal()?:return@execute
 
-                    var i = (page*10)-10
+                    var i = (page*10)-9
 
                     if (sender is Player){
 
-                        sender.sendMessage("§6§k§lXX§e§l富豪トップ${page*10}§6§k§lXX")
+                        sendMsg(sender,"§6§k§lXX§e§l富豪トップ${page*10}§6§k§lXX")
 
                         for (data in balTopMap){
                             sendMsg(sender,"§7§l${i}.§b§l${data.first} : §e§l${format(data.second)}円")
