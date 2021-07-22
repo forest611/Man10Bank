@@ -138,8 +138,11 @@ class Man10Bank : JavaPlugin(),Listener {
                     var i = 1
 
                     if (sender is Player){
+
+                        sender.sendMessage("§6§k§lXX§e§l富豪トップ10§6§k§lXX")
+
                         for (data in balTopMap){
-                            sendMsg(sender,"§7§l${i}.§b§l${data.first.name} : §e§l$ ${format(data.second)}")
+                            sendMsg(sender,"§7§l${i}.§b§l${data.first} : §e§l${format(data.second)}円")
                             i++
                         }
 
@@ -151,8 +154,10 @@ class Man10Bank : JavaPlugin(),Listener {
                         return@execute
                     }
 
+                    sender.sendMessage("§6§k§lXX§e§lお金持ちランキング§6§k§lXX")
+
                     for (data in balTopMap){
-                        sender.sendMessage("§7§l${i}.§b§l${data.first.name} : §e§l$ ${format(data.second)}")
+                        sender.sendMessage("§7§l${i}.§b§l${data.first} : §e§l${format(data.second)}円")
                         i++
                     }
 

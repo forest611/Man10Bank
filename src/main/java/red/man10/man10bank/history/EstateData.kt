@@ -150,15 +150,15 @@ object EstateData {
         return map
     }
 
-    fun getBalanceTop(): MutableList<Pair<OfflinePlayer, Double>> {
+    fun getBalanceTop(): MutableList<Pair<String, Double>> {
 
-        val list = mutableListOf<Pair<OfflinePlayer,Double>>()
+        val list = mutableListOf<Pair<String,Double>>()
 
-        val rs = mysql.query("SELECT uuid,total FROM estate_tbl order by total desc limit 10;")?:return list
+        val rs = mysql.query("SELECT player,total FROM estate_tbl order by total desc limit 10;")?:return list
 
         while (rs.next()){
 
-            val p = Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("uuid")))
+            val p = rs.getString("player")
             val total = rs.getDouble("total")
 
             list.add(Pair(p,total))
