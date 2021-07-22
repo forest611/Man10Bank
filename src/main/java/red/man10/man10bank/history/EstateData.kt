@@ -139,7 +139,7 @@ object EstateData {
         val map = HashMap<String,Double>()
 
         val rs = mysql.query("SELECT vault,bank,estate,total from server_estate_history ORDER BY date DESC LIMIT 1")?:return null
-        rs.next()
+        if (!rs.next())return null
         map["vault"] = rs.getDouble(1)
         map["bank"] = rs.getDouble(2)
         map["estate"] = rs.getDouble(3)

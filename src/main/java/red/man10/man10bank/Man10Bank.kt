@@ -74,13 +74,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
         vault = VaultManager(this)
 
-        loanFee = config.getDouble("loanfee",1.1)
-        loanMax = config.getDouble("loanmax",10000000.0)
-        loanRate = config.getDouble("loanrate",1.0)
-        firstMoney = config.getDouble("firstmoney",10000.0)
-        loggingServerHistory = config.getBoolean("loggingServerHistory",false)
-
-        ATMData.loadItem()
+        loadConfig()
 
         server.pluginManager.registerEvents(this,this)
         server.pluginManager.registerEvents(Event(),this)
@@ -95,6 +89,19 @@ class Man10Bank : JavaPlugin(),Listener {
     override fun onDisable() {
         // Plugin shutdown logic
         es.shutdownNow()
+    }
+
+    fun loadConfig(){
+
+        reloadConfig()
+
+        loanFee = config.getDouble("loanfee",1.1)
+        loanMax = config.getDouble("loanmax",10000000.0)
+        loanRate = config.getDouble("loanrate",1.0)
+        firstMoney = config.getDouble("firstmoney",10000.0)
+        loggingServerHistory = config.getBoolean("loggingServerHistory",false)
+
+        ATMData.loadItem()
     }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
@@ -136,7 +143,7 @@ class Man10Bank : JavaPlugin(),Listener {
                 es.execute{
 
                     val balTopMap = EstateData.getBalanceTop(page)
-                    val totalMap = EstateData.getBalanceTotal()?:return@execute
+                    val totalMap = EstateData.getBalanceTotal()
 
                     var i = (page*10)-9
 
@@ -149,10 +156,13 @@ class Man10Bank : JavaPlugin(),Listener {
                             i++
                         }
 
-                        sendMsg(sender,"§e§l電子マネーの合計:${format(totalMap["vault"]?:0.0)}")
-                        sendMsg(sender,"§e§l現金の合計:${format(totalMap["estate"]?:0.0)}")
-                        sendMsg(sender,"§e§l銀行口座の合計:${format(totalMap["bank"]?:0.0)}")
-                        sendMsg(sender,"§e§l全ての合計:${format(totalMap["total"]?:0.0)}")
+                        if (totalMap != null){
+                            sendMsg(sender,"§e§l電子マネーの合計:${format(totalMap["vault"]?:0.0)}")
+                            sendMsg(sender,"§e§l現金の合計:${format(totalMap["estate"]?:0.0)}")
+                            sendMsg(sender,"§e§l銀行口座の合計:${format(totalMap["bank"]?:0.0)}")
+                            sendMsg(sender,"§e§l全ての合計:${format(totalMap["total"]?:0.0)}")
+
+                        }
 
                         return@execute
                     }
@@ -164,11 +174,13 @@ class Man10Bank : JavaPlugin(),Listener {
                         i++
                     }
 
-                    sender.sendMessage("§e§l電子マネーの合計:${format(totalMap["vault"]?:0.0)}")
-                    sender.sendMessage("§e§l現金の合計:${format(totalMap["estate"]?:0.0)}")
-                    sender.sendMessage("§e§l銀行口座の合計:${format(totalMap["bank"]?:0.0)}")
-                    sender.sendMessage("§e§l全ての合計:${format(totalMap["total"]?:0.0)}")
+                    if (totalMap != null){
+                        sender.sendMessage("§e§l電子マネーの合計:${format(totalMap["vault"]?:0.0)}")
+                        sender.sendMessage("§e§l現金の合計:${format(totalMap["estate"]?:0.0)}")
+                        sender.sendMessage("§e§l銀行口座の合計:${format(totalMap["bank"]?:0.0)}")
+                        sender.sendMessage("§e§l全ての合計:${format(totalMap["total"]?:0.0)}")
 
+                    }
 
                 }
             }
@@ -319,8 +331,10 @@ class Man10Bank : JavaPlugin(),Listener {
                         es.execute{
                             reloadConfig()
 
+                            loadConfig()
+
                             Bank.reload()
-                            ATMData.loadItem()
+
                         }
 
                     }
