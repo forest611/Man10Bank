@@ -150,11 +150,11 @@ object EstateData {
         return map
     }
 
-    fun getBalanceTop(): MutableList<Pair<String, Double>> {
+    fun getBalanceTop(page:Int): MutableList<Pair<String, Double>> {
 
         val list = mutableListOf<Pair<String,Double>>()
 
-        val rs = mysql.query("SELECT player,total FROM estate_tbl order by total desc limit 10;")?:return list
+        val rs = mysql.query("SELECT player,total FROM estate_tbl order by total desc limit 10 offset ${(page*10)-10};")?:return list
 
         while (rs.next()){
 

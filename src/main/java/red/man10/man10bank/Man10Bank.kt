@@ -130,16 +130,19 @@ class Man10Bank : JavaPlugin(),Listener {
             }
 
             "mbaltop" ->{
+
+                val page = args[0].toIntOrNull()?:1
+
                 es.execute{
 
-                    val balTopMap = EstateData.getBalanceTop()
+                    val balTopMap = EstateData.getBalanceTop(page)
                     val totalMap = EstateData.getBalanceTotal()?:return@execute
 
-                    var i = 1
+                    var i = (page*10)-10
 
                     if (sender is Player){
 
-                        sender.sendMessage("§6§k§lXX§e§l富豪トップ10§6§k§lXX")
+                        sender.sendMessage("§6§k§lXX§e§l富豪トップ${page*10}§6§k§lXX")
 
                         for (data in balTopMap){
                             sendMsg(sender,"§7§l${i}.§b§l${data.first} : §e§l${format(data.second)}円")
@@ -154,7 +157,7 @@ class Man10Bank : JavaPlugin(),Listener {
                         return@execute
                     }
 
-                    sender.sendMessage("§6§k§lXX§e§lお金持ちランキング§6§k§lXX")
+                    sender.sendMessage("§6§k§lXX§e§l富豪トップ${page*10}§6§k§lXX")
 
                     for (data in balTopMap){
                         sender.sendMessage("§7§l${i}.§b§l${data.first} : §e§l${format(data.second)}円")
@@ -618,15 +621,17 @@ class Man10Bank : JavaPlugin(),Listener {
         sendMsg(sender," §b§l銀行:  §e§l${bankAmount}円")
 
         if (p.name == sender.name){
+            val pay = text("$prefix §e[電子マネーを友達に送る]  §n/pay").clickEvent(ClickEvent.suggestCommand("/pay "))
+            val atm = text("$prefix §a[電子マネーのチャージ・現金化]  §n/atm").clickEvent(ClickEvent.runCommand("/atm"))
             val deposit = text("$prefix §b[電子マネーを銀行に入れる]  §n/deposit").clickEvent(ClickEvent.suggestCommand("/deposit "))
             val withdraw = text("$prefix §c[電子マネーを銀行から出す]  §n/withdraw").clickEvent(ClickEvent.suggestCommand("/withdraw "))
-            val atm = text("$prefix §a[電子マネーのチャージ・現金化]  §n/atm").clickEvent(ClickEvent.runCommand("/atm"))
-            val pay = text("$prefix §e[電子マネーを友達に送る]  §n/pay").clickEvent(ClickEvent.suggestCommand("/pay "))
+            val ranking = text("$prefix  §6[お金持ちランキング]  §n/mbaltop").clickEvent(ClickEvent.suggestCommand("/mbaltop"))
 
             sender.sendMessage(pay)
             sender.sendMessage(atm)
             sender.sendMessage(deposit)
             sender.sendMessage(withdraw)
+            sender.sendMessage(ranking)
 
         }
 
