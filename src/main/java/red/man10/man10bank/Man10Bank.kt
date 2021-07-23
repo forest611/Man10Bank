@@ -175,10 +175,10 @@ class Man10Bank : JavaPlugin(),Listener {
                     }
 
                     if (totalMap != null){
-                        sender.sendMessage("§e§l電子マネーの合計:${format(totalMap["vault"]?:0.0)}")
-                        sender.sendMessage("§e§l現金の合計:${format(totalMap["estate"]?:0.0)}")
-                        sender.sendMessage("§e§l銀行口座の合計:${format(totalMap["bank"]?:0.0)}")
-                        sender.sendMessage("§e§l全ての合計:${format(totalMap["total"]?:0.0)}")
+                        sender.sendMessage("§e§l電子マネーの合計:${format(totalMap["vault"]?:0.0)}円")
+                        sender.sendMessage("§e§l現金の合計:${format(totalMap["estate"]?:0.0)}円")
+                        sender.sendMessage("§e§l銀行口座の合計:${format(totalMap["bank"]?:0.0)}円")
+                        sender.sendMessage("§e§l全ての合計:${format(totalMap["total"]?:0.0)}円")
 
                     }
 
@@ -639,7 +639,7 @@ class Man10Bank : JavaPlugin(),Listener {
             val atm = text("$prefix §a[電子マネーのチャージ・現金化]  §n/atm").clickEvent(ClickEvent.runCommand("/atm"))
             val deposit = text("$prefix §b[電子マネーを銀行に入れる]  §n/deposit").clickEvent(ClickEvent.suggestCommand("/deposit "))
             val withdraw = text("$prefix §c[電子マネーを銀行から出す]  §n/withdraw").clickEvent(ClickEvent.suggestCommand("/withdraw "))
-            val ranking = text("$prefix  §6[お金持ちランキング]  §n/mbaltop").clickEvent(ClickEvent.suggestCommand("/mbaltop"))
+            val ranking = text("$prefix §6[お金持ちランキング]  §n/mbaltop").clickEvent(ClickEvent.runCommand("/mbaltop"))
 
             sender.sendMessage(pay)
             sender.sendMessage(atm)
