@@ -114,3 +114,19 @@ create table server_estate_history
 create index server_estate_history_year_month_day_hour_index
 	on server_estate_history (year, month, day, hour);
 
+create table cheque_tbl
+(
+	id int auto_increment,
+	player varchar(16) null,
+	uuid varchar(36) null,
+	amount double null,
+	note varchar(128) null,
+	date datetime null,
+	used tinyint default 0 null,
+	constraint cheque_tbl_pk
+		primary key (id)
+);
+
+create index cheque_tbl_used_index
+	on cheque_tbl (used);
+

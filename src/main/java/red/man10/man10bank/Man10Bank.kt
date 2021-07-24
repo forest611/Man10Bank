@@ -16,6 +16,7 @@ import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
 import red.man10.man10bank.atm.ATMInventory
 import red.man10.man10bank.atm.ATMListener
+import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.history.EstateData
 import red.man10.man10bank.loan.Event
 import red.man10.man10bank.loan.LoanCommand
@@ -43,7 +44,7 @@ class Man10Bank : JavaPlugin(),Listener {
         }
 
         const val OP = "man10bank.op"
-        const val USER = "man10bank.user"
+//        const val USER = "man10bank.user"
 
         var bankEnable = true
 
@@ -91,7 +92,7 @@ class Man10Bank : JavaPlugin(),Listener {
         es.shutdownNow()
     }
 
-    fun loadConfig(){
+    private fun loadConfig(){
 
         reloadConfig()
 
@@ -108,6 +109,20 @@ class Man10Bank : JavaPlugin(),Listener {
 
 
         when(label){
+
+            "mchequeop" ->{//mchequeop amount <memo>
+                if (sender !is Player)return false
+                if (!sender.hasPermission(OP))return false
+
+                val amount = args[0].toDoubleOrNull()?:return false
+                val note = if (args.size>1)args[1] else null
+
+                es.execute {
+                    Cheque.createCheque(sender,amount,note,true)
+                }
+
+                return true
+            }
 
             "atm" ->{
                 if (sender !is Player)return false
@@ -451,7 +466,7 @@ class Man10Bank : JavaPlugin(),Listener {
             }
 
             "pay" ->{
-                if (!sender.hasPermission(USER))return true
+//                if (!sender.hasPermission(USER))return true
 
                 if (sender !is Player)return true
 
@@ -511,7 +526,7 @@ class Man10Bank : JavaPlugin(),Listener {
             }
 
             "mpay" ->{
-                if (!sender.hasPermission(USER))return true
+//                if (!sender.hasPermission(USER))return true
 
                 if (sender !is Player)return true
 

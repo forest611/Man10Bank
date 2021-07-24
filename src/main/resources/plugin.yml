@@ -33,3 +33,5 @@ commands:
     default: op
   withdraw:
     default: op
+  mchequeop:
+    default: op
