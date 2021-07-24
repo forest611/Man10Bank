@@ -54,7 +54,7 @@ object Cheque :Listener{
 
         meta.lore(lore)
 
-        meta.addEnchant(Enchantment.DURABILITY,0,false)
+        meta.addEnchant(Enchantment.DURABILITY,1,true)
 
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS)
         meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE)
