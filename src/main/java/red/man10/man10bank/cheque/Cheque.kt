@@ -13,6 +13,7 @@ import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
@@ -64,9 +65,11 @@ object Cheque :Listener{
         chequeItem.itemMeta = meta
 
         mysql.execute("INSERT INTO cheque_tbl (player, uuid, amount, note, date, used) " +
-                "VALUES ('${p.name}', '${p.uniqueId}', ${amount}, now(), $note, DEFAULT);")
+                "VALUES ('${p.name}', '${p.uniqueId}', ${amount}, '$note', now(),  DEFAULT);")
 
         p.inventory.addItem(chequeItem)
+
+        sendMsg(p,"§a§l小切手を作成しました！§e(金額:${Man10Bank.format(amount)}円)")
 
     }
 
@@ -76,7 +79,7 @@ object Cheque :Listener{
             ?: return -1, PersistentDataType.INTEGER]?:return -1
     }
 
-    fun useCheque(p:Player,item:ItemStack){
+    private fun useCheque(p:Player, item:ItemStack){
 
         val id = getChequeID(item)
 
@@ -84,9 +87,7 @@ object Cheque :Listener{
 
         val rs = mysql.query("select used from cheque_tbl where id=$id;")?:return
 
-        rs.next()
-
-        if (rs.getInt("used") == 1){
+        if (!rs.next() || rs.getInt("used") == 1){
             sendMsg(p,"§c§lこの小切手は使えません")
             return
         }
@@ -99,6 +100,8 @@ object Cheque :Listener{
         vault.deposit(p.uniqueId,amount)
 
         item.amount = 0
+
+        sendMsg(p,"§e§l${format(amount)}円の小切手を電子マネーに変えた！")
     }
 
     @EventHandler
