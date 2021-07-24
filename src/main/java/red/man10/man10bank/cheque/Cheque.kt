@@ -79,6 +79,11 @@ object Cheque :Listener{
             ?: return -1, PersistentDataType.INTEGER]?:return -1
     }
 
+    fun getChequeAmount(item:ItemStack):Double{
+        return item.itemMeta.persistentDataContainer[NamespacedKey.fromString("cheque_amount")!!,
+                PersistentDataType.DOUBLE]?:return 0.0
+    }
+
     private fun useCheque(p:Player, item:ItemStack){
 
         val id = getChequeID(item)
@@ -94,8 +99,7 @@ object Cheque :Listener{
 
         mysql.execute("update cheque_tbl set used=1 where id=$id;")
 
-        val amount = item.itemMeta.persistentDataContainer[NamespacedKey.fromString("cheque_amount")!!,
-                PersistentDataType.DOUBLE]!!
+        val amount = getChequeAmount(item)
 
         vault.deposit(p.uniqueId,amount)
 

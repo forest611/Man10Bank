@@ -174,8 +174,9 @@ class Man10Bank : JavaPlugin(),Listener {
 
                         if (totalMap != null){
                             sendMsg(sender,"§e§l電子マネーの合計:${format(totalMap["vault"]?:0.0)}")
-                            sendMsg(sender,"§e§l現金の合計:${format(totalMap["estate"]?:0.0)}")
+                            sendMsg(sender,"§e§l現金の合計:${format(totalMap["cash"]?:0.0)}")
                             sendMsg(sender,"§e§l銀行口座の合計:${format(totalMap["bank"]?:0.0)}")
+                            sendMsg(sender,"§e§lその他資産の合計:${format(totalMap["estate"]?:0.0)}")
                             sendMsg(sender,"§e§l全ての合計:${format(totalMap["total"]?:0.0)}")
 
                         }
@@ -640,15 +641,17 @@ class Man10Bank : JavaPlugin(),Listener {
         val bankAmount = format(Bank.getBalance(p.uniqueId))
 
         var cash = -1.0
+        var estate = -1.0
 
         if (p.player != null){
             cash = ATMData.getInventoryMoney(p.player!!) + ATMData.getEnderChestMoney(p.player!!)
+            estate = EstateData.getEstate(p)
         }
-
 
         sendMsg(sender," §b§l電子マネー:  §e§l${format(vault.getBalance(p.uniqueId))}円")
         sendMsg(sender," §b§l現金:  §e§l${format(cash)}円")
         sendMsg(sender," §b§l銀行:  §e§l${bankAmount}円")
+        sendMsg(sender," §b§lその他の資産:  §e§l${format(estate)}円")
 
         if (p.name == sender.name){
             val pay = text("$prefix §e[電子マネーを友達に送る]  §n/pay").clickEvent(ClickEvent.suggestCommand("/pay "))

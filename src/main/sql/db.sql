@@ -66,6 +66,7 @@ create table estate_tbl
     player varchar(16) null,
     vault double default 0 null,
     bank double default 0 null,
+    cash double default 0 null
     estate double default 0 null,
     crypto double default 0 null,
     total double default 0 null,
@@ -86,6 +87,7 @@ create table estate_history_tbl
     player varchar(16) null,
     vault double default 0 null,
     bank double default 0 null,
+    cash double default 0 null
     estate double default 0 null,
     crypto double default 0 null,
     total double default 0 null,
@@ -99,6 +101,7 @@ create table server_estate_history
 	id int auto_increment,
 	vault double null,
 	bank double default 0 null,
+	cash double default 0 null
 	estate double default 0 null,
 	crypto double default 0 null,
 	total double default 0 null,
