@@ -55,7 +55,7 @@ object EstateData {
 
         if (rs== null || !rs.next()){
             mysql.execute("INSERT INTO estate_tbl (uuid, date, player, vault, bank, cash, estate, total) " +
-                    "VALUES ('${p.uniqueId}', now(), '${p.name}', 0, 0, 0, 0)")
+                    "VALUES ('${p.uniqueId}', now(), '${p.name}', 0, 0, 0, 0, 0)")
 
         }
     }
