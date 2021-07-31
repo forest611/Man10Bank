@@ -597,7 +597,7 @@ class Man10Bank : JavaPlugin(),Listener {
         return true
     }
 
-    private val aliasList = mutableListOf("bal","balance","money","bank","deposit","withdraw")
+    private val aliasList = mutableListOf("deposit","withdraw")
 
     override fun onTabComplete(
         sender: CommandSender,
