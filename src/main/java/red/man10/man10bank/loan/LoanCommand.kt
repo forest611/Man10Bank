@@ -1,21 +1,22 @@
 package red.man10.man10bank.loan
 
-import net.md_5.bungee.api.chat.ClickEvent
-import net.md_5.bungee.api.chat.ComponentBuilder
-import net.md_5.bungee.api.chat.HoverEvent
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickEvent.runCommand
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Man10Bank.Companion.format
+import red.man10.man10bank.Man10Bank.Companion.loanFee
 import red.man10.man10bank.Man10Bank.Companion.loanRate
+import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.HashMap
 import kotlin.math.floor
 
 class LoanCommand : CommandExecutor{
@@ -77,16 +78,16 @@ class LoanCommand : CommandExecutor{
                 return true
             }
 
-            Thread{
+            plugin.es.execute{
 
                 val data = LoanData()
                 val id = data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
 
                 if (id == -1){
 
-                    sendMsg(sender,"§c§l相手のお金が足りませんでした")
-                    sendMsg(cache.lend,"§c§lお金が足りません！Man10Bankにお金を入れてください！")
-                    return@Thread
+                    sendMsg(sender,"§c§l相手の銀行のお金が足りませんでした")
+                    sendMsg(cache.lend,"§c§l銀行のお金が足りません！${format(cache.amount* loanFee)}円入れてください！")
+                    return@execute
 
                 }
 
@@ -97,7 +98,7 @@ class LoanCommand : CommandExecutor{
 
                 cacheMap.remove(sender)
 
-            }.start()
+            }
 
             return true
         }
@@ -111,7 +112,7 @@ class LoanCommand : CommandExecutor{
                 return true
             }
 
-            sendMsg(sender,"§c借金の提案を拒否しました！")
+            sendMsg(sender,"§c借金の提案を断りました！")
             cache.lend.sendMessage("§c相手が借金の提案を拒否しました！")
 
             cacheMap.remove(sender)
@@ -122,19 +123,19 @@ class LoanCommand : CommandExecutor{
         /////////////////貸し出しコマンド/////////////////////////
 
         if (!sender.hasPermission(USER)){
-            sendMsg(sender,"§4お金を貸し出す権限がありません！")
+            sendMsg(sender,"§4お金を貸す権限がありません！")
             return true
         }
 
         if (sender.name == args[0]){
-            sendMsg(sender,"§c自分に借金の提示はできません")
+            sendMsg(sender,"§c自分に借金はできません")
             return true
         }
 
         val borrow = Bukkit.getPlayer(args[0])
 
         if (borrow == null){
-            sendMsg(sender,"§cそのプレイヤーはオフラインです")
+            sendMsg(sender,"§c相手はオフラインです")
             return true
         }
 
@@ -153,23 +154,23 @@ class LoanCommand : CommandExecutor{
             day = args[2].toInt()
             rate = args[3].toDouble()
 
-            if (rate > Man10Bank.loanRate){
-                sendMsg(sender,"§c金利は${Man10Bank.loanRate}以下にしてください！")
+            if (rate > loanRate){
+                sendMsg(sender,"§c金利は${loanRate}以下にしてください！")
                 return true
             }
 
             if (amount < 1 || day < 0 || rate<0.0){
-                sendMsg(sender,"§c数値エラー")
+                sendMsg(sender,"§c数値に問題があります")
                 return true
             }
 
             if (day>365){
-                sendMsg(sender,"§c返済期限は一年以下にしてください！")
+                sendMsg(sender,"§c返済期限は一年以内にしてください！")
                 return true
             }
 
             if (amount>Man10Bank.loanMax){
-                sendMsg(sender,"§${Man10Bank.loanMax}以下に設定してください！")
+                sendMsg(sender,"§貸出金額は${format(Man10Bank.loanMax)}円以下に設定してください！")
                 return true
             }
 
@@ -178,6 +179,9 @@ class LoanCommand : CommandExecutor{
             return true
         }
 
+        val allowOrDeny = Component.text("${prefix}§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow"))
+            .append(Component.text("§c§l§n[借りない]").clickEvent(runCommand("/mlend deny")))
+
         val sdf = SimpleDateFormat("yyyy/MM/dd")
 
         sendMsg(sender,"§a§l借金の提案を相手に提示しました")
@@ -185,11 +189,10 @@ class LoanCommand : CommandExecutor{
         sendMsg(borrow,"§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
         sendMsg(borrow,"§e§kXX§b§l借金の提案§e§kXX")
         sendMsg(borrow,"§e提案者:${sender.name}")
-        sendMsg(borrow,"§e貸し出される金額:${Man10Bank.format(amount)}")
-        sendMsg(borrow,"§e返済する金額:${Man10Bank.format(LoanData.calcRate(amount,day,rate))}")
+        sendMsg(borrow,"§e貸し出される金額:${format(amount)}")
+        sendMsg(borrow,"§e返す金額:${format(LoanData.calcRate(amount,day,rate))}")
         sendMsg(borrow,"§e返済日:$${sdf.format(LoanData.calcDate(day))}")
-        sendHoverText(borrow,"§b§l§n[借りる]","§c借りたら必ず返しましょう！","/mlend allow")
-        sendHoverText(borrow,"§c§l§n[拒否する]","§c正しい判断かもしれない","/mlend deny")
+        sender.sendMessage(allowOrDeny)
         sendMsg(borrow,"§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
 
         val cache = Cache()
@@ -204,24 +207,6 @@ class LoanCommand : CommandExecutor{
         return false
     }
 
-    fun sendHoverText(p: Player, text: String?, hoverText: String?, command: String?) {
-        //////////////////////////////////////////
-        //      ホバーテキストとイベントを作成する
-        var hoverEvent: HoverEvent? = null
-        if (hoverText != null) {
-            val hover = ComponentBuilder(hoverText).create()
-            hoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)
-        }
-
-        //////////////////////////////////////////
-        //   クリックイベントを作成する
-        var clickEvent: ClickEvent? = null
-        if (command != null) {
-            clickEvent = ClickEvent(ClickEvent.Action.RUN_COMMAND, command)
-        }
-        val message = ComponentBuilder(prefix+text).event(hoverEvent).event(clickEvent).create()
-        p.spigot().sendMessage(*message)
-    }
 
     class Cache{
         var day = 0
