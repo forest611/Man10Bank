@@ -597,7 +597,7 @@ class Man10Bank : JavaPlugin(),Listener {
         return true
     }
 
-    private val aliasList = mutableListOf("deposit","withdraw")
+    private val aliasList = mutableListOf("bal","balance","bank","pay","mpay")
 
     override fun onTabComplete(
         sender: CommandSender,
@@ -606,9 +606,11 @@ class Man10Bank : JavaPlugin(),Listener {
         args: Array<out String>
     ): MutableList<String> {
 
-        if (aliasList.contains(alias))return Collections.emptyList()
+        if (alias == "deposit" || alias == "withdraw")return Collections.emptyList()
 
-        if (alias == "pay" || alias == "mpay"){
+        if (aliasList.contains(alias)){
+
+            Bukkit.getLogger().info(args.size.toString())
 
             if (args.size > 1)return Collections.emptyList()
 
@@ -616,7 +618,6 @@ class Man10Bank : JavaPlugin(),Listener {
 
             for (p in Bukkit.getOnlinePlayers()){
 
-                if (p == sender)continue
                 pList.add("${p.name} ")
             }
 
