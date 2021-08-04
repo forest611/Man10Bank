@@ -25,7 +25,7 @@ object EstateData {
 
         if (rs==null || !rs.next()){
             mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate, total) " +
-                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank},${cash}, ${estate}, ${vault+bank+estate})")
+                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank},${cash}, ${estate}, ${vault+bank+estate+cash})")
             return
         }
 
@@ -39,7 +39,7 @@ object EstateData {
 
         if (vault != lastVault || bank != lastBank || estate != lastEstate ||cash!=lastCash){
             mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate, total) " +
-                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank},${cash}, ${estate}, ${vault+bank+estate})")
+                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank},${cash}, ${estate}, ${vault+bank+estate+cash})")
         }
 
 
