@@ -247,7 +247,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                             val uuid = Bank.getUUID(args[1])?: return@execute
 
-                            if (!Bank.withdraw(uuid,amount,this,"TakenByCommand")){
+                            if (!Bank.withdraw(uuid,amount,this,"TakenByCommand","サーバーから徴収")){
                                 Bank.setBalance(uuid,0.0)
                                 sendMsg(sender,"§a回収額が残高を上回っていたので、残高が0になりました")
                                 return@execute
@@ -281,7 +281,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                             val uuid =  Bank.getUUID(args[1])?: return@execute
 
-                            Bank.deposit(uuid,amount,this,"GivenFromServer")
+                            Bank.deposit(uuid,amount,this,"GivenFromServer","サーバーから発行")
 
                             sendMsg(sender,"§a${format(amount)}円入金しました")
                             sendMsg(sender,"§a現在の残高：${format(Bank.getBalance(uuid))}")
@@ -406,7 +406,7 @@ class Man10Bank : JavaPlugin(),Listener {
                 }
 
                 es.execute {
-                    Bank.deposit(sender.uniqueId,amount,this,"PlayerDepositOnCommand")
+                    Bank.deposit(sender.uniqueId,amount,this,"PlayerDepositOnCommand","/depositによる入金")
 
                     sendMsg(sender,"§a§l入金できました！")
                 }
@@ -449,7 +449,7 @@ class Man10Bank : JavaPlugin(),Listener {
                         return@execute
                     }
 
-                    if (!Bank.withdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand")){
+                    if (!Bank.withdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand","/withdrawによる出金")){
                         sendMsg(sender,"§c§l銀行のお金が足りません！")
                         return@execute
                     }
@@ -571,13 +571,13 @@ class Man10Bank : JavaPlugin(),Listener {
                     }
 
 
-                    if (!Bank.withdraw(sender.uniqueId,amount,this,"RemittanceTo${args[0]}")){
+                    if (!Bank.withdraw(sender.uniqueId,amount,this,"RemittanceTo${args[0]}","${args[0]}へ送金")){
                         sendMsg(sender,"§c§l送金する銀行のお金が足りません！")
                         return@execute
 
                     }
 
-                    Bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}")
+                    Bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}","${args[0]}からの送金")
 
                     sendMsg(sender,"§a§l送金成功！")
 

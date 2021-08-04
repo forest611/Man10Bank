@@ -58,10 +58,8 @@ object Bank {
 
         if (!ret)return false
 
-        addLog(uuid,plugin,"CreateAccount",0.0,true)
+        addLog(uuid,plugin,"CreateAccount","口座を作成",0.0,true)
 
-//        EstateData.createEstateData(p.player!!)
-//
         vault.deposit(uuid,Man10Bank.firstMoney)
 
         return true
@@ -74,11 +72,11 @@ object Bank {
      * @param note ログの内容 (max64)
      * @param amount 動いた金額
      */
-    private fun addLog(uuid: UUID,plugin:JavaPlugin,note:String,amount:Double,isDeposit:Boolean){
+    private fun addLog(uuid: UUID,plugin:JavaPlugin,note:String,displayNote: String,amount:Double,isDeposit:Boolean){
 
         val p = Bukkit.getOfflinePlayer(uuid)
 
-        mysqlQueue.add("INSERT INTO money_log (player, uuid, plugin_name, amount, server, note, deposit) " +
+        mysqlQueue.add("INSERT INTO money_log (player, uuid, plugin_name, amount, server, note,display_note, deposit) " +
                 "VALUES " +
                 "('${p.name}', " +
                 "'$uuid', " +
@@ -86,6 +84,7 @@ object Bank {
                 "$amount, " +
                 "'${plugin.server.name}', " +
                 "'$note', " +
+                "'${displayNote}'," +
                 "${if (isDeposit) 1 else 0});")
 
     }
@@ -132,7 +131,7 @@ object Bank {
 
         if (!ret)return
 
-        addLog(uuid,plugin, "SetBalanceByCommand", amount,true)
+        addLog(uuid,plugin, "SetBalanceByCommand","所持金を${format(amount)}にセット", amount,true)
     }
 
     /**
@@ -144,7 +143,7 @@ object Bank {
      *
      */
     @Synchronized
-    fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String):Boolean{
+    fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?):Boolean{
 
         if (!bankEnable)return false
 
@@ -158,7 +157,7 @@ object Bank {
 
         if (!ret)return false
 
-        addLog(uuid,plugin, note, finalAmount,true)
+        addLog(uuid,plugin, note,displayNote?:note, finalAmount,true)
 
         val p = Bukkit.getOfflinePlayer(uuid)
 
@@ -179,7 +178,7 @@ object Bank {
      * @return　出金成功でtrue
      */
     @Synchronized
-    fun withdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String):Boolean{
+    fun withdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?):Boolean{
 
         if (!bankEnable)return false
 
@@ -193,7 +192,7 @@ object Bank {
 
         if (!ret)return false
 
-        addLog(uuid,plugin, note, finalAmount,false)
+        addLog(uuid,plugin, note,displayNote?:note, finalAmount,false)
 
         val p = Bukkit.getOfflinePlayer(uuid)
 
@@ -235,43 +234,6 @@ object Bank {
         mysqlQueue.add("update user_bank set player='${player.name}' where uuid='${player.uniqueId}';")
     }
 
-    /**
-     * mbal to mbal
-     */
-    fun transfer(fromUUID: UUID,toUUID: UUID,plugin: JavaPlugin,amount: Double):Boolean{
-
-        if (!bankEnable)return false
-
-//        if (amount< rate)return false
-
-        if (!hasAccount(fromUUID))return false
-
-        if (!withdraw(fromUUID,amount,plugin,"transferTo'${toUUID}'"))return false
-
-        deposit(toUUID,amount,plugin,"transferFrom'${fromUUID}'")
-
-        return true
-    }
-
-    fun calcLog(deposit:Boolean,p:Player): Double {
-
-        val mysql = MySQLManager(plugin,"Man10Bank Calc Log")
-
-        val format = SimpleDateFormat("yyyy-MM-01 00:00:00")
-
-        Bukkit.getLogger().info(format.format(Date()))
-
-        val rs = mysql.query("select sum(amount) from money_log where date>'${format.format(Date())}' and uuid='${p.uniqueId}' and deposit=${if (deposit) 1 else 0}")?:return -1.0
-
-        rs.next()
-
-        val amount = rs.getDouble(1)
-
-        rs.close()
-        mysql.close()
-
-        return amount
-    }
 
 
     fun reload(){

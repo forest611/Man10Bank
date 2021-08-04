@@ -16,8 +16,8 @@ class BankAPI(private val plugin : JavaPlugin) {
      * @return 出金が成功したらtrue
      *
      */
-    fun withdraw(uuid:UUID,amount:Double,note:String):Boolean{
-        return Bank.withdraw(uuid,amount, plugin, note)
+    fun withdraw(uuid:UUID,amount:Double,note:String,displayNote:String):Boolean{
+        return Bank.withdraw(uuid,amount, plugin, note,displayNote)
     }
 
     /**
@@ -26,9 +26,10 @@ class BankAPI(private val plugin : JavaPlugin) {
      * @param uuid 入金するユーザーのuuid
      * @param amount 入金する金額(数値は0以上にしてください)
      * @param note 入金の内容(64文字以内で必ず書き込む)
+     * @param displayNote 入金の内容(表示用)
      */
-    fun deposit(uuid: UUID,amount: Double,note: String){
-        Bank.deposit(uuid,amount, plugin, note)
+    fun deposit(uuid: UUID,amount: Double,note: String,displayNote: String){
+        Bank.deposit(uuid,amount, plugin, note,displayNote)
     }
 
     /**
