@@ -1,7 +1,6 @@
 package red.man10.man10bank
 
 import org.bukkit.Bukkit
-import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.Man10Bank.Companion.bankEnable
@@ -10,7 +9,6 @@ import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
-import red.man10.man10bank.history.EstateData
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.floor
