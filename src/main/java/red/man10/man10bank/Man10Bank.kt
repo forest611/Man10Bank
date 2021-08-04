@@ -220,10 +220,70 @@ class Man10Bank : JavaPlugin(),Listener {
 
                     "log" ->{
 
-                        //TODO:
+                        val page = if (args.size>=2) args[1].toIntOrNull()?:0 else 0
+
                         es.execute{
+
+                            val list = Bank.getBankLog(sender,page)
+
+                            sendMsg(sender,"§d§l===========銀行の履歴==========")
+                            for (data in list){
+
+                                val tag = if (data.isDeposit) "§a[入金]" else "§c[出金]"
+                                sendMsg(sender,"$tag §e${data.dateFormat} §e§l${format(data.amount)} §e${data.note}")
+
+                            }
+
+                            val previous = if (page!=0) {
+                                text("${prefix}§b§l<<==前のページ ").clickEvent(ClickEvent.runCommand("/bal log ${page-1}"))
+                            }else text(prefix)
+
+                            val next = if (list.size == 10){
+                                text("§b§l次のページ==>>").clickEvent(ClickEvent.runCommand("/bal log ${page+1}"))
+                            }else text("")
+
+                            sender.sendMessage(previous.append(next))
+
                         }
                         return true
+                    }
+
+                    "logop" ->{
+
+                        if (!sender.hasPermission(OP))return false
+
+                        val p = if (args.size >= 2)Bukkit.getPlayer(args[1]) else sender
+                        val page = if (args.size>=2) args[2].toIntOrNull()?:0 else 0
+
+                        if (p == null){
+                            sender.sendMessage("プレイヤーがオフラインです")
+                            return true
+                        }
+
+                        es.execute{
+
+                            val list = Bank.getBankLog(p,page)
+
+                            sendMsg(sender,"§d§l===========銀行の履歴==========")
+                            for (data in list){
+
+                                val tag = if (data.isDeposit) "§a[入金]" else "§c[出金]"
+                                sendMsg(sender,"$tag §e${data.dateFormat} ${data.note} ${format(data.amount)}")
+
+                            }
+
+                            val previous = if (page!=0) {
+                                text("${prefix}§b§l<<==前のページ ").clickEvent(ClickEvent.runCommand("/bal log ${page-1}"))
+                            }else text(prefix)
+
+                            val next = if (list.size == 10){
+                                text("§b§l次のページ==>>").clickEvent(ClickEvent.runCommand("/bal log ${page+1}"))
+                            }else text("")
+
+                            sender.sendMessage(previous.append(next))
+
+                        }
+
                     }
 
                     "take" ->{
@@ -605,8 +665,6 @@ class Man10Bank : JavaPlugin(),Listener {
         if (alias == "deposit" || alias == "withdraw")return Collections.emptyList()
 
         if (aliasList.contains(alias)){
-
-            Bukkit.getLogger().info(args.size.toString())
 
             if (args.size > 1)return Collections.emptyList()
 

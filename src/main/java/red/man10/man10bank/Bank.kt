@@ -235,6 +235,30 @@ object Bank {
     }
 
 
+    private val simpleDateFormat = SimpleDateFormat("yyyy-MM/dd HH:mm")
+
+    fun getBankLog(p:Player,page:Int): MutableList<BankLog> {
+
+        val rs = mysql.query("select * from money_log where uuid='${p.uniqueId}' order by id desc Limit 10 offset ${(page)*10};")?:return Collections.emptyList()
+
+        val list = mutableListOf<BankLog>()
+
+        while (rs.next()){
+
+            val data = BankLog()
+
+            data.isDeposit = rs.getInt("deposit") == 1
+            data.amount = rs.getDouble("amount")
+            data.note = rs.getString("display_note")?:rs.getString("note")!!
+            data.dateFormat = simpleDateFormat.format(rs.getTime("date"))
+
+            list.add(data)
+        }
+
+        return list
+
+    }
+
 
     fun reload(){
         Bukkit.getLogger().info("Start Reload Man10Bank")
@@ -242,6 +266,16 @@ object Bank {
         mysql = MySQLManager(plugin,"Man10OfflineBank")
 
         Bukkit.getLogger().info("Finish Reload Man10Bank")
+
+    }
+
+    class BankLog{
+
+        var isDeposit = true
+        var amount = 0.0
+        var note = ""
+        var dateFormat = ""
+        var plugin = ""
 
     }
 
