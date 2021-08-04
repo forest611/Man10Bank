@@ -19,6 +19,7 @@ create table money_log
 	plugin_name varchar(16) null,
 	amount double default 0 not null,
 	note varchar(64) null,
+	display_note varchar(64) null,
 	server varchar(16) null,
 	deposit boolean default true null,
 	date datetime default now() not null,

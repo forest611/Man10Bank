@@ -8,6 +8,7 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -218,14 +219,6 @@ class Man10Bank : JavaPlugin(),Listener {
                     "log" ->{
 
                         es.execute{
-
-                            val deposit = format(Bank.calcLog(true,sender))
-                            val withdraw = format(Bank.calcLog(false,sender))
-
-                            sendMsg(sender,"§e§l今月の入出金額の合計")
-
-                            sendMsg(sender,"§a§l入金額:${deposit}")
-                            sendMsg(sender,"§c§l出金額:${withdraw}")
                         }
                         return true
                     }
@@ -681,7 +674,7 @@ class Man10Bank : JavaPlugin(),Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler (priority = EventPriority.LOWEST)
     fun logout(e:PlayerQuitEvent){
         es.execute {
             EstateData.saveCurrentEstate(e.player)
