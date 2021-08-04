@@ -20,6 +20,11 @@ class BankAPI(private val plugin : JavaPlugin) {
         return Bank.withdraw(uuid,amount, plugin, note,displayNote)
     }
 
+    //アップデートに対応してない場合のための処理
+    fun withdraw(uuid:UUID,amount:Double,note:String):Boolean{
+        return Bank.withdraw(uuid,amount, plugin, note,note)
+    }
+
     /**
      * ユーザーのオフライン口座に入金する
      *
@@ -30,6 +35,11 @@ class BankAPI(private val plugin : JavaPlugin) {
      */
     fun deposit(uuid: UUID,amount: Double,note: String,displayNote: String){
         Bank.deposit(uuid,amount, plugin, note,displayNote)
+    }
+
+    //アップデートに対応してない場合のための処理
+    fun deposit(uuid: UUID,amount: Double,note: String){
+        Bank.deposit(uuid,amount, plugin, note,note)
     }
 
     /**
