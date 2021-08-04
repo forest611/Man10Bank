@@ -248,7 +248,7 @@ object Bank {
             data.isDeposit = rs.getInt("deposit") == 1
             data.amount = rs.getDouble("amount")
             data.note = rs.getString("display_note")?:rs.getString("note")!!
-            data.dateFormat = simpleDateFormat.format(rs.getTime("date"))
+            data.dateFormat = simpleDateFormat.format(rs.getTimestamp("date"))
 
             list.add(data)
         }
