@@ -27,9 +27,9 @@ class LoanData {
 
     fun create(lend:Player, borrow: Player, borrowedAmount : Double, rate:Double, paybackDay:Int):Int{
 
-        if (!Bank.withdraw(lend.uniqueId, (borrowedAmount * Man10Bank.loanFee), plugin,"LoanCreate"))return -1
+        if (!Bank.withdraw(lend.uniqueId, (borrowedAmount * Man10Bank.loanFee), plugin,"LoanCreate","借金の貸し出し"))return -1
 
-        Bank.deposit(borrow.uniqueId, borrowedAmount, plugin, "LoanCreate")
+        Bank.deposit(borrow.uniqueId, borrowedAmount, plugin, "LoanCreate","借金の借り入れ")
 
         //30日を基準に金利が設定される
         nowAmount = calcRate(borrowedAmount,paybackDay,rate)
@@ -110,13 +110,13 @@ class LoanData {
 
         val takeMan10Bank = floor(if (man10Bank<nowAmount)man10Bank else nowAmount)
 
-        if (takeMan10Bank != 0.0 && Bank.withdraw(borrow,takeMan10Bank, plugin,"paybackMoney")){
+        if (takeMan10Bank != 0.0 && Bank.withdraw(borrow,takeMan10Bank, plugin,"paybackMoney","借金の返済")){
 
             nowAmount -= takeMan10Bank
 
             if (takeMan10Bank>0){
                 sendMsg(p,"§eMan10Bankから${Man10Bank.format(takeMan10Bank)}円回収成功しました！")
-                Bank.deposit(p.uniqueId,takeMan10Bank, plugin,"paybackMoneyFromBank")
+                Bank.deposit(p.uniqueId,takeMan10Bank, plugin,"paybackMoneyFromBank","借金の回収")
             }
 
         }
@@ -129,7 +129,7 @@ class LoanData {
 
             if (takeBalance>0){
                 sendMsg(p,"§e所持金から${Man10Bank.format(takeBalance)}円回収成功しました！")
-                Bank.deposit(p.uniqueId,takeBalance, plugin,"paybackMoneyFromBalance")
+                Bank.deposit(p.uniqueId,takeBalance, plugin,"paybackMoneyFromBalance","借金の回収")
             }
 
         }
