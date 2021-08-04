@@ -6,6 +6,7 @@ import org.bukkit.entity.Player
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.MySQLManager
+import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
 import red.man10.man10bank.cheque.Cheque
 import java.util.*
@@ -23,9 +24,8 @@ object EstateData {
         val rs = mysql.query("SELECT * FROM estate_history_tbl WHERE uuid='${p.uniqueId}' ORDER BY date DESC LIMIT 1")
 
         if (rs==null || !rs.next()){
-            mysql.execute("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate, total) " +
+            mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate, total) " +
                     "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank},${cash}, ${estate}, ${vault+bank+estate})")
-
             return
         }
 
@@ -38,9 +38,8 @@ object EstateData {
         rs.close()
 
         if (vault != lastVault || bank != lastBank || estate != lastEstate ||cash!=lastCash){
-            mysql.execute("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate, total) " +
+            mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate, total) " +
                     "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank},${cash}, ${estate}, ${vault+bank+estate})")
-
         }
 
 
@@ -93,7 +92,7 @@ object EstateData {
         val cash = ATMData.getEnderChestMoney(p) + ATMData.getInventoryMoney(p)
         val estate = getEstate(p)
 
-        mysql.execute("UPDATE estate_tbl SET " +
+        mysqlQueue.add("UPDATE estate_tbl SET " +
                 "date=now(), player='${p.name}', vault=${vault}, bank=${bank}, cash=${cash}, estate=${estate}, total=${vault+bank+estate} WHERE uuid='${uuid}'")
 
         addEstateHistory(p, vault, bank,cash, estate)
