@@ -661,19 +661,19 @@ class Man10Bank : JavaPlugin(),Listener {
 
     private val aliasList = mutableListOf("bal","balance","bank","pay","mpay")
 
-    override fun onTabComplete(
-        sender: CommandSender,
-        command: Command,
-        alias: String,
-        args: Array<out String>
-    ): MutableList<String> {
-
-        if (alias == "deposit" || alias == "withdraw")return Collections.emptyList()
-
-        if (aliasList.contains(alias)){ return this.onTabComplete(sender, command, alias, args) }
-
-        return Collections.emptyList()
-    }
+//    override fun onTabComplete(
+//        sender: CommandSender,
+//        command: Command,
+//        alias: String,
+//        args: Array<out String>
+//    ): MutableList<String> {
+//
+//        if (alias == "deposit" || alias == "withdraw")return Collections.emptyList()
+//
+//        if (aliasList.contains(alias)){ return super.onTabComplete(sender, command, alias, args)!! }
+//
+//        return super.onTabComplete(sender, command, alias, args)!!
+//    }
 
 
     private fun ZenkakuToHankaku(number: String): Double {

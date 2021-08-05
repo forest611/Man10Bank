@@ -5,6 +5,8 @@ import org.bukkit.Material
 import org.bukkit.entity.Player
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Man10Bank.Companion.format
+import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.MySQLManager
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
@@ -188,12 +190,12 @@ object EstateData {
         val cash = rs.getDouble("cash")
         val estate = rs.getDouble("estate")
 
-        Man10Bank.sendMsg(show, "§e§l==========${p}のお金(オフライン)==========")
+        sendMsg(show, "§e§l==========${p}のお金(オフライン)==========")
 
-        Man10Bank.sendMsg(show, " §b§l電子マネー:  §e§l${Man10Bank.format(vault)}円")
-        Man10Bank.sendMsg(show, " §b§l現金:  §e§l${Man10Bank.format(cash)}円")
-        Man10Bank.sendMsg(show, " §b§l銀行:  §e§l${bank}円")
-        Man10Bank.sendMsg(show, " §b§lその他の資産:  §e§l${Man10Bank.format(estate)}円")
+        sendMsg(show, " §b§l電子マネー:  §e§l${format(vault)}円")
+        sendMsg(show, " §b§l現金:  §e§l${format(cash)}円")
+        sendMsg(show, " §b§l銀行:  §e§l${format(bank)}円")
+        sendMsg(show, " §b§lその他の資産:  §e§l${format(estate)}円")
 
     }
 
