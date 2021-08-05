@@ -23,9 +23,11 @@ object EstateData {
 
         val rs = mysql.query("SELECT * FROM estate_history_tbl WHERE uuid='${p.uniqueId}' ORDER BY date DESC LIMIT 1")
 
+        val total = vault+bank+estate + cash
+
         if (rs==null || !rs.next()){
             mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate, total) " +
-                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank},${cash}, ${estate}, ${vault+bank+estate+cash})")
+                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank},${cash}, ${estate}, ${total})")
             return
         }
 
@@ -39,7 +41,7 @@ object EstateData {
 
         if (vault != lastVault || bank != lastBank || estate != lastEstate ||cash!=lastCash){
             mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate, total) " +
-                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank},${cash}, ${estate}, ${vault+bank+estate+cash})")
+                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank},${cash}, ${estate}, ${total})")
         }
 
 
@@ -91,9 +93,10 @@ object EstateData {
         val bank = Bank.getBalance(uuid)
         val cash = ATMData.getEnderChestMoney(p) + ATMData.getInventoryMoney(p)
         val estate = getEstate(p)
+        val total = vault+bank+estate + cash
 
         mysqlQueue.add("UPDATE estate_tbl SET " +
-                "date=now(), player='${p.name}', vault=${vault}, bank=${bank}, cash=${cash}, estate=${estate}, total=${vault+bank+estate} WHERE uuid='${uuid}'")
+                "date=now(), player='${p.name}', vault=${vault}, bank=${bank}, cash=${cash}, estate=${estate}, total=${total} WHERE uuid='${uuid}'")
 
         addEstateHistory(p, vault, bank,cash, estate)
 
