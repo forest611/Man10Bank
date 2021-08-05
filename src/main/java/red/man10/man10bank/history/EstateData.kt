@@ -177,6 +177,26 @@ object EstateData {
         return list
     }
 
+    fun showOfflineUserEstate(show:Player,p:String){
+
+        val rs  = mysql.query("select * from estate_tbl where player='$p';")?:return
+
+        if (!rs.next())return
+
+        val vault = rs.getDouble("vault")
+        val bank = rs.getDouble("bank")
+        val cash = rs.getDouble("cash")
+        val estate = rs.getDouble("estate")
+
+        Man10Bank.sendMsg(show, "§e§l==========${p}のお金(オフライン)==========")
+
+        Man10Bank.sendMsg(show, " §b§l電子マネー:  §e§l${Man10Bank.format(vault)}円")
+        Man10Bank.sendMsg(show, " §b§l現金:  §e§l${Man10Bank.format(cash)}円")
+        Man10Bank.sendMsg(show, " §b§l銀行:  §e§l${bank}円")
+        Man10Bank.sendMsg(show, " §b§lその他の資産:  §e§l${Man10Bank.format(estate)}円")
+
+    }
+
     //その他の資産を返す
     fun getEstate(p:Player):Double{
 

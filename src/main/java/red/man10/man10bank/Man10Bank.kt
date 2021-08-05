@@ -413,11 +413,17 @@ class Man10Bank : JavaPlugin(),Listener {
                     }
 
                     else ->{
-                        val p = Bukkit.getOfflinePlayer(args[0]).player?:return true
+                        val p = Bukkit.getOfflinePlayer(args[0]).player
 
                         if (!sender.hasPermission(OP))return true
 
                         es.execute{
+
+                            if (p==null){
+                                EstateData.showOfflineUserEstate(sender,args[0])
+                                return@execute
+                            }
+
                             showBalance(sender,p)
                         }
                         return true
@@ -664,19 +670,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
         if (alias == "deposit" || alias == "withdraw")return Collections.emptyList()
 
-        if (aliasList.contains(alias)){
-
-            if (args.size > 1)return Collections.emptyList()
-
-            val pList = mutableListOf<String>()
-
-            for (p in Bukkit.getOnlinePlayers()){
-
-                pList.add("${p.name} ")
-            }
-
-            return pList
-        }
+        if (aliasList.contains(alias)){ return this.onTabComplete(sender, command, alias, args) }
 
         return Collections.emptyList()
     }
@@ -722,8 +716,6 @@ class Man10Bank : JavaPlugin(),Listener {
             sender.sendMessage(ranking)
 
         }
-
-
     }
 
     @EventHandler
