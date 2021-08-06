@@ -273,11 +273,11 @@ class Man10Bank : JavaPlugin(),Listener {
                             }
 
                             val previous = if (page!=0) {
-                                text("${prefix}§b§l<<==前のページ ").clickEvent(ClickEvent.runCommand("/bal log ${page-1}"))
+                                text("${prefix}§b§l<<==前のページ ").clickEvent(ClickEvent.runCommand("/bal logop ${page-1}"))
                             }else text(prefix)
 
                             val next = if (list.size == 10){
-                                text("§b§l次のページ==>>").clickEvent(ClickEvent.runCommand("/bal log ${page+1}"))
+                                text("§b§l次のページ==>>").clickEvent(ClickEvent.runCommand("/bal logop ${page+1}"))
                             }else text("")
 
                             sender.sendMessage(previous.append(next))
