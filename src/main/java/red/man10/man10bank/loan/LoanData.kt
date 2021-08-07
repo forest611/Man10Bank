@@ -24,6 +24,7 @@ class LoanData {
     var nowAmount : Double = 0.0
     var id : Int = 0
 
+    private val mysql = MySQLManager(plugin,"Man10Loan")
 
     fun create(lend:Player, borrow: Player, borrowedAmount : Double, rate:Double, paybackDay:Int):Int{
 
@@ -37,8 +38,6 @@ class LoanData {
         this.borrow = borrow.uniqueId
 
         paybackDate = calcDate(paybackDay)
-
-        val mysql = MySQLManager(plugin,"Man10Loan")
 
         mysql.execute("INSERT INTO loan_table " +
                 "(lend_player, lend_uuid, borrow_player, borrow_uuid, borrow_date, payback_date, amount) " +
@@ -65,8 +64,6 @@ class LoanData {
     }
 
     fun load(id:Int): LoanData? {
-
-        val mysql = MySQLManager(plugin,"Man10Loan")
 
         val rs = mysql.query("select * from loan_table where id=$id;")?:return null
 

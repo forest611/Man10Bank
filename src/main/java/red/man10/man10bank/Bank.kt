@@ -253,6 +253,9 @@ object Bank {
             list.add(data)
         }
 
+        mysql.close()
+        rs.close()
+
         return list
 
     }

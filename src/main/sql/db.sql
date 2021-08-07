@@ -96,6 +96,9 @@ create table estate_history_tbl
         primary key (id)
 );
 
+create index estate_history_tbl_uuid_index
+	on estate_history_tbl (uuid);
+
 
 create table server_estate_history
 (

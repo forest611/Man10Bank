@@ -197,6 +197,9 @@ object EstateData {
         sendMsg(show, " §b§l銀行:  §e§l${format(bank)}円")
         sendMsg(show, " §b§lその他の資産:  §e§l${format(estate)}円")
 
+        mysql.close()
+        rs.close()
+
     }
 
     //その他の資産を返す
