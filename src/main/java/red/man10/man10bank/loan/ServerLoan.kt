@@ -58,7 +58,7 @@ object ServerLoan {
         val median : Double = if (list.size%2 == 0){
             (list[m]+list[m+1])/2.0
         }else{
-            list[m]
+            list[m]+1
         }
 
         broadcastOnMainThread("§e§l[まんじゅう銀行AI]§7${p.name}の犯罪データの取得完了§8(なんだこの犯罪履歴は、、、！)")
