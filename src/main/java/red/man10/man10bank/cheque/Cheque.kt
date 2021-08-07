@@ -13,6 +13,7 @@ import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Man10Bank.Companion.es
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
@@ -120,7 +121,7 @@ object Cheque :Listener{
 
         e.isCancelled = true
 
-        plugin.es.execute { useCheque(e.player,item) }
+        es.execute { useCheque(e.player,item) }
     }
 
 }

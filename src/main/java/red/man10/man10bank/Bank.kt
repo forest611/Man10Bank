@@ -58,8 +58,6 @@ object Bank {
 
         addLog(uuid,plugin,"CreateAccount","口座を作成",0.0,true)
 
-        vault.deposit(uuid,Man10Bank.firstMoney)
-
         return true
     }
 

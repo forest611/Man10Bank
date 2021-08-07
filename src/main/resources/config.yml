@@ -4,3 +4,11 @@ mysql:
   pass: pass
   port: 3306
   db: man10offlinebank
+
+loanfee: 1.1
+loanmax: 10000000.0
+loanrate: 1.0
+loggingServerHistory: true
+medianMultiplier: 1.0
+recordMultiplier: 1.0
+scoreMultiplier: 1.0

@@ -8,6 +8,7 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Man10Bank.Companion.es
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.loanFee
 import red.man10.man10bank.Man10Bank.Companion.loanRate
@@ -78,7 +79,7 @@ class LoanCommand : CommandExecutor{
                 return true
             }
 
-            plugin.es.execute{
+            es.execute{
 
                 val data = LoanData()
                 val id = data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)

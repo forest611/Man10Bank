@@ -23,6 +23,8 @@ import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.history.EstateData
 import red.man10.man10bank.loan.Event
 import red.man10.man10bank.loan.LoanCommand
+import red.man10.man10bank.loan.ServerLoan
+import red.man10.man10bank.loan.ServerLoanCommand
 import java.text.Normalizer
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -47,7 +49,6 @@ class Man10Bank : JavaPlugin(),Listener {
         }
 
         const val OP = "man10bank.op"
-//        const val USER = "man10bank.user"
 
         var bankEnable = true
 
@@ -55,15 +56,12 @@ class Man10Bank : JavaPlugin(),Listener {
         var loanRate : Double = 1.0
         var loanMax : Double = 10000000.0
 
-        var firstMoney : Double = 10000.0 // お初に渡すお金の金額
-
         var loggingServerHistory = false
 
+        lateinit var es : ExecutorService
     }
 
     private val checking = HashMap<Player,Command>()
-
-    lateinit var es : ExecutorService
 
     override fun onEnable() {
         // Plugin startup logic
@@ -86,6 +84,7 @@ class Man10Bank : JavaPlugin(),Listener {
         server.pluginManager.registerEvents(Cheque,this)
 
         getCommand("mlend")!!.setExecutor(LoanCommand())
+        getCommand("slend")!!.setExecutor(ServerLoanCommand())
 
         es.execute { EstateData.historyThread() }
 
@@ -104,8 +103,10 @@ class Man10Bank : JavaPlugin(),Listener {
         loanFee = config.getDouble("loanfee",1.1)
         loanMax = config.getDouble("loanmax",10000000.0)
         loanRate = config.getDouble("loanrate",1.0)
-        firstMoney = config.getDouble("firstmoney",10000.0)
         loggingServerHistory = config.getBoolean("loggingServerHistory",false)
+        ServerLoan.medianMultiplier = config.getDouble("medianMultiplier")
+        ServerLoan.recordMultiplier = config.getDouble("recordMultiplier")
+        ServerLoan.scoreMultiplier = config.getDouble("scoreMultiplier")
 
         ATMData.loadItem()
     }

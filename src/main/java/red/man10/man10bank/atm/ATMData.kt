@@ -5,6 +5,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
+import red.man10.man10bank.Man10Bank.Companion.es
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
@@ -32,7 +33,7 @@ object ATMData {
 
         moneyItems[amount] = itemStack
 
-        plugin.es.execute {
+        es.execute {
             plugin.config.set("money.$amount",itemStack)
             plugin.saveConfig()
         }
