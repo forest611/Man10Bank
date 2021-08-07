@@ -1,9 +1,12 @@
 package red.man10.man10bank.loan
 
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.format
+import red.man10.man10bank.Man10Bank.Companion.plugin
+import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.MySQLManager
 import red.man10.man10score.ScoreDatabase
 
@@ -24,6 +27,8 @@ object ServerLoan {
 
         val list = mutableListOf<Double>()
 
+        broadcastOnMainThread("§e§l[まんじゅう銀行AI]§7現在過去の資産データを取得中・・・§kX")
+
         val rs = mysql.query("select total from estate_history_tbl where uuid='${p.uniqueId}';")?:return
 
         while (rs.next()){
@@ -33,9 +38,19 @@ object ServerLoan {
         rs.close()
         mysql.close()
 
+        Thread.sleep(3000)
+
+        broadcastOnMainThread("§e§l[まんじゅう銀行AI]§7${p.name}の資産データの取得完了§8(こっ、、こいつ金持ってねぇなぁ、、、w)")
+
         val rs2 = mysql.query("select count(*) from estate_history_tbl where uuid='${p.uniqueId}';")?:return
 
         val records = if (rs2.next())rs2.getInt(1) else 0
+
+        Thread.sleep(3000)
+
+        broadcastOnMainThread("§e§l[まんじゅう銀行AI]§7過去の犯罪データを調査中・・・§kX")
+
+        Thread.sleep(3000)
 
         list.sort()
         val m = list.size/2
@@ -45,6 +60,16 @@ object ServerLoan {
         }else{
             list[m]
         }
+
+        broadcastOnMainThread("§e§l[まんじゅう銀行AI]§7${p.name}の犯罪データの取得完了§8(なんだこの犯罪履歴は、、、！)")
+
+        Thread.sleep(3000)
+
+        broadcastOnMainThread("§e§l[まんじゅう銀行AI]§7公的ローンの貸し出し可能金額を計算中・・・§kX")
+
+        Thread.sleep(5000)
+
+        broadcastOnMainThread("§e§l[まんじゅう銀行AI]§7計算完了！")
 
         Bukkit.getLogger().info("m:${m}")
 
@@ -57,6 +82,10 @@ object ServerLoan {
         Bukkit.getLogger().info("MaxServerLoan:${format(maxServerLoan)}")
 
         p.sendMessage("貸し出し可能上限額:${format(if (maxServerLoanAmount<maxServerLoan) maxServerLoanAmount else maxServerLoan)}")
+    }
+
+    private fun broadcastOnMainThread(msg:String){
+        Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text(msg)) })
     }
 
 }
