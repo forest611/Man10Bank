@@ -93,6 +93,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
     override fun onDisable() {
         // Plugin shutdown logic
+        mysqlQueue.add("quit")
         es.shutdownNow()
     }
 

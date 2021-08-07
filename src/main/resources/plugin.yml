@@ -9,29 +9,45 @@ softdepend:
 main: red.man10.man10bank.Man10Bank
 api-version: 1.16
 commands:
-#  mbal:
-#    default: op
+  mbal:
+    default: op
+    description: /bal
   bal:
     default: op
+    description: /bal
   balance:
     default: op
+    description: /bal
   money:
     default: op
+    description: /bal
   bank:
     default: op
-  mpay:
-    default: op
-  mbaltop:
-    default: op
-  mlend:
-    default: op
-  pay:
-    default: op
+    description: /bal
   atm:
     default: op
+    description: /bal
+  mpay:
+    default: op
+    description: bank pay
+  mbaltop:
+    default: op
+    description: serverBalanceTop
+  mlend:
+    default: op
+    description: player loan
+  pay:
+    default: op
+    description: vault pay
   deposit:
     default: op
+    description: vault to bank
   withdraw:
     default: op
+    description: bank to vault
   mchequeop:
     default: op
+    description: issue money
+  slend:
+    default: op
+    description: server loan system

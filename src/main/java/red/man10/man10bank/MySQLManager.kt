@@ -212,6 +212,7 @@ class MySQLManager(private val plugin: JavaPlugin, private val conName: String) 
                 try {
                     while (true) {
                         val take = mysqlQueue.take()
+                        if (take=="quit")return@Thread
                         mysql.execute(take)
                     }
                 } catch (e: InterruptedException) {
