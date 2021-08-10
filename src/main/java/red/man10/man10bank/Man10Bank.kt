@@ -107,6 +107,7 @@ class Man10Bank : JavaPlugin(),Listener {
         ServerLoan.medianMultiplier = config.getDouble("medianMultiplier")
         ServerLoan.recordMultiplier = config.getDouble("recordMultiplier")
         ServerLoan.scoreMultiplier = config.getDouble("scoreMultiplier")
+        ServerLoan.maxServerLoanAmount = config.getDouble("maxServerLoan")
 
         ATMData.loadItem()
     }
