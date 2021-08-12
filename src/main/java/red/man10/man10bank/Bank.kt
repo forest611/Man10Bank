@@ -104,6 +104,8 @@ object Bank {
         val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid';")?:return bal
 
         if (!rs.next()){
+            mysql.close()
+            rs.close()
             return bal
         }
 

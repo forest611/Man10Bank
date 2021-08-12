@@ -4,10 +4,8 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
-import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
-import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.MySQLManager
 import red.man10.man10score.ScoreDatabase
 import java.util.concurrent.ConcurrentHashMap
@@ -31,7 +29,6 @@ object ServerLoan {
 
         val list = mutableListOf<Double>()
 
-        broadcastOnMainThread("§e§l[まんじゅう銀行AI]§7現在過去の資産データを取得中・・・§kX")
 
         val rs = mysql.query("select total from estate_history_tbl where uuid='${p.uniqueId}';")?:return
 
@@ -42,19 +39,12 @@ object ServerLoan {
         rs.close()
         mysql.close()
 
-        Thread.sleep(3000)
-
-        broadcastOnMainThread("§e§l[まんじゅう銀行AI]§7${p.name}の資産データの取得完了§8(こっ、、こいつ金持ってねぇなぁ、、、w)")
-
         val rs2 = mysql.query("select count(*) from estate_history_tbl where uuid='${p.uniqueId}';")?:return
 
         val records = if (rs2.next())rs2.getInt(1) else 0
 
-        Thread.sleep(3000)
-
-        broadcastOnMainThread("§e§l[まんじゅう銀行AI]§7過去の犯罪データを調査中・・・§kX")
-
-        Thread.sleep(3000)
+        mysql.close()
+        rs2.close()
 
         list.sort()
         val m = list.size/2
@@ -64,6 +54,19 @@ object ServerLoan {
         }else{
             list[m]+1
         }
+
+        broadcastOnMainThread("§e§l[まんじゅう銀行AI]§7現在過去の資産データを取得中・・・§kX")
+
+        Thread.sleep(3000)
+
+        broadcastOnMainThread("§e§l[まんじゅう銀行AI]§7${p.name}の資産データの取得完了§8(こっ、、こいつ金持ってねぇなぁ、、、w)")
+
+
+        Thread.sleep(3000)
+
+        broadcastOnMainThread("§e§l[まんじゅう銀行AI]§7過去の犯罪データを調査中・・・§kX")
+
+        Thread.sleep(3000)
 
         broadcastOnMainThread("§e§l[まんじゅう銀行AI]§7${p.name}の犯罪データの取得完了§8(なんだこの犯罪履歴は、、、！)")
 
@@ -112,6 +115,9 @@ object ServerLoan {
         val rs2 = mysql.query("select count(*) from estate_history_tbl where uuid='${p.uniqueId}';")?:return
 
         val records = if (rs2.next())rs2.getInt(1) else 0
+
+        rs2.close()
+        mysql.close()
 
         list.sort()
         val m = list.size/2
