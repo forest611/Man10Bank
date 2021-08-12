@@ -22,7 +22,16 @@ object ServerLoan {
 
     var maxServerLoanAmount = 1_000_000.0
 
+    var isChecking = false
+
     fun checkServerLoan(p: Player){
+
+        if (isChecking){
+            Bukkit.getLogger().info("現在他のユーザーが確認中です")
+            return
+        }
+
+        isChecking = true
 
         val score = ScoreDatabase.getScore(p.uniqueId)
 //        val score = 10
@@ -94,6 +103,8 @@ object ServerLoan {
         p.sendMessage(Component.text("§e§l§n[結果をシェアする]").clickEvent(ClickEvent.runCommand("/slend share")))
 
         shareMap[p] = maxLoan
+
+        isChecking = false
     }
 
     fun checkServerLoan(sender:Player,p:Player){

@@ -29,11 +29,11 @@ class ServerLoanCommand : CommandExecutor{
 
         when(args[0]){
 
-//            "check" ->{
-//                es.execute {
-//                    ServerLoan.checkServerLoan(sender)
-//                }
-//            }
+            "check" ->{
+                es.execute {
+                    ServerLoan.checkServerLoan(sender)
+                }
+            }
 
             "checkop" ->{
 
