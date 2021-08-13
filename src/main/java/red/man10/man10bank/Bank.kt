@@ -7,7 +7,6 @@ import red.man10.man10bank.Man10Bank.Companion.bankEnable
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
-import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import java.text.SimpleDateFormat
 import java.util.*

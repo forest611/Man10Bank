@@ -62,6 +62,35 @@ class ServerLoanCommand : CommandExecutor{
                 ServerLoan.shareMap.remove(sender)
             }
 
+            "borrow" ->{
+
+                val amount = args[1].toDoubleOrNull()?:return true
+
+                es.execute {
+                    ServerLoan.showBorrowMessage(sender,amount)
+                }
+
+            }
+
+            "confirm" ->{
+                val amount = args[1].toDoubleOrNull()?:return true
+
+                es.execute {
+                    ServerLoan.borrow(sender,amount)
+                }
+
+            }
+
+            "payment" ->{
+
+                val amount = args[1].toDoubleOrNull()?:return true
+
+                es.execute {
+                    ServerLoan.setPaymentAmount(sender,amount)
+                }
+
+            }
+
 
         }
 

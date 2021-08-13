@@ -86,7 +86,10 @@ class Man10Bank : JavaPlugin(),Listener {
         getCommand("mlend")!!.setExecutor(LoanCommand())
         getCommand("slend")!!.setExecutor(ServerLoanCommand())
 
-        es.execute { EstateData.historyThread() }
+        es.execute {
+            EstateData.historyThread()
+            ServerLoan.paymentThread()
+        }
 
     }
 
@@ -104,10 +107,13 @@ class Man10Bank : JavaPlugin(),Listener {
         loanMax = config.getDouble("loanmax",10000000.0)
         loanRate = config.getDouble("loanrate",1.0)
         loggingServerHistory = config.getBoolean("loggingServerHistory",false)
+
         ServerLoan.medianMultiplier = config.getDouble("medianMultiplier")
         ServerLoan.recordMultiplier = config.getDouble("recordMultiplier")
         ServerLoan.scoreMultiplier = config.getDouble("scoreMultiplier")
         ServerLoan.maxServerLoanAmount = config.getDouble("maxServerLoan")
+        ServerLoan.revolvingFee = config.getDouble("revolvingFee")
+        ServerLoan.lastPaymentCycle.time = config.getLong("lastPaymentCycle")
 
         ATMData.loadItem()
     }

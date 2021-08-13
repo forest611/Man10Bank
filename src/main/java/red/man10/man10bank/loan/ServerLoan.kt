@@ -4,11 +4,17 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
+import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank.Companion.es
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
+import red.man10.man10bank.Man10Bank.Companion.prefix
+import red.man10.man10bank.Man10Bank.Companion.sendMsg
+import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager
 import red.man10.man10score.ScoreDatabase
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 object ServerLoan {
@@ -23,16 +29,11 @@ object ServerLoan {
 
     var maxServerLoanAmount = 1_000_000.0
 
-    var isChecking = false
+    var revolvingFee = 0.1 //日率の割合
+    var frequency = 3
+    var lastPaymentCycle = Date()
 
     fun checkServerLoan(p: Player){
-
-        if (isChecking){
-            p.sendMessage("現在他のユーザーが確認中です")
-            return
-        }
-
-        isChecking = true
 
         es.execute {
             val maxLoan = getLoanAmount(p)
@@ -42,9 +43,6 @@ object ServerLoan {
             p.sendMessage(Component.text("§e§l§n[結果をシェアする]").clickEvent(ClickEvent.runCommand("/slend share")))
 
             shareMap[p] = maxLoan
-
-            isChecking = false
-
         }
     }
 
@@ -97,6 +95,163 @@ object ServerLoan {
         val calcAmount = median * medianMultiplier * score * scoreMultiplier * records * recordMultiplier
 
         return if (maxServerLoanAmount < calcAmount) maxServerLoanAmount else calcAmount
+    }
+
+    private fun borrowingAmount(p:Player):Double{
+
+        val rs = mysql.query("SELECT borrow_amount where uuid='${p.uniqueId}'")?:return 0.0
+
+        var ret = 0.0
+
+        if (rs.next()){
+            ret = rs.getDouble("borrow_amount")
+        }
+
+        rs.close()
+        mysql.close()
+
+        return ret
+    }
+
+    fun showBorrowMessage(p:Player,amount: Double){
+
+        val max = getLoanAmount(p)
+        val borrowing = borrowingAmount(p)
+
+        val borrowableAmount = max - borrowing
+
+        if (borrowableAmount<amount){
+            sendMsg(p,"§cあなたが借りることができる金額は${format(borrowableAmount)}円までです")
+            p.sendMessage(Component.text("${prefix}§e§l§n[${borrowableAmount}円借りる]").
+            clickEvent(ClickEvent.runCommand("/slend borrow $borrowableAmount")))
+            return
+        }
+
+        val allow = Component.text("${prefix}§c§l§n[借りる] ").clickEvent(ClickEvent.runCommand("/slend confirm $amount"))
+
+
+        sendMsg(p,"§a§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
+        sendMsg(p,"§a§kXX§b§lMan10リボ§e§kXX")
+        sendMsg(p,"§a貸し出される金額:${format(amount)}")
+        sendMsg(p,"§a現在の利用額:${format(borrowing)}")
+        sendMsg(p,"§a${frequency}日ごとに最低${format(amount*frequency*revolvingFee)}円支払う必要があります")
+        p.sendMessage(allow)
+        sendMsg(p,"§a§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
+
+    }
+
+    fun borrow(p:Player, amount:Double){
+
+        val max = getLoanAmount(p)
+        val borrowing = borrowingAmount(p)
+
+        val borrowableAmount = max - borrowing
+
+        if (borrowableAmount<amount){
+            sendMsg(p,"§cあなたが借りることができる金額は${format(borrowableAmount)}円までです")
+            p.sendMessage(Component.text("${prefix}§e§l§n[${borrowableAmount}円借りる]").
+            clickEvent(ClickEvent.runCommand("/slend borrow $borrowableAmount")))
+            return
+        }
+
+        val rs = mysql.query("SELECT * From server_loan_tbl where uuid='${p.uniqueId}'")?:return
+
+        if (!rs.next()){
+
+            mysql.execute("INSERT INTO server_loan_tbl (player, uuid, borrow_date, last_pay_date, borrow_amount, payment_amount) " +
+                    "VALUES ('${p.name}', '${p.uniqueId}', DEFAULT, DEFAULT, ${amount}, ${amount*frequency*revolvingFee*2})")
+
+            sendMsg(p,"""
+                §e§l[返済について]§c§lMan10リボは、借りた日から${frequency}日ずつ銀行から引き落とされます
+                §c§l支払いができなかった場合、スコアの減少などのペナルティがあるので、
+                §c§l必ず銀行にお金を入れておくようにしましょう。
+                §c§lまた、/slend payment <金額>で引き落とす額を設定できます。
+            """.trimIndent())
+
+        }else{
+            mysql.execute(" UPDATE server_loan_tbl SET borrow_amount=borrow_amount+${amount} WHERE uuid = '${p.uniqueId}'")
+        }
+
+        rs.close()
+        mysql.close()
+
+        sendMsg(p,"§a§lお金を借りることができました！")
+
+        vault.deposit(p.uniqueId,amount)
+
+    }
+
+    fun setPaymentAmount(p:Player,amount:Double){
+
+        val now = borrowingAmount(p)
+
+        if (now == 0.0){
+            sendMsg(p,"§a§lあなたは現在Man10リボを使用していません")
+            return
+        }
+
+        if (amount<amount*frequency*revolvingFee){
+            sendMsg(p,"支払額は最低${format(amount*frequency*revolvingFee)}円にしてください")
+            return
+        }
+
+        mysql.execute("UPDATE server_loan_tbl SET payment_amount=${amount} where uuid='${p.uniqueId}'")
+
+        sendMsg(p,"支払額を変更しました！")
+
+    }
+
+    //支払い処理
+    fun paymentThread(){
+
+        val now = Calendar.getInstance()
+        val last = Calendar.getInstance()
+
+        while (true){
+
+            now.time = Date()
+            last.time = lastPaymentCycle
+
+            if (now.get(Calendar.DAY_OF_MONTH) != last.get(Calendar.DAY_OF_MONTH)){
+
+                val rs = mysql.query("select * from server_loan_tbl where borrow_amount != 0")?:continue
+
+                while (rs.next()){
+
+                    val uuid = UUID.fromString(rs.getString("uuid"))
+                    val borrowing = rs.getDouble("borrow_amount")
+                    val payment = rs.getDouble("payment_amount")
+                    val date = rs.getTimestamp("last_pay_date")
+
+                    val diffDay = (borrowing*(now.time.time - date.time) / (1000*60*60*24)).toInt()
+                    val finalAmount = borrowing-(payment - (borrowing* revolvingFee* diffDay))
+
+                    Bukkit.getLogger().info("$diffDay")
+
+                    if (diffDay%frequency!=0)continue
+
+                    if (Bank.withdraw(uuid,payment, plugin,"Man10Revolving","Man10リボの支払い")){
+
+                        mysql.execute("UPDATE server_loan_tbl set borrow_amount=${finalAmount},last_pay_date=now()" +
+                                " where uuid='${uuid}'")
+                        Bukkit.getLogger().info("支払えた！")
+
+                        continue
+                    }
+
+                    Bukkit.getLogger().info("支払えなかった！")
+                    //TODO:支払わなかった時の処理
+
+                }
+
+                rs.close()
+                mysql.close()
+
+            }
+
+            Thread.sleep(60000)
+        }
+
     }
 
 }

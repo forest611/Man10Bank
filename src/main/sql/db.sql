@@ -137,3 +137,22 @@ create table cheque_tbl
 create index cheque_tbl_used_index
 	on cheque_tbl (used);
 
+create table server_loan_tbl
+(
+	id int auto_increment,
+	player varchar(16) null comment '借りたプレイヤー',
+	uuid varchar(36) null,
+	borrow_date datetime default now() null comment '借りた日
+',
+	last_pay_date datetime default now() null comment '最後に支払った日
+',
+	borrow_amount double null comment '借りた金額の合計',
+	payment_amount double null comment '週ごとの支払額',
+	constraint server_loan_tbl_pk
+		primary key (id)
+);
+
+create index server_loan_tbl_uuid_borrow_amount_index
+	on server_loan_tbl (uuid, borrow_amount);
+
+
