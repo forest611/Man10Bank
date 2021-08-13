@@ -12,3 +12,5 @@ loggingServerHistory: true
 medianMultiplier: 1.0
 recordMultiplier: 1.0
 scoreMultiplier: 1.0
+maxServerLoan: 5000000
+revolvingFee: 0.005
