@@ -16,6 +16,7 @@ import red.man10.man10score.ScoreDatabase
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.floor
 
 object ServerLoan {
 
@@ -116,6 +117,8 @@ object ServerLoan {
 
     fun showBorrowMessage(p:Player,amount: Double){
 
+        commandList.remove(p)
+
         val max = getLoanAmount(p)
         val borrowing = borrowingAmount(p)
 
@@ -123,7 +126,7 @@ object ServerLoan {
 
         if (borrowableAmount<amount){
             sendMsg(p,"§cあなたが借りることができる金額は${format(borrowableAmount)}円までです")
-            p.sendMessage(Component.text("${prefix}§e§l§n[${borrowableAmount}円借りる]").
+            p.sendMessage(Component.text("${prefix}§e§l§n[${format(borrowableAmount)}円借りる]").
             clickEvent(ClickEvent.runCommand("/slend borrow $borrowableAmount")))
             return
         }
@@ -135,7 +138,7 @@ object ServerLoan {
         sendMsg(p,"§e§kXX§b§lMan10リボ§e§kXX")
         sendMsg(p,"§b貸し出される金額:${format(amount)}")
         sendMsg(p,"§b現在の利用額:${format(borrowing)}")
-        sendMsg(p,"§b${frequency}日ごとに最低${format(amount*frequency*revolvingFee)}円支払う必要があります")
+        sendMsg(p,"§b${frequency}日ごとに最低${format((borrowing+amount)*frequency*revolvingFee)}円支払う必要があります")
         p.sendMessage(allow)
         sendMsg(p,"§b§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
 
@@ -148,6 +151,7 @@ object ServerLoan {
         val borrowing = borrowingAmount(p)
 
         val borrowableAmount = max - borrowing
+        val minPaymentAmount = floor((borrowing+amount)*frequency*revolvingFee)
 
         if (borrowableAmount<amount){
             sendMsg(p,"§cあなたが借りることができる金額は${format(borrowableAmount)}円までです")
@@ -162,7 +166,7 @@ object ServerLoan {
         if (!rs.next()){
 
             mysql.execute("INSERT INTO server_loan_tbl (player, uuid, borrow_date, last_pay_date, borrow_amount, payment_amount) " +
-                    "VALUES ('${p.name}', '${p.uniqueId}', DEFAULT, DEFAULT, ${amount}, ${amount*frequency*revolvingFee*2})")
+                    "VALUES ('${p.name}', '${p.uniqueId}', DEFAULT, DEFAULT, ${amount}, ${minPaymentAmount*2})")
 
             sendMsg(p,"""
                 §e§l[返済について]
@@ -177,7 +181,7 @@ object ServerLoan {
 
             //支払額を引き上げる
             val payment = rs.getDouble("payment_amount")
-            val q = if (payment<(borrowing+amount)*frequency*revolvingFee)"payment_amount=${amount*frequency*revolvingFee}" else ""
+            val q = if (payment<minPaymentAmount)",payment_amount=${minPaymentAmount}" else ""
 
             mysql.execute(" UPDATE server_loan_tbl SET borrow_amount=borrow_amount+${amount} $q WHERE uuid = '${p.uniqueId}'")
         }
