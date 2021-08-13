@@ -26,6 +26,7 @@ object ServerLoan {
     var medianMultiplier = 1.0//中央値の乗数
 
     val shareMap = ConcurrentHashMap<Player,Double>()
+    val commandList = mutableListOf<Player>()
 
     var maxServerLoanAmount = 1_000_000.0
 
@@ -99,7 +100,7 @@ object ServerLoan {
 
     private fun borrowingAmount(p:Player):Double{
 
-        val rs = mysql.query("SELECT borrow_amount where uuid='${p.uniqueId}'")?:return 0.0
+        val rs = mysql.query("SELECT borrow_amount from server_loan_tbl where uuid='${p.uniqueId}'")?:return 0.0
 
         var ret = 0.0
 
@@ -130,14 +131,15 @@ object ServerLoan {
         val allow = Component.text("${prefix}§c§l§n[借りる] ").clickEvent(ClickEvent.runCommand("/slend confirm $amount"))
 
 
-        sendMsg(p,"§a§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
-        sendMsg(p,"§a§kXX§b§lMan10リボ§e§kXX")
-        sendMsg(p,"§a貸し出される金額:${format(amount)}")
-        sendMsg(p,"§a現在の利用額:${format(borrowing)}")
-        sendMsg(p,"§a${frequency}日ごとに最低${format(amount*frequency*revolvingFee)}円支払う必要があります")
+        sendMsg(p,"§b§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
+        sendMsg(p,"§e§kXX§b§lMan10リボ§e§kXX")
+        sendMsg(p,"§b貸し出される金額:${format(amount)}")
+        sendMsg(p,"§b現在の利用額:${format(borrowing)}")
+        sendMsg(p,"§b${frequency}日ごとに最低${format(amount*frequency*revolvingFee)}円支払う必要があります")
         p.sendMessage(allow)
-        sendMsg(p,"§a§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
+        sendMsg(p,"§b§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
 
+        commandList.add(p)
     }
 
     fun borrow(p:Player, amount:Double){
@@ -154,22 +156,30 @@ object ServerLoan {
             return
         }
 
-        val rs = mysql.query("SELECT * From server_loan_tbl where uuid='${p.uniqueId}'")?:return
+        val rs = mysql.query("SELECT payment_amount From server_loan_tbl where uuid='${p.uniqueId}'")?:return
 
+        //初借金の場合
         if (!rs.next()){
 
             mysql.execute("INSERT INTO server_loan_tbl (player, uuid, borrow_date, last_pay_date, borrow_amount, payment_amount) " +
                     "VALUES ('${p.name}', '${p.uniqueId}', DEFAULT, DEFAULT, ${amount}, ${amount*frequency*revolvingFee*2})")
 
             sendMsg(p,"""
-                §e§l[返済について]§c§lMan10リボは、借りた日から${frequency}日ずつ銀行から引き落とされます
+                §e§l[返済について]
+                §c§lMan10リボは、借りた日から${frequency}日ずつ銀行から引き落とされます
                 §c§l支払いができなかった場合、スコアの減少などのペナルティがあるので、
                 §c§l必ず銀行にお金を入れておくようにしましょう。
                 §c§lまた、/slend payment <金額>で引き落とす額を設定できます。
             """.trimIndent())
 
+        //2回目以降
         }else{
-            mysql.execute(" UPDATE server_loan_tbl SET borrow_amount=borrow_amount+${amount} WHERE uuid = '${p.uniqueId}'")
+
+            //支払額を引き上げる
+            val payment = rs.getDouble("payment_amount")
+            val q = if (payment<(borrowing+amount)*frequency*revolvingFee)"payment_amount=${amount*frequency*revolvingFee}" else ""
+
+            mysql.execute(" UPDATE server_loan_tbl SET borrow_amount=borrow_amount+${amount} $q WHERE uuid = '${p.uniqueId}'")
         }
 
         rs.close()

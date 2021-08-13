@@ -73,6 +73,11 @@ class ServerLoanCommand : CommandExecutor{
             }
 
             "confirm" ->{
+
+                if (!ServerLoan.commandList.contains(sender))return false
+
+                ServerLoan.commandList.remove(sender)
+
                 val amount = args[1].toDoubleOrNull()?:return true
 
                 es.execute {
