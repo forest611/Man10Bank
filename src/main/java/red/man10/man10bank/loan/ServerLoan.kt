@@ -197,14 +197,15 @@ object ServerLoan {
     fun setPaymentAmount(p:Player,amount:Double){
 
         val now = borrowingAmount(p)
+        val minPayment = now*frequency*revolvingFee
 
         if (now == 0.0){
             sendMsg(p,"§a§lあなたは現在Man10リボを使用していません")
             return
         }
 
-        if (amount<now*frequency*revolvingFee){
-            sendMsg(p,"支払額は最低${format(amount*frequency*revolvingFee)}円にしてください")
+        if (amount<minPayment){
+            sendMsg(p,"支払額は最低${format(minPayment)}円にしてください")
             return
         }
 
