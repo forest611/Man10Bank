@@ -31,7 +31,7 @@ object ServerLoan {
     var maxServerLoanAmount = 1_000_000.0
 
     var revolvingFee = 0.1 //日率の割合
-    var frequency = 3
+    private var frequency = 3
     var lastPaymentCycle = Date()
 
     fun checkServerLoan(p: Player){
@@ -59,7 +59,6 @@ object ServerLoan {
 
     private fun getLoanAmount(p: Player): Double {
         val score = ScoreDatabase.getScore(p.uniqueId)
-//        val score = 10
 
         val list = mutableListOf<Double>()
 
@@ -88,9 +87,9 @@ object ServerLoan {
             list[m] + 1
         }
 
-        Bukkit.getLogger().info("スコア乗数${scoreMultiplier}現在のスコア${score}")
-        Bukkit.getLogger().info("レコード数の乗数${recordMultiplier}レコード数の合計${records}")
-        Bukkit.getLogger().info("中央値の乗数${medianMultiplier}中央値${median}")
+//        Bukkit.getLogger().info("スコア乗数${scoreMultiplier}現在のスコア${score}")
+//        Bukkit.getLogger().info("レコード数の乗数${recordMultiplier}レコード数の合計${records}")
+//        Bukkit.getLogger().info("中央値の乗数${medianMultiplier}中央値${median}")
 
 
         val calcAmount = median * medianMultiplier * score * scoreMultiplier * records * recordMultiplier
@@ -226,42 +225,83 @@ object ServerLoan {
             now.time = Date()
             last.time = lastPaymentCycle
 
-            if (now.get(Calendar.DAY_OF_MONTH) != last.get(Calendar.DAY_OF_MONTH)){
+//            if (now.get(Calendar.DAY_OF_MONTH) != last.get(Calendar.DAY_OF_MONTH)){
+//
+//                val rs = mysql.query("select * from server_loan_tbl where borrow_amount != 0")?:continue
+//
+//                while (rs.next()){
+//
+//                    val uuid = UUID.fromString(rs.getString("uuid"))
+//                    val borrowing = rs.getDouble("borrow_amount")
+//                    val payment = rs.getDouble("payment_amount")
+//                    val date = rs.getTimestamp("last_pay_date")
+//
+//                    val diffDay = (borrowing*(now.time.time - date.time) / (1000*60*60*24)).toInt()
+//                    val finalAmount = borrowing-(payment - (borrowing* revolvingFee* diffDay))
+//
+//                    Bukkit.getLogger().info("$diffDay")
+//
+//                    if (diffDay%frequency!=0)continue
+//
+//                    if (Bank.withdraw(uuid,payment, plugin,"Man10Revolving","Man10リボの支払い")){
+//
+//                        mysql.execute("UPDATE server_loan_tbl set borrow_amount=${finalAmount},last_pay_date=now()" +
+//                                " where uuid='${uuid}'")
+//                        Bukkit.getLogger().info("支払えた！")
+//
+//                        continue
+//                    }
+//
+//                    Bukkit.getLogger().info("支払えなかった！")
+//                    //TODO:支払わなかった時の処理
+//
+//                }
+//
+//                rs.close()
+//                mysql.close()
+//
+//                plugin.config.set("lastPaymentCycle",now.time.time)
+//            }
 
-                val rs = mysql.query("select * from server_loan_tbl where borrow_amount != 0")?:continue
 
-                while (rs.next()){
+            val rs = mysql.query("select * from server_loan_tbl where borrow_amount != 0")?:continue
 
-                    val uuid = UUID.fromString(rs.getString("uuid"))
-                    val borrowing = rs.getDouble("borrow_amount")
-                    val payment = rs.getDouble("payment_amount")
-                    val date = rs.getTimestamp("last_pay_date")
+            while (rs.next()){
 
-                    val diffDay = (borrowing*(now.time.time - date.time) / (1000*60*60*24)).toInt()
-                    val finalAmount = borrowing-(payment - (borrowing* revolvingFee* diffDay))
+                val uuid = UUID.fromString(rs.getString("uuid"))
+                val borrowing = rs.getDouble("borrow_amount")
+                val payment = rs.getDouble("payment_amount")
+                val date = rs.getTimestamp("last_pay_date")
 
-                    Bukkit.getLogger().info("$diffDay")
+                val diffDay = ((now.time.time - date.time) / (1000*60*60*24)).toInt()
 
-                    if (diffDay%frequency!=0)continue
+                Bukkit.getLogger().info("$diffDay $frequency")
 
-                    if (Bank.withdraw(uuid,payment, plugin,"Man10Revolving","Man10リボの支払い")){
+                if (diffDay == 0 || diffDay%frequency!=0)continue
 
-                        mysql.execute("UPDATE server_loan_tbl set borrow_amount=${finalAmount},last_pay_date=now()" +
-                                " where uuid='${uuid}'")
-                        Bukkit.getLogger().info("支払えた！")
+                val finalAmount = borrowing-(payment - (borrowing* revolvingFee* diffDay))
 
-                        continue
-                    }
 
-                    Bukkit.getLogger().info("支払えなかった！")
-                    //TODO:支払わなかった時の処理
 
+                if (Bank.withdraw(uuid,payment, plugin,"Man10Revolving","Man10リボの支払い")){
+
+                    mysql.execute("UPDATE server_loan_tbl set borrow_amount=${finalAmount},last_pay_date=now()" +
+                            " where uuid='${uuid}'")
+                    Bukkit.getLogger().info("支払えた！")
+
+                    continue
                 }
 
-                rs.close()
-                mysql.close()
+                Bukkit.getLogger().info("支払えなかった！")
+                //TODO:支払わなかった時の処理
 
             }
+
+            rs.close()
+            mysql.close()
+
+            plugin.config.set("lastPaymentCycle",now.time.time)
+            plugin.saveConfig()
 
             Thread.sleep(60000)
         }

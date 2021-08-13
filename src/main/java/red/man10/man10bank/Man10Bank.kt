@@ -88,6 +88,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
         es.execute {
             EstateData.historyThread()
+        }
+        es.execute {
             ServerLoan.paymentThread()
         }
 
