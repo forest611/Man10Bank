@@ -115,7 +115,7 @@ class Man10Bank : JavaPlugin(),Listener {
         ServerLoan.scoreMultiplier = config.getDouble("scoreMultiplier")
         ServerLoan.maxServerLoanAmount = config.getDouble("maxServerLoan")
         ServerLoan.revolvingFee = config.getDouble("revolvingFee")
-        ServerLoan.lastPaymentCycle.time = config.getLong("lastPaymentCycle")
+        ServerLoan.lastPaymentCycle = config.getInt("lastPaymentCycle")
 
         ATMData.loadItem()
     }

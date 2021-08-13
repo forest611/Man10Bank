@@ -32,7 +32,7 @@ object ServerLoan {
 
     var revolvingFee = 0.1 //日率の割合
     private var frequency = 3
-    var lastPaymentCycle = Date()
+    var lastPaymentCycle = 0
 
     fun checkServerLoan(p: Player){
 
@@ -218,14 +218,12 @@ object ServerLoan {
     fun paymentThread(){
 
         val now = Calendar.getInstance()
-        val last = Calendar.getInstance()
 
         while (true){
 
             now.time = Date()
-            last.time = lastPaymentCycle
 
-            if (now.get(Calendar.DAY_OF_MONTH) != last.get(Calendar.DAY_OF_MONTH)){
+            if (now.get(Calendar.DAY_OF_YEAR) != lastPaymentCycle){
 
             }
 
@@ -249,7 +247,7 @@ object ServerLoan {
 
                 if (Bank.withdraw(uuid,payment, plugin,"Man10Revolving","Man10リボの支払い")){
 
-                    mysql.execute("UPDATE server_loan_tbl set borrow_amount=${finalAmount},last_pay_date=now()" +
+                    mysql.execute("UPDATE server_loan_tbl set borrow_amount=${floor(finalAmount)},last_pay_date=now()" +
                             " where uuid='${uuid}'")
 
                     continue
@@ -261,7 +259,7 @@ object ServerLoan {
             rs.close()
             mysql.close()
 
-            plugin.config.set("lastPaymentCycle",now.time.time)
+            plugin.config.set("lastPaymentCycle",now.get(Calendar.DAY_OF_YEAR))
             plugin.saveConfig()
 
             Thread.sleep(60000)
