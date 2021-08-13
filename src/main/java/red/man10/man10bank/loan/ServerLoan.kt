@@ -225,43 +225,9 @@ object ServerLoan {
             now.time = Date()
             last.time = lastPaymentCycle
 
-//            if (now.get(Calendar.DAY_OF_MONTH) != last.get(Calendar.DAY_OF_MONTH)){
-//
-//                val rs = mysql.query("select * from server_loan_tbl where borrow_amount != 0")?:continue
-//
-//                while (rs.next()){
-//
-//                    val uuid = UUID.fromString(rs.getString("uuid"))
-//                    val borrowing = rs.getDouble("borrow_amount")
-//                    val payment = rs.getDouble("payment_amount")
-//                    val date = rs.getTimestamp("last_pay_date")
-//
-//                    val diffDay = (borrowing*(now.time.time - date.time) / (1000*60*60*24)).toInt()
-//                    val finalAmount = borrowing-(payment - (borrowing* revolvingFee* diffDay))
-//
-//                    Bukkit.getLogger().info("$diffDay")
-//
-//                    if (diffDay%frequency!=0)continue
-//
-//                    if (Bank.withdraw(uuid,payment, plugin,"Man10Revolving","Man10リボの支払い")){
-//
-//                        mysql.execute("UPDATE server_loan_tbl set borrow_amount=${finalAmount},last_pay_date=now()" +
-//                                " where uuid='${uuid}'")
-//                        Bukkit.getLogger().info("支払えた！")
-//
-//                        continue
-//                    }
-//
-//                    Bukkit.getLogger().info("支払えなかった！")
-//                    //TODO:支払わなかった時の処理
-//
-//                }
-//
-//                rs.close()
-//                mysql.close()
-//
-//                plugin.config.set("lastPaymentCycle",now.time.time)
-//            }
+            if (now.get(Calendar.DAY_OF_MONTH) != last.get(Calendar.DAY_OF_MONTH)){
+
+            }
 
 
             val rs = mysql.query("select * from server_loan_tbl where borrow_amount != 0")?:continue
@@ -281,20 +247,15 @@ object ServerLoan {
 
                 val finalAmount = borrowing-(payment - (borrowing* revolvingFee* diffDay))
 
-
-
                 if (Bank.withdraw(uuid,payment, plugin,"Man10Revolving","Man10リボの支払い")){
 
                     mysql.execute("UPDATE server_loan_tbl set borrow_amount=${finalAmount},last_pay_date=now()" +
                             " where uuid='${uuid}'")
-                    Bukkit.getLogger().info("支払えた！")
 
                     continue
                 }
 
-                Bukkit.getLogger().info("支払えなかった！")
-                //TODO:支払わなかった時の処理
-
+                ScoreDatabase.giveScore(Bukkit.getOfflinePlayer(uuid).name!!,(-10*(diffDay/ frequency)),"まんじゅうリボの未払い",Bukkit.getConsoleSender())
             }
 
             rs.close()
