@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent
 import org.apache.commons.lang.math.NumberUtils
 import org.bukkit.Bukkit
+import org.bukkit.Server
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -228,6 +229,10 @@ class Man10Bank : JavaPlugin(),Listener {
                 }
 
                 when(args[0]){
+
+                    "help" ->{
+                        showCommand(sender)
+                    }
 
                     "log" ->{
 
@@ -698,8 +703,9 @@ class Man10Bank : JavaPlugin(),Listener {
         sendMsg(sender,"§e§l==========${p.name}のお金==========")
 
         //時差による表示ずれ対策で、一旦所持金を呼び出す
-        val bankAmount = format(Bank.getBalance(p.uniqueId))
+        val bankAmount = Bank.getBalance(p.uniqueId)
 
+        val loan = ServerLoan.borrowingAmount(p)
         var cash = -1.0
         var estate = -1.0
 
@@ -710,23 +716,28 @@ class Man10Bank : JavaPlugin(),Listener {
 
         sendMsg(sender," §b§l電子マネー:  §e§l${format(vault.getBalance(p.uniqueId))}円")
         sendMsg(sender," §b§l現金:  §e§l${format(cash)}円")
-        sendMsg(sender," §b§l銀行:  §e§l${bankAmount}円")
-        sendMsg(sender," §b§lその他の資産:  §e§l${format(estate)}円")
+        sendMsg(sender," §b§l銀行:  §e§l${format(bankAmount)}円")
+        if (estate>0.0){ sendMsg(sender," §b§lその他の資産:  §e§l${format(estate)}円") }
 
-        if (p.name == sender.name){
-            val pay = text("$prefix §e[電子マネーを友達に送る]  §n/pay").clickEvent(ClickEvent.suggestCommand("/pay "))
-            val atm = text("$prefix §a[電子マネーのチャージ・現金化]  §n/atm").clickEvent(ClickEvent.runCommand("/atm"))
-            val deposit = text("$prefix §b[電子マネーを銀行に入れる]  §n/deposit").clickEvent(ClickEvent.suggestCommand("/deposit "))
-            val withdraw = text("$prefix §c[電子マネーを銀行から出す]  §n/withdraw").clickEvent(ClickEvent.suggestCommand("/withdraw "))
-            val ranking = text("$prefix §6[お金持ちランキング]  §n/mbaltop").clickEvent(ClickEvent.runCommand("/mbaltop"))
+        if (loan!=0.0){ sendMsg(sender," §b§lまんじゅうリボ:  §c§l${format(loan)}円") }
 
-            sender.sendMessage(pay)
-            sender.sendMessage(atm)
-            sender.sendMessage(deposit)
-            sender.sendMessage(withdraw)
-            sender.sendMessage(ranking)
+        sender.sendMessage(text("$prefix §a§l§n[ここをクリックでコマンドをみる]").clickEvent(ClickEvent.runCommand("/bank help")))
 
-        }
+    }
+
+    fun showCommand(sender:Player){
+        val pay = text("$prefix §e[電子マネーを友達に送る]  §n/pay").clickEvent(ClickEvent.suggestCommand("/pay "))
+        val atm = text("$prefix §a[電子マネーのチャージ・現金化]  §n/atm").clickEvent(ClickEvent.runCommand("/atm"))
+        val deposit = text("$prefix §b[電子マネーを銀行に入れる]  §n/deposit").clickEvent(ClickEvent.suggestCommand("/deposit "))
+        val withdraw = text("$prefix §c[電子マネーを銀行から出す]  §n/withdraw").clickEvent(ClickEvent.suggestCommand("/withdraw "))
+        val ranking = text("$prefix §6[お金持ちランキング]  §n/mbaltop").clickEvent(ClickEvent.runCommand("/mbaltop"))
+
+        sender.sendMessage(pay)
+        sender.sendMessage(atm)
+        sender.sendMessage(deposit)
+        sender.sendMessage(withdraw)
+        sender.sendMessage(ranking)
+
     }
 
     @EventHandler

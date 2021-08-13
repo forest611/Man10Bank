@@ -97,7 +97,7 @@ object ServerLoan {
         return if (maxServerLoanAmount < calcAmount) maxServerLoanAmount else calcAmount
     }
 
-    private fun borrowingAmount(p:Player):Double{
+    fun borrowingAmount(p:Player):Double{
 
         val rs = mysql.query("SELECT borrow_amount from server_loan_tbl where uuid='${p.uniqueId}'")?:return 0.0
 
@@ -238,8 +238,6 @@ object ServerLoan {
                 val date = rs.getTimestamp("last_pay_date")
 
                 val diffDay = ((now.time.time - date.time) / (1000*60*60*24)).toInt()
-
-                Bukkit.getLogger().info("$diffDay $frequency")
 
                 if (diffDay == 0 || diffDay%frequency!=0)continue
 
