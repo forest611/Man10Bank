@@ -18,10 +18,16 @@ class ServerLoanCommand : CommandExecutor{
 
         if (sender !is Player)return false
 
-        if (label != "slend")return false
+        if (label != "mrevo")return false
 
         if (args.isEmpty()) {
 
+            sendMsg(sender,"""
+                       Man10リボ
+                /mrevo check : 借りれる上限額を確かめる
+                /mrevo borrow <金額>: お金を借りる(確認画面を挟みます)
+                /mrevo payment <金額> : リボの支払い額を決める
+            """.trimIndent())
 
             return false
 

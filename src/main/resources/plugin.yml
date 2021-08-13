@@ -48,6 +48,6 @@ commands:
   mchequeop:
     default: op
     description: issue money
-  slend:
+  mrevo:
     default: op
     description: server loan system

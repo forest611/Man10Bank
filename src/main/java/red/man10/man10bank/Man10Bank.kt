@@ -85,7 +85,7 @@ class Man10Bank : JavaPlugin(),Listener {
         server.pluginManager.registerEvents(Cheque,this)
 
         getCommand("mlend")!!.setExecutor(LoanCommand())
-        getCommand("slend")!!.setExecutor(ServerLoanCommand())
+        getCommand("mrevo")!!.setExecutor(ServerLoanCommand())
 
         es.execute {
             EstateData.historyThread()

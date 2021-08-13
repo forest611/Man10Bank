@@ -41,7 +41,7 @@ object ServerLoan {
 
             p.sendMessage("§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(maxServerLoanAmount)}円)")
 
-            p.sendMessage(Component.text("§e§l§n[結果をシェアする]").clickEvent(ClickEvent.runCommand("/slend share")))
+            p.sendMessage(Component.text("§e§l§n[結果をシェアする]").clickEvent(ClickEvent.runCommand("/mrevo share")))
 
             shareMap[p] = maxLoan
         }
@@ -125,11 +125,11 @@ object ServerLoan {
         if (borrowableAmount<amount){
             sendMsg(p,"§cあなたが借りることができる金額は${format(borrowableAmount)}円までです")
             p.sendMessage(Component.text("${prefix}§e§l§n[${format(borrowableAmount)}円借りる]").
-            clickEvent(ClickEvent.runCommand("/slend borrow $borrowableAmount")))
+            clickEvent(ClickEvent.runCommand("/mrevo borrow $borrowableAmount")))
             return
         }
 
-        val allow = Component.text("${prefix}§c§l§n[借りる] ").clickEvent(ClickEvent.runCommand("/slend confirm $amount"))
+        val allow = Component.text("${prefix}§c§l§n[借りる] ").clickEvent(ClickEvent.runCommand("/mrevo confirm $amount"))
 
 
         sendMsg(p,"§b§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
@@ -154,7 +154,7 @@ object ServerLoan {
         if (borrowableAmount<amount){
             sendMsg(p,"§cあなたが借りることができる金額は${format(borrowableAmount)}円までです")
             p.sendMessage(Component.text("${prefix}§e§l§n[${borrowableAmount}円借りる]").
-            clickEvent(ClickEvent.runCommand("/slend borrow $borrowableAmount")))
+            clickEvent(ClickEvent.runCommand("/mrevo borrow $borrowableAmount")))
             return
         }
 
@@ -171,7 +171,7 @@ object ServerLoan {
                 §c§lMan10リボは、借りた日から${frequency}日ずつ銀行から引き落とされます
                 §c§l支払いができなかった場合、スコアの減少などのペナルティがあるので、
                 §c§l必ず銀行にお金を入れておくようにしましょう。
-                §c§lまた、/slend payment <金額>で引き落とす額を設定できます。
+                §c§lまた、/mrevo payment <金額>で引き落とす額を設定できます。
             """.trimIndent())
 
         //2回目以降
