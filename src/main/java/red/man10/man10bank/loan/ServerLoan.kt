@@ -13,7 +13,6 @@ import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager
 import red.man10.man10score.ScoreDatabase
-import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
@@ -204,7 +203,7 @@ object ServerLoan {
             return
         }
 
-        if (amount<amount*frequency*revolvingFee){
+        if (amount<now*frequency*revolvingFee){
             sendMsg(p,"支払額は最低${format(amount*frequency*revolvingFee)}円にしてください")
             return
         }
