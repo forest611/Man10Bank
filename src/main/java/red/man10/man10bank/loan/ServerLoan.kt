@@ -92,7 +92,9 @@ object ServerLoan {
 //        Bukkit.getLogger().info("中央値の乗数${medianMultiplier}中央値${median}")
 
 
-        val calcAmount = median * medianMultiplier * score * scoreMultiplier * records * recordMultiplier
+        var calcAmount = median * medianMultiplier * score * scoreMultiplier * records * recordMultiplier
+
+        if (calcAmount<0.0)calcAmount = 0.0
 
         return if (maxServerLoanAmount < calcAmount) maxServerLoanAmount else calcAmount
     }
@@ -117,6 +119,11 @@ object ServerLoan {
 
         commandList.remove(p)
 
+        if (amount <= 0.0){
+            sendMsg(p,"1円以上を入力してください")
+            return
+        }
+
         val max = getLoanAmount(p)
         val borrowing = borrowingAmount(p)
 
@@ -129,7 +136,7 @@ object ServerLoan {
             return
         }
 
-        val allow = Component.text("${prefix}§c§l§n[借りる] ").clickEvent(ClickEvent.runCommand("/mrevo confirm $amount"))
+        val allow = Component.text("${prefix}§c§l§n[借りる] ").clickEvent(ClickEvent.runCommand("/mrevo confirm ${floor(amount)}"))
 
 
         sendMsg(p,"§b§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
@@ -147,6 +154,13 @@ object ServerLoan {
 
         val max = getLoanAmount(p)
         val borrowing = borrowingAmount(p)
+
+
+        if (amount <= 0.0){
+            sendMsg(p,"1円以上を入力してください")
+            return
+        }
+
 
         val borrowableAmount = max - borrowing
         val minPaymentAmount = floor((borrowing+amount)*frequency*revolvingFee)
@@ -197,6 +211,11 @@ object ServerLoan {
 
         val now = borrowingAmount(p)
         val minPayment = now*frequency*revolvingFee
+
+        if (amount <= 0.0){
+            sendMsg(p,"1円以上を入力してください")
+            return
+        }
 
         if (now == 0.0){
             sendMsg(p,"§a§lあなたは現在Man10リボを使用していません")
