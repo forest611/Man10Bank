@@ -30,26 +30,21 @@ class ServerLoanCommand : CommandExecutor{
         when(args[0]){
 
             "check" ->{
-                es.execute {
-                    ServerLoan.checkServerLoan(sender)
-                }
+                ServerLoan.checkServerLoan(sender)
             }
 
             "checkop" ->{
 
                 if (!sender.hasPermission(OP))return true
 
-                es.execute {
+                val p = Bukkit.getPlayer(args[1])
 
-                    val p = Bukkit.getPlayer(args[1])
-
-                    if (p==null){
-                        sendMsg(sender,"ユーザーがオフラインです")
-                        return@execute
-                    }
-
-                    ServerLoan.checkServerLoan(sender,p)
+                if (p==null){
+                    sendMsg(sender,"ユーザーがオフラインです")
+                    return true
                 }
+
+                ServerLoan.checkServerLoan(sender,p)
             }
 
             "share" ->{
