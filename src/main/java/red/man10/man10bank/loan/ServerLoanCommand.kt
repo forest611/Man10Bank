@@ -14,6 +14,9 @@ import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 
 class ServerLoanCommand : CommandExecutor{
+
+    private val REVO_PERM = "man10bank.revo"
+
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
 
         if (sender !is Player)return false
@@ -69,6 +72,11 @@ class ServerLoanCommand : CommandExecutor{
             }
 
             "borrow" ->{
+
+                if (!sender.hasPermission(REVO_PERM)){
+                    sendMsg(sender,"あなたはまだMan10リボを使うことができません")
+                    return true
+                }
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
