@@ -34,6 +34,8 @@ object ServerLoan {
     private var frequency = 3
     var lastPaymentCycle = 0
 
+    val standardScore = 200
+
     fun checkServerLoan(p: Player){
 
         es.execute {
@@ -233,6 +235,21 @@ object ServerLoan {
 
     }
 
+    fun addLastPayTime(who:String,hour:Int):Int{
+
+        if (who == "all"){
+            mysql.execute("update server_loan_tbl set last_pay_date=DATE_ADD(last_pay_date,INTERVAL $hour HOUR)")
+            return 0
+        }
+
+        val p = Bank.getUUID(who) ?: return 1
+
+        mysql.execute("update server_loan_tbl set last_pay_date=DATE_ADD(last_pay_date,INTERVAL $hour HOUR) Where uuid='${p}'")
+
+        return 0
+
+    }
+
     //支払い処理
     fun paymentThread(){
 
@@ -270,7 +287,15 @@ object ServerLoan {
                     continue
                 }
 
-                ScoreDatabase.giveScore(Bukkit.getOfflinePlayer(uuid).name!!,(-10*(diffDay/ frequency)),"まんじゅうリボの未払い",Bukkit.getConsoleSender())
+                val score = ScoreDatabase.getScore(uuid)
+                val name = Bukkit.getOfflinePlayer(uuid).name!!
+
+                if (score> standardScore){
+                    ScoreDatabase.setScore(name,(score/2),"まんじゅうリボの未払い",Bukkit.getConsoleSender())
+                }else{
+                    ScoreDatabase.giveScore(name,-100,"まんじゅうリボの未払い",Bukkit.getConsoleSender())
+                }
+
             }
 
             rs.close()

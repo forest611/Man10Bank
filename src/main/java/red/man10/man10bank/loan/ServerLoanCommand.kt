@@ -102,6 +102,28 @@ class ServerLoanCommand : CommandExecutor{
 
             }
 
+            "addtime" ->{//mrevo addtime <player/all> <hour>
+
+                if (!sender.hasPermission(OP))return true
+
+                if (args.size != 3){
+                    sendMsg(sender,"/mrevo addtime <player/all> <hour>")
+                    return true
+                }
+
+                es.execute {
+
+                    when(ServerLoan.addLastPayTime(args[1],args[2].toInt())){
+                        0 ->{ sendMsg(sender,"設定完了！${args[2]}時間追加しました") }
+                        1 ->{ sendMsg(sender,"存在しないプレイヤーです")}
+                    }
+
+                }
+
+
+
+            }
+
 
         }
 

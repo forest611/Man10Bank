@@ -207,8 +207,6 @@ object Bank {
      */
     fun getUUID(player:String):UUID?{
 
-        val mysql = MySQLManager(plugin,"Man10OfflineBank")
-
         val rs = mysql.query("SELECT uuid FROM user_bank WHERE player='$player';")?:return null
 
         if (rs.next()){
