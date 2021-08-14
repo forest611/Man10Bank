@@ -34,7 +34,7 @@ object ServerLoan {
     private var frequency = 3
     var lastPaymentCycle = 0
 
-    val standardScore = 200
+    private val standardScore = 200
 
     fun checkServerLoan(p: Player){
 

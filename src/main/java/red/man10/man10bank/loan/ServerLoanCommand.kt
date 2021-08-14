@@ -73,6 +73,8 @@ class ServerLoanCommand : CommandExecutor{
 
             "borrow" ->{
 
+                if (args.size != 2)return true
+
                 if (!sender.hasPermission(REVO_PERM)){
                     sendMsg(sender,"あなたはまだMan10リボを使うことができません")
                     return true
@@ -101,6 +103,8 @@ class ServerLoanCommand : CommandExecutor{
             }
 
             "payment" ->{
+
+                if (args.size != 2)return true
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
