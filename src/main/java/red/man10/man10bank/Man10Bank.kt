@@ -724,7 +724,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
         if (loan!=0.0 && nextDate!=null){
             sendMsg(sender," §b§lまんじゅうリボ:  §c§l${format(loan)}円")
-            sendMsg(sender," §b§l支払額:  §c§l${format(payment)}")
+            sendMsg(sender," §b§l支払額:  §c§l${format(payment)}円")
             sendMsg(sender," §b§l次の支払日: §c§l${SimpleDateFormat("yyyy-MM/dd").format(nextDate)}")
         }
 
