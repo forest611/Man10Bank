@@ -724,8 +724,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
         if (loan!=0.0){
             sendMsg(sender," §b§lまんじゅうリボ:  §c§l${format(loan)}円")
-            sendMsg(sender,"§b§l支払額:  §c§l${format(payment)}")
-            sendMsg(sender,"§b§l次の支払日: ${SimpleDateFormat("yyyy-MM/dd").format(nextDate)}")
+            sendMsg(sender," §b§l支払額:  §c§l${format(payment)}")
+            sendMsg(sender," §b§l次の支払日: §c§l${SimpleDateFormat("yyyy-MM/dd").format(nextDate)}")
         }
 
         sender.sendMessage(text("$prefix §a§l§n[ここをクリックでコマンドをみる]").clickEvent(ClickEvent.runCommand("/bank help")))
