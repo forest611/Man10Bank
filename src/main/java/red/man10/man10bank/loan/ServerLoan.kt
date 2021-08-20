@@ -235,6 +235,33 @@ object ServerLoan {
 
     }
 
+    fun getPaymentAmount(p:Player):Double{
+
+        val rs = mysql.query("select payment_amount from server_loan_tbl where uuid='${p.uniqueId}';")?:return 0.0
+        rs.next()
+        val amount = rs.getDouble("payment_amount")
+        rs.close()
+        mysql.close()
+        return amount
+
+    }
+
+    fun getNextPayTime(p:Player):Date{
+
+        val rs = mysql.query("select last_pay_date from server_loan_tbl where uuid='${p.uniqueId}';")!!
+        rs.next()
+
+        val cal = Calendar.getInstance()
+        cal.time = rs.getTimestamp("last_pay_date")
+
+        rs.close()
+        mysql.close()
+
+        cal.add(Calendar.DAY_OF_MONTH,3)
+
+        return cal.time
+    }
+
     fun addLastPayTime(who:String,hour:Int):Int{
 
         if (who == "all"){
@@ -259,7 +286,9 @@ object ServerLoan {
 
             now.time = Date()
 
-            if (now.get(Calendar.DAY_OF_YEAR) != lastPaymentCycle){
+            val nowValue = now.get(Calendar.DAY_OF_YEAR)
+
+            if (nowValue != lastPaymentCycle){
                 val rs = mysql.query("select * from server_loan_tbl where borrow_amount != 0")?:continue
 
                 while (rs.next()){
@@ -297,7 +326,8 @@ object ServerLoan {
                 rs.close()
                 mysql.close()
 
-                plugin.config.set("lastPaymentCycle",now.get(Calendar.DAY_OF_YEAR))
+                lastPaymentCycle = nowValue
+                plugin.config.set("lastPaymentCycle",nowValue)
                 plugin.saveConfig()
 
                 Thread.sleep(60000)
