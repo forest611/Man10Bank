@@ -722,7 +722,7 @@ class Man10Bank : JavaPlugin(),Listener {
         sendMsg(sender," §b§l銀行:  §e§l${format(bankAmount)}円")
         if (estate>0.0){ sendMsg(sender," §b§lその他の資産:  §e§l${format(estate)}円") }
 
-        if (loan!=0.0){
+        if (loan!=0.0 && nextDate!=null){
             sendMsg(sender," §b§lまんじゅうリボ:  §c§l${format(loan)}円")
             sendMsg(sender," §b§l支払額:  §c§l${format(payment)}")
             sendMsg(sender," §b§l次の支払日: §c§l${SimpleDateFormat("yyyy-MM/dd").format(nextDate)}")

@@ -238,7 +238,7 @@ object ServerLoan {
     fun getPaymentAmount(p:Player):Double{
 
         val rs = mysql.query("select payment_amount from server_loan_tbl where uuid='${p.uniqueId}';")?:return 0.0
-        rs.next()
+        if (!rs.next())return 0.0
         val amount = rs.getDouble("payment_amount")
         rs.close()
         mysql.close()
@@ -246,10 +246,11 @@ object ServerLoan {
 
     }
 
-    fun getNextPayTime(p:Player):Date{
+    fun getNextPayTime(p:Player): Date? {
 
-        val rs = mysql.query("select last_pay_date from server_loan_tbl where uuid='${p.uniqueId}';")!!
-        rs.next()
+        val rs = mysql.query("select last_pay_date from server_loan_tbl where uuid='${p.uniqueId}';")?:return null
+
+        if (!rs.next())return null
 
         val cal = Calendar.getInstance()
         cal.time = rs.getTimestamp("last_pay_date")
