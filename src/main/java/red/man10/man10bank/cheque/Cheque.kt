@@ -22,7 +22,7 @@ import red.man10.man10bank.MySQLManager
 
 object Cheque :Listener{
 
-    private val mysql = MySQLManager(Man10Bank.plugin,"Man10BankCheque")
+    private val mysql = MySQLManager(plugin,"Man10BankCheque")
 
     fun createCheque(p:Player, amount:Double, note:String?, isOP:Boolean){
 
@@ -46,7 +46,7 @@ object Cheque :Listener{
         lore.add(Component.text("§e====[Man10Bank]===="))
         lore.add(Component.text(""))
         lore.add(Component.text("§a§l発行者: ${if (isOP)"§c§l" else "§d§l"}${p.name}"))
-        lore.add(Component.text("§a§l金額: ${Man10Bank.format(amount)}円"))
+        lore.add(Component.text("§a§l金額: ${format(amount)}円"))
         if (note !=null){
             lore.add(Component.text("§d§lメモ: $note"))
         }
@@ -70,7 +70,7 @@ object Cheque :Listener{
 
         p.inventory.addItem(chequeItem)
 
-        sendMsg(p,"§a§l小切手を作成しました！§e(金額:${Man10Bank.format(amount)}円)")
+        sendMsg(p,"§a§l小切手を作成しました！§e(金額:${format(amount)}円)")
 
     }
 

@@ -41,13 +41,11 @@ object ATMData {
         return true
     }
 
-    fun getMoneyAmount(itemStack: ItemStack):Double{
+    private fun getMoneyAmount(itemStack: ItemStack):Double{
 
         val type = getMoneyType(itemStack)
 
-        if (type != -1.0){
-            return type*itemStack.amount
-        }
+        if (type != -1.0){ return type*itemStack.amount }
 
         return 0.0
     }

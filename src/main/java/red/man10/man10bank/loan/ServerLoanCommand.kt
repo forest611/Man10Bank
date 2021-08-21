@@ -30,6 +30,7 @@ class ServerLoanCommand : CommandExecutor{
                 /mrevo check : 借りれる上限額を確かめる
                 /mrevo borrow <金額>: お金を借りる(確認画面を挟みます)
                 /mrevo payment <金額> : リボの支払い額を決める
+                /mrevo payall : 一括返済する
             """.trimIndent())
 
             return false
@@ -112,6 +113,10 @@ class ServerLoanCommand : CommandExecutor{
                     ServerLoan.setPaymentAmount(sender,amount)
                 }
 
+            }
+
+            "payall" ->{
+                es.execute { ServerLoan.paymentAll(sender) }
             }
 
             "addtime" ->{//mrevo addtime <player/all> <hour>

@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent
 import org.apache.commons.lang.math.NumberUtils
 import org.bukkit.Bukkit
-import org.bukkit.Server
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -118,6 +117,7 @@ class Man10Bank : JavaPlugin(),Listener {
         ServerLoan.maxServerLoanAmount = config.getDouble("maxServerLoan")
         ServerLoan.revolvingFee = config.getDouble("revolvingFee")
         ServerLoan.lastPaymentCycle = config.getInt("lastPaymentCycle")
+        ServerLoan.paymentThread = config.getBoolean("paymentThread",false)
 
         ATMData.loadItem()
     }
@@ -676,23 +676,6 @@ class Man10Bank : JavaPlugin(),Listener {
         return true
     }
 
-    private val aliasList = mutableListOf("bal","balance","bank","pay","mpay")
-
-//    override fun onTabComplete(
-//        sender: CommandSender,
-//        command: Command,
-//        alias: String,
-//        args: Array<out String>
-//    ): MutableList<String> {
-//
-//        if (alias == "deposit" || alias == "withdraw")return Collections.emptyList()
-//
-//        if (aliasList.contains(alias)){ return super.onTabComplete(sender, command, alias, args)!! }
-//
-//        return super.onTabComplete(sender, command, alias, args)!!
-//    }
-
-
     private fun ZenkakuToHankaku(number: String): Double {
 
         val normalize = Normalizer.normalize(number, Normalizer.Form.NFKC)
@@ -725,14 +708,14 @@ class Man10Bank : JavaPlugin(),Listener {
         if (loan!=0.0 && nextDate!=null){
             sendMsg(sender," §b§lまんじゅうリボ:  §c§l${format(loan)}円")
             sendMsg(sender," §b§l支払額:  §c§l${format(payment)}円")
-            sendMsg(sender," §b§l次の支払日: §c§l${SimpleDateFormat("yyyy-MM/dd").format(nextDate)}")
+            sendMsg(sender," §b§l次の支払日: §c§l${SimpleDateFormat("yyyy-MM-dd").format(nextDate)}")
         }
 
         sender.sendMessage(text("$prefix §a§l§n[ここをクリックでコマンドをみる]").clickEvent(ClickEvent.runCommand("/bank help")))
 
     }
 
-    fun showCommand(sender:Player){
+    private fun showCommand(sender:Player){
         val pay = text("$prefix §e[電子マネーを友達に送る]  §n/pay").clickEvent(ClickEvent.suggestCommand("/pay "))
         val atm = text("$prefix §a[電子マネーのチャージ・現金化]  §n/atm").clickEvent(ClickEvent.runCommand("/atm"))
         val deposit = text("$prefix §b[電子マネーを銀行に入れる]  §n/deposit").clickEvent(ClickEvent.suggestCommand("/deposit "))

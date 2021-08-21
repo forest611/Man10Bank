@@ -1,5 +1,6 @@
 package red.man10.man10bank.loan
 
+import net.kyori.adventure.text.Component.*
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -11,6 +12,7 @@ import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.MySQLManager
+import java.awt.Component
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -160,7 +162,7 @@ class LoanData {
 
         meta.setCustomModelData(10)
 
-        meta.setDisplayName("§c§l約束手形 §7§l(Promissory Note)")
+        meta.displayName(text("§c§l約束手形 §7§l(Promissory Note)"))
         meta.lore = mutableListOf(
             "§4§l========[Man10Bank]========",
             "   §7§l債務者:  ${Bukkit.getOfflinePlayer(borrow).name}",

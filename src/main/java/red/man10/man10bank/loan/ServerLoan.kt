@@ -16,6 +16,7 @@ import red.man10.man10score.ScoreDatabase
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
+import kotlin.math.round
 
 object ServerLoan {
 
@@ -24,6 +25,8 @@ object ServerLoan {
     var scoreMultiplier = 1.0//スコアの乗数
     var recordMultiplier = 1.0//レコード数の乗数
     var medianMultiplier = 1.0//中央値の乗数
+
+    var paymentThread = false
 
     val shareMap = ConcurrentHashMap<Player,Double>()
     val commandList = mutableListOf<Player>()
@@ -34,7 +37,8 @@ object ServerLoan {
     private var frequency = 3
     var lastPaymentCycle = 0
 
-    private val standardScore = 200
+    private const val standardScore = 200
+
 
     fun checkServerLoan(p: Player){
 
@@ -192,12 +196,7 @@ object ServerLoan {
 
         //2回目以降
         }else{
-
-            //支払額を引き上げる
-            val payment = rs.getDouble("payment_amount")
-            val q = if (payment<minPaymentAmount)",payment_amount=${minPaymentAmount}" else ""
-
-            mysql.execute(" UPDATE server_loan_tbl SET borrow_amount=borrow_amount+${amount} $q WHERE uuid = '${p.uniqueId}'")
+            mysql.execute(" UPDATE server_loan_tbl SET borrow_amount=borrow_amount+${amount},payment_amount=${minPaymentAmount*2} WHERE uuid = '${p.uniqueId}'")
         }
 
         rs.close()
@@ -243,6 +242,34 @@ object ServerLoan {
         rs.close()
         mysql.close()
         return amount
+
+    }
+
+    fun paymentAll(p:Player){
+
+        val rs = mysql.query("select last_pay_date,borrow_amount from server_loan_tbl where uuid='${p.uniqueId}'")?:return
+        if (!rs.next()){
+            sendMsg(p,"あなたはMan10リボを利用していません")
+            return
+        }
+
+        val date = rs.getTimestamp("last_pay_date")
+        val borrowing = rs.getDouble("borrow_amount")
+
+        rs.close()
+        mysql.close()
+
+        val diffDay = round(((Date().time - date.time).toDouble() / (1000*60*60*24))).toInt()
+        val payment = borrowing+(borrowing* revolvingFee*diffDay/ frequency)
+
+        if (Bank.withdraw(p.uniqueId,payment, plugin,"Man10Revo","Man10リボの一括支払い")){
+            mysql.execute("UPDATE server_loan_tbl set borrow_amount=0,last_pay_date=now()" +
+                    " where uuid='${p.uniqueId}'")
+            sendMsg(p,"§a§l支払い完了！")
+            return
+        }
+
+        sendMsg(p,"所持金が足りません！銀行に${format(payment)}円以上入金してください！")
 
     }
 
@@ -299,11 +326,13 @@ object ServerLoan {
                     val payment = rs.getDouble("payment_amount")
                     val date = rs.getTimestamp("last_pay_date")
 
-                    val diffDay = ((now.time.time - date.time) / (1000*60*60*24)).toInt()
+                    val diffDay = round((now.time.time - date.time).toDouble() / (1000*60*60*24)).toInt()
 
                     if (diffDay == 0 || diffDay%frequency!=0)continue
 
-                    val finalAmount = borrowing-(payment - (borrowing* revolvingFee* diffDay))
+                    var finalAmount = borrowing-(payment - (borrowing* revolvingFee* diffDay))
+
+                    if (finalAmount <0){ finalAmount = 0.0 }
 
                     if (Bank.withdraw(uuid,payment, plugin,"Man10Revolving","Man10リボの支払い")){
 
@@ -340,3 +369,4 @@ object ServerLoan {
     }
 
 }
+//TODO:全額返済追加
