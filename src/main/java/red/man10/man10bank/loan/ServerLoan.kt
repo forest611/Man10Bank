@@ -237,7 +237,11 @@ object ServerLoan {
     fun getPaymentAmount(p:Player):Double{
 
         val rs = mysql.query("select payment_amount from server_loan_tbl where uuid='${p.uniqueId}';")?:return 0.0
-        if (!rs.next())return 0.0
+        if (!rs.next()){
+            mysql.close()
+            rs.close()
+            return 0.0
+        }
         val amount = rs.getDouble("payment_amount")
         rs.close()
         mysql.close()
@@ -249,6 +253,8 @@ object ServerLoan {
 
         val rs = mysql.query("select last_pay_date,borrow_amount from server_loan_tbl where uuid='${p.uniqueId}'")?:return
         if (!rs.next()){
+            mysql.close()
+            rs.close()
             sendMsg(p,"あなたはMan10リボを利用していません")
             return
         }
@@ -277,7 +283,11 @@ object ServerLoan {
 
         val rs = mysql.query("select last_pay_date from server_loan_tbl where uuid='${p.uniqueId}';")?:return null
 
-        if (!rs.next())return null
+        if (!rs.next()){
+            mysql.close()
+            rs.close()
+            return null
+        }
 
         val cal = Calendar.getInstance()
         cal.time = rs.getTimestamp("last_pay_date")

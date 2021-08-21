@@ -137,7 +137,7 @@ object EstateData {
         rs.close()
         mysql.close()
 
-        mysql.execute("INSERT INTO server_estate_history (vault, bank, cash, estate, total,year,month,day,hour, date) " +
+        mysqlQueue.add("INSERT INTO server_estate_history (vault, bank, cash, estate, total,year,month,day,hour, date) " +
                 "VALUES ($vaultSum, $bankSum,$cashSum, $estateSum, $total,$year,$month,$day,$hour, now())")
 
     }
@@ -179,12 +179,15 @@ object EstateData {
         return list
     }
 
-    //TODO:ローンなどもみれるようにする
     fun showOfflineUserEstate(show:Player,p:String){
 
         val rs  = mysql.query("select * from estate_tbl where player='$p';")?:return
 
-        if (!rs.next())return
+        if (!rs.next()){
+            mysql.close()
+            rs.close()
+            return
+        }
 
         val vault = rs.getDouble("vault")
         val bank = rs.getDouble("bank")
