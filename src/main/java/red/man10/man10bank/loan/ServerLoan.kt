@@ -344,6 +344,8 @@ object ServerLoan {
                     val payment = rs.getDouble("payment_amount")
                     val date = rs.getTimestamp("last_pay_date")
 
+                    val p = Bukkit.getOfflinePlayer(uuid)
+
                     val diffDay = round((now.time.time - date.time).toDouble() / (1000*60*60*24)).toInt()
 
                     if (diffDay == 0 || diffDay%frequency!=0)continue
@@ -357,10 +359,17 @@ object ServerLoan {
                         mysql.execute("UPDATE server_loan_tbl set borrow_amount=${floor(finalAmount)},last_pay_date=now()" +
                                 " where uuid='${uuid}'")
 
+                        if (p.isOnline){
+                            sendMsg(p.player!!,"§a§lMan10リボの支払いができました")
+                        }
+
                         continue
                     }else{
                         mysql.execute("UPDATE server_loan_tbl set " +
                                 "borrow_amount=${floor(borrowing+(borrowing* revolvingFee* diffDay))},last_pay_date=now() where uuid='${uuid}'")
+                        if (p.isOnline){
+                            sendMsg(p.player!!,"§c§lMan10リボの支払いに失敗しました")
+                        }
                     }
 
                     val score = ScoreDatabase.getScore(uuid)
