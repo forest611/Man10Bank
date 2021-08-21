@@ -260,7 +260,7 @@ object ServerLoan {
         mysql.close()
 
         val diffDay = round(((Date().time - date.time).toDouble() / (1000*60*60*24))).toInt()
-        val payment = borrowing+(borrowing* revolvingFee*diffDay/ frequency)
+        val payment = borrowing+(borrowing* revolvingFee*diffDay)
 
         if (Bank.withdraw(p.uniqueId,payment, plugin,"Man10Revo","Man10リボの一括支払い")){
             mysql.execute("UPDATE server_loan_tbl set borrow_amount=0,last_pay_date=now()" +
@@ -369,4 +369,3 @@ object ServerLoan {
     }
 
 }
-//TODO:全額返済追加
