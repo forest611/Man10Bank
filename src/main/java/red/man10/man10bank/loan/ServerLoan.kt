@@ -134,7 +134,9 @@ object ServerLoan {
         val max = getLoanAmount(p)
         val borrowing = borrowingAmount(p)
 
-        val borrowableAmount = max - borrowing
+        var borrowableAmount = max - borrowing
+
+        if (borrowableAmount<0.0)borrowableAmount = 0.0
 
         if (borrowableAmount<amount){
             sendMsg(p,"§cあなたが借りることができる金額は${format(borrowableAmount)}円までです")
