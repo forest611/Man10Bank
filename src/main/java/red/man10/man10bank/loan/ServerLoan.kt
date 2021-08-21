@@ -340,6 +340,9 @@ object ServerLoan {
                                 " where uuid='${uuid}'")
 
                         continue
+                    }else{
+                        mysql.execute("UPDATE server_loan_tbl set " +
+                                "borrow_amount=${floor(borrowing+(borrowing* revolvingFee* diffDay))},last_pay_date=now() where uuid='${uuid}'")
                     }
 
                     val score = ScoreDatabase.getScore(uuid)
