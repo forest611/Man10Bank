@@ -335,6 +335,9 @@ object ServerLoan {
             val nowValue = now.get(Calendar.DAY_OF_YEAR)
 
             if (nowValue != lastPaymentCycle){
+
+                Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い開始")) })
+
                 val rs = mysql.query("select * from server_loan_tbl where borrow_amount != 0")?:continue
 
                 while (rs.next()){
@@ -390,9 +393,10 @@ object ServerLoan {
                 plugin.config.set("lastPaymentCycle",nowValue)
                 plugin.saveConfig()
 
-                Thread.sleep(60000)
-
+                Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い終了")) })
             }
+
+            Thread.sleep(60000)
 
         }
 
