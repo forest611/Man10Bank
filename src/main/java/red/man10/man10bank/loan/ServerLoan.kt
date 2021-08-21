@@ -379,7 +379,7 @@ object ServerLoan {
                     val name = Bukkit.getOfflinePlayer(uuid).name!!
 
                     if (score> standardScore){
-                        ScoreDatabase.setScore(name,(score/2),"まんじゅうリボの未払い",Bukkit.getConsoleSender())
+                        ScoreDatabase.giveScore(name,-(score/2),"まんじゅうリボの未払い",Bukkit.getConsoleSender())
                     }else{
                         ScoreDatabase.giveScore(name,-100,"まんじゅうリボの未払い",Bukkit.getConsoleSender())
                     }
