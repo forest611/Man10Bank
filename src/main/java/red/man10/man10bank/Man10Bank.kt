@@ -59,8 +59,6 @@ class Man10Bank : JavaPlugin(),Listener {
         var loanMax : Double = 10000000.0
 
         var loggingServerHistory = false
-
-        lateinit var es : ExecutorService
     }
 
     private val checking = HashMap<Player,Command>()
@@ -71,8 +69,6 @@ class Man10Bank : JavaPlugin(),Listener {
         plugin = this
 
         saveDefaultConfig()
-
-        es = Executors.newCachedThreadPool()
 
         mysqlQueue()
 
@@ -88,19 +84,17 @@ class Man10Bank : JavaPlugin(),Listener {
         getCommand("mlend")!!.setExecutor(LoanCommand())
         getCommand("mrevo")!!.setExecutor(ServerLoanCommand())
 
-        es.execute {
+        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
             EstateData.historyThread()
-        }
-        es.execute {
-            ServerLoan.paymentThread()
-        }
+        })
+
+        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {ServerLoan.paymentThread()})
 
     }
 
     override fun onDisable() {
         // Plugin shutdown logic
         mysqlQueue.add("quit")
-        es.shutdownNow()
     }
 
     private fun loadConfig(){
@@ -135,9 +129,7 @@ class Man10Bank : JavaPlugin(),Listener {
                 val amount = args[0].toDoubleOrNull()?:return false
                 val note = if (args.size>1)args[1] else null
 
-                es.execute {
-                    Cheque.createCheque(sender,amount,note,true)
-                }
+                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { Cheque.createCheque(sender,amount,note,true) })
 
                 return true
             }
@@ -173,8 +165,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 val page = if (args.isEmpty()) 1 else args[0].toIntOrNull()?:1
 
-                es.execute{
-
+                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
                     val balTopMap = EstateData.getBalanceTop(page)
                     val totalMap = EstateData.getBalanceTotal()
 
@@ -198,7 +189,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                         }
 
-                        return@execute
+                        return@Runnable
                     }
 
                     sender.sendMessage("§6§k§lXX§e§l富豪トップ${page*10}§6§k§lXX")
@@ -216,7 +207,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
                     }
 
-                }
+                })
+
             }
 
             "bal","balance","money","bank" ->{
@@ -224,9 +216,7 @@ class Man10Bank : JavaPlugin(),Listener {
                 if (sender !is Player)return false
 
                 if (args.isEmpty()){
-                    es.execute{
-                        showBalance(sender,sender)
-                    }
+                    Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { showBalance(sender,sender) })
                     return true
                 }
 
@@ -240,8 +230,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                         val page = if (args.size>=2) args[1].toIntOrNull()?:0 else 0
 
-                        es.execute{
-
+                        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
                             val list = Bank.getBankLog(sender,page)
 
                             sendMsg(sender,"§d§l===========銀行の履歴==========")
@@ -262,7 +251,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
                             sender.sendMessage(previous.append(next))
 
-                        }
+                        })
+
                         return true
                     }
 
@@ -278,8 +268,7 @@ class Man10Bank : JavaPlugin(),Listener {
                             return true
                         }
 
-                        es.execute{
-
+                        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
                             val list = Bank.getBankLog(p,page)
 
                             sendMsg(sender,"§d§l===========銀行の履歴==========")
@@ -300,7 +289,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                             sender.sendMessage(previous.append(next))
 
-                        }
+                        })
 
                     }
 
@@ -315,10 +304,11 @@ class Man10Bank : JavaPlugin(),Listener {
                             return true
                         }
 
-                        es.execute {
+                        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
                             Bank.init(args[1])
                             sendMsg(sender,"${args[1]}のデータを初期化しました")
-                        }
+
+                        })
 
                         checking.remove(sender)
 
@@ -341,19 +331,19 @@ class Man10Bank : JavaPlugin(),Listener {
                             return true
                         }
 
-                        es.execute {
-
-                            val uuid = Bank.getUUID(args[1])?: return@execute
+                        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
+                            val uuid = Bank.getUUID(args[1])?: return@Runnable
 
                             if (!Bank.withdraw(uuid,amount,this,"TakenByCommand","サーバーから徴収")){
                                 Bank.setBalance(uuid,0.0)
                                 sendMsg(sender,"§a回収額が残高を上回っていたので、残高が0になりました")
-                                return@execute
+                                return@Runnable
                             }
                             sendMsg(sender,"§a${format(amount)}円回収しました")
                             sendMsg(sender,"§a現在の残高：${format(Bank.getBalance(uuid))}")
 
-                        }
+                        })
+
                         return true
 
                     }
@@ -375,16 +365,15 @@ class Man10Bank : JavaPlugin(),Listener {
                             return true
                         }
 
-                        es.execute {
-
-                            val uuid =  Bank.getUUID(args[1])?: return@execute
+                        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
+                            val uuid =  Bank.getUUID(args[1])?: return@Runnable
 
                             Bank.deposit(uuid,amount,this,"GivenFromServer","サーバーから発行")
 
                             sendMsg(sender,"§a${format(amount)}円入金しました")
                             sendMsg(sender,"§a現在の残高：${format(Bank.getBalance(uuid))}")
 
-                        }
+                        })
 
                     }
 
@@ -405,16 +394,14 @@ class Man10Bank : JavaPlugin(),Listener {
                             return true
                         }
 
-                        es.execute {
-
-                            val uuid =  Bank.getUUID(args[1])?: return@execute
+                        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
+                            val uuid =  Bank.getUUID(args[1])?: return@Runnable
 
                             Bank.setBalance(uuid,amount)
 
                             sendMsg(sender,"§a${format(amount)}円に設定しました")
 
-                        }
-
+                        })
                     }
 
                     "on" ->{
@@ -439,14 +426,11 @@ class Man10Bank : JavaPlugin(),Listener {
                     "reload" ->{
                         if (!sender.hasPermission(OP))return false
 
-                        es.execute{
+                        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
                             reloadConfig()
-
                             loadConfig()
-
                             Bank.reload()
-
-                        }
+                        })
 
                     }
 
@@ -455,15 +439,15 @@ class Man10Bank : JavaPlugin(),Listener {
 
                         if (!sender.hasPermission(OP))return true
 
-                        es.execute{
-
+                        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
                             if (p==null){
                                 EstateData.showOfflineUserEstate(sender,args[0])
-                                return@execute
+                                return@Runnable
                             }
 
                             showBalance(sender,p)
-                        }
+                        })
+
                         return true
 
                     }
@@ -509,11 +493,11 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 }
 
-                es.execute {
+                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
                     Bank.deposit(sender.uniqueId,amount,this,"PlayerDepositOnCommand","/depositによる入金")
 
                     sendMsg(sender,"§a§l入金できました！")
-                }
+                })
 
                 return true
 
@@ -531,7 +515,7 @@ class Man10Bank : JavaPlugin(),Listener {
                     return true
                 }
 
-                es.execute {
+                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
 
                     val amount = if (args[0] == "all"){
                         Bank.getBalance(sender.uniqueId)
@@ -543,27 +527,27 @@ class Man10Bank : JavaPlugin(),Listener {
 
                         if (b == -1.0){
                             sendMsg(sender,"§c§l数字で入力してください！")
-                            return@execute
+                            return@Runnable
                         }
                         b
                     }
 
                     if (amount < 1){
                         sendMsg(sender,"§c§l1円以上を入力してください！")
-                        return@execute
+                        return@Runnable
                     }
 
                     if (!Bank.withdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand","/withdrawによる出金")){
                         sendMsg(sender,"§c§l銀行のお金が足りません！")
-                        return@execute
+                        return@Runnable
                     }
 
                     vault.deposit(sender.uniqueId,amount)
 
                     sendMsg(sender,"§a§l出金できました！")
 
-                }
 
+                })
                 return true
             }
 
@@ -666,18 +650,18 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 checking.remove(sender)
 
-                es.execute {
+                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable  {
                     val uuid = Bank.getUUID(args[0])
 
                     if (uuid == null){
                         sendMsg(sender,"§c§l送金失敗！まだman10サーバーにきたことがない人かもしれません！")
-                        return@execute
+                        return@Runnable
                     }
 
 
                     if (!Bank.withdraw(sender.uniqueId,amount,this,"RemittanceTo${args[0]}","${args[0]}へ送金")){
                         sendMsg(sender,"§c§l送金する銀行のお金が足りません！")
-                        return@execute
+                        return@Runnable
 
                     }
 
@@ -685,9 +669,9 @@ class Man10Bank : JavaPlugin(),Listener {
 
                     sendMsg(sender,"§a§l送金成功！")
 
-                    val p = Bukkit.getPlayer(uuid)?:return@execute
+                    val p = Bukkit.getPlayer(uuid)?:return@Runnable
                     sendMsg(p,"§a${sender.name}さんから${format(amount)}円送られました！")
-                }
+                })
 
                 return true
 
@@ -762,20 +746,20 @@ class Man10Bank : JavaPlugin(),Listener {
 
     @EventHandler
     fun login(e:PlayerJoinEvent){
-        es.execute {
+        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable  {
             Bank.createAccount(e.player.uniqueId)
             Bank.changeName(e.player)
             EstateData.createEstateData(e.player)
             Thread.sleep(3000)
             showBalance(e.player,e.player)
-        }
+        })
     }
 
     @EventHandler (priority = EventPriority.LOWEST)
     fun logout(e:PlayerQuitEvent){
-        es.execute {
+        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable  {
             EstateData.saveCurrentEstate(e.player)
-        }
+        })
     }
 
     @EventHandler
@@ -785,6 +769,6 @@ class Man10Bank : JavaPlugin(),Listener {
 
         val p = e.player as Player
 
-        es.execute { EstateData.saveCurrentEstate(p) }
+        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable  { EstateData.saveCurrentEstate(p) })
     }
 }

@@ -1,6 +1,7 @@
 package red.man10.man10bank.cheque
 
 import net.kyori.adventure.text.Component
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.enchantments.Enchantment
@@ -12,8 +13,6 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import red.man10.man10bank.Man10Bank
-import red.man10.man10bank.Man10Bank.Companion.es
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
@@ -121,7 +120,7 @@ object Cheque :Listener{
 
         e.isCancelled = true
 
-        es.execute { useCheque(e.player,item) }
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { useCheque(e.player,item) })
     }
 
 }

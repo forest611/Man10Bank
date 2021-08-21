@@ -6,10 +6,9 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.OP
-import red.man10.man10bank.Man10Bank.Companion.es
 import red.man10.man10bank.Man10Bank.Companion.format
+import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 
@@ -83,9 +82,9 @@ class ServerLoanCommand : CommandExecutor{
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                es.execute {
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
                     ServerLoan.showBorrowMessage(sender,amount)
-                }
+                })
 
             }
 
@@ -97,9 +96,9 @@ class ServerLoanCommand : CommandExecutor{
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                es.execute {
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
                     ServerLoan.borrow(sender,amount)
-                }
+                })
 
             }
 
@@ -109,14 +108,14 @@ class ServerLoanCommand : CommandExecutor{
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                es.execute {
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
                     ServerLoan.setPaymentAmount(sender,amount)
-                }
+                })
 
             }
 
             "payall" ->{
-                es.execute { ServerLoan.paymentAll(sender) }
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { ServerLoan.paymentAll(sender) })
             }
 
             "addtime" ->{//mrevo addtime <player/all> <hour>
@@ -128,14 +127,14 @@ class ServerLoanCommand : CommandExecutor{
                     return true
                 }
 
-                es.execute {
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
 
                     when(ServerLoan.addLastPayTime(args[1],args[2].toInt())){
                         0 ->{ sendMsg(sender,"設定完了！${args[2]}時間追加しました") }
                         1 ->{ sendMsg(sender,"存在しないプレイヤーです")}
                     }
 
-                }
+                })
 
 
 

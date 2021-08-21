@@ -5,7 +5,6 @@ import net.kyori.adventure.text.event.ClickEvent
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import red.man10.man10bank.Bank
-import red.man10.man10bank.Man10Bank.Companion.es
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.prefix
@@ -42,7 +41,7 @@ object ServerLoan {
 
     fun checkServerLoan(p: Player){
 
-        es.execute {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
             val maxLoan = getLoanAmount(p)
 
             p.sendMessage("§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(maxServerLoanAmount)}円)")
@@ -50,16 +49,18 @@ object ServerLoan {
             p.sendMessage(Component.text("§e§l§n[結果をシェアする]").clickEvent(ClickEvent.runCommand("/mrevo share")))
 
             shareMap[p] = maxLoan
-        }
+        })
+
     }
 
     fun checkServerLoan(sender:Player,p:Player){
 
-        es.execute {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
             val maxLoan = getLoanAmount(p)
 
             sender.sendMessage("§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(maxServerLoanAmount)}円)")
-        }
+
+        })
 
     }
 

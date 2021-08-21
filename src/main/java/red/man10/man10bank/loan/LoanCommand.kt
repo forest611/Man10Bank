@@ -8,7 +8,6 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
-import red.man10.man10bank.Man10Bank.Companion.es
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.loanFee
 import red.man10.man10bank.Man10Bank.Companion.loanRate
@@ -79,8 +78,7 @@ class LoanCommand : CommandExecutor{
                 return true
             }
 
-            es.execute{
-
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
                 val data = LoanData()
                 val id = data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
 
@@ -88,7 +86,7 @@ class LoanCommand : CommandExecutor{
 
                     sendMsg(sender,"§c§l相手の銀行のお金が足りませんでした")
                     sendMsg(cache.lend,"§c§l銀行のお金が足りません！${format(cache.amount* loanFee)}円入れてください！")
-                    return@execute
+                    return@Runnable
 
                 }
 
@@ -99,7 +97,7 @@ class LoanCommand : CommandExecutor{
 
                 cacheMap.remove(sender)
 
-            }
+            })
 
             return true
         }

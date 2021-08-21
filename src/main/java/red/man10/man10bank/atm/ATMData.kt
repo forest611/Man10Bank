@@ -1,11 +1,11 @@
 package red.man10.man10bank.atm
 
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import red.man10.man10bank.Man10Bank.Companion.es
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
@@ -33,10 +33,10 @@ object ATMData {
 
         moneyItems[amount] = itemStack
 
-        es.execute {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
             plugin.config.set("money.$amount",itemStack)
             plugin.saveConfig()
-        }
+        })
 
         return true
     }
