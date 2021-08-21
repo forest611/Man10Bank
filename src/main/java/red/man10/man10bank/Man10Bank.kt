@@ -304,6 +304,26 @@ class Man10Bank : JavaPlugin(),Listener {
 
                     }
 
+                    "init" ->{
+                        if (!sender.hasPermission(OP))return false
+
+                        if (args.size!=2)return false
+
+                        if (checking[sender]== null || checking[sender]!=command){
+                            sendMsg(sender,"データは復元できません。確認のため、もう一度入力してください")
+                            checking[sender] = command
+                            return true
+                        }
+
+                        es.execute {
+                            Bank.init(args[1])
+                            sendMsg(sender,"${args[1]}のデータを初期化しました")
+                        }
+
+                        checking.remove(sender)
+
+                    }
+
                     "take" ->{
                         if (!sender.hasPermission(OP))return true
 

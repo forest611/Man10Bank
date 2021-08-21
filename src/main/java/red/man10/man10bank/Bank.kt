@@ -7,6 +7,7 @@ import red.man10.man10bank.Man10Bank.Companion.bankEnable
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
+import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import java.text.SimpleDateFormat
 import java.util.*
@@ -264,6 +265,17 @@ object Bank {
         mysql = MySQLManager(plugin,"Man10OfflineBank")
 
         Bukkit.getLogger().info("Finish Reload Man10Bank")
+
+    }
+
+    fun init(name:String){
+
+        val uuid = getUUID(name)?:return
+
+        mysql.execute("delete from user_bank where uuid='${uuid}';")
+        mysql.execute("delete from loan_table where borrow_uuid='${uuid}';")
+
+        vault.withdraw(uuid, vault.getBalance(uuid))
 
     }
 
