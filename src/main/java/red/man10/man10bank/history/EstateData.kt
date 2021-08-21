@@ -179,6 +179,7 @@ object EstateData {
         return list
     }
 
+    //TODO:ローンなどもみれるようにする
     fun showOfflineUserEstate(show:Player,p:String){
 
         val rs  = mysql.query("select * from estate_tbl where player='$p';")?:return

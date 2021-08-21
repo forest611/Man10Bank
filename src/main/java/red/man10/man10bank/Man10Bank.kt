@@ -25,6 +25,7 @@ import red.man10.man10bank.loan.Event
 import red.man10.man10bank.loan.LoanCommand
 import red.man10.man10bank.loan.ServerLoan
 import red.man10.man10bank.loan.ServerLoanCommand
+import red.man10.man10score.ScoreDatabase
 import java.text.Normalizer
 import java.text.SimpleDateFormat
 import java.util.*
@@ -692,6 +693,8 @@ class Man10Bank : JavaPlugin(),Listener {
         val loan = ServerLoan.borrowingAmount(p)
         val payment = ServerLoan.getPaymentAmount(p)
         val nextDate = ServerLoan.getNextPayTime(p)
+        val score = ScoreDatabase.getScore(p.uniqueId)
+
         var cash = -1.0
         var estate = -1.0
 
@@ -708,8 +711,13 @@ class Man10Bank : JavaPlugin(),Listener {
         if (loan!=0.0 && nextDate!=null){
             sendMsg(sender," §b§lまんじゅうリボ:  §c§l${format(loan)}円")
             sendMsg(sender," §b§l支払額:  §c§l${format(payment)}円")
-            sendMsg(sender," §b§l次の支払日: §c§l${SimpleDateFormat("yyyy-MM-dd").format(nextDate)}")
+            sendMsg(sender," §b§l次の支払日: §c§l${SimpleDateFormat("yyyy-MM-dd").format(nextDate.first)}")
+            if (nextDate.second){
+                sendMsg(sender," §c§l前回の引き落としができませんでした！銀行にお金を入れて支払いができないと、Jailされる可能性があります！")
+            }
         }
+
+        sendMsg(sender," §b§lスコア: §a§l${format(score.toDouble())}")
 
         sender.sendMessage(text("$prefix §a§l§n[ここをクリックでコマンドをみる]").clickEvent(ClickEvent.runCommand("/bank help")))
 
@@ -738,6 +746,8 @@ class Man10Bank : JavaPlugin(),Listener {
             Bank.createAccount(e.player.uniqueId)
             Bank.changeName(e.player)
             EstateData.createEstateData(e.player)
+            Thread.sleep(3000)
+            showBalance(e.player,e.player)
         }
     }
 

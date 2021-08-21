@@ -273,7 +273,7 @@ object ServerLoan {
 
     }
 
-    fun getNextPayTime(p:Player): Date? {
+    fun getNextPayTime(p:Player): Pair<Date,Boolean>? {
 
         val rs = mysql.query("select last_pay_date from server_loan_tbl where uuid='${p.uniqueId}';")?:return null
 
@@ -285,9 +285,17 @@ object ServerLoan {
         rs.close()
         mysql.close()
 
-        cal.add(Calendar.DAY_OF_MONTH,3)
+        val now = Date()
 
-        return cal.time
+        var isLate = false
+        var i = 0
+        do {
+            i++
+            cal.add(Calendar.DAY_OF_MONTH, frequency)
+            if (i > 1)isLate = true
+        } while (now.after(cal.time))
+
+        return Pair(cal.time,isLate)
     }
 
     fun addLastPayTime(who:String,hour:Int):Int{
