@@ -106,9 +106,25 @@ object ServerLoan {
         return if (maxServerLoanAmount < calcAmount) maxServerLoanAmount else calcAmount
     }
 
-    fun borrowingAmount(p:Player):Double{
+    fun getBorrowingAmount(p:Player):Double{
 
         val rs = mysql.query("SELECT borrow_amount from server_loan_tbl where uuid='${p.uniqueId}'")?:return 0.0
+
+        var ret = 0.0
+
+        if (rs.next()){
+            ret = rs.getDouble("borrow_amount")
+        }
+
+        rs.close()
+        mysql.close()
+
+        return ret
+    }
+
+    fun getBorrowingAmount(uuid: UUID):Double{
+
+        val rs = mysql.query("SELECT borrow_amount from server_loan_tbl where uuid='${uuid}'")?:return 0.0
 
         var ret = 0.0
 
@@ -132,7 +148,7 @@ object ServerLoan {
         }
 
         val max = getLoanAmount(p)
-        val borrowing = borrowingAmount(p)
+        val borrowing = getBorrowingAmount(p)
 
         val borrowableAmount = max - borrowing
 
@@ -155,6 +171,7 @@ object ServerLoan {
         sendMsg(p,"§e§kXX§b§lMan10リボ§e§kXX")
         sendMsg(p,"§b貸し出される金額:${format(amount)}")
         sendMsg(p,"§b現在の利用額:${format(borrowing)}")
+        sendMsg(p,"§b手数料の計算方法")//TODO:正しい手数料の計算式を書く
         sendMsg(p,"§b${frequency}日ごとに最低${format((borrowing+amount)*frequency*revolvingFee)}円支払う必要があります")
         p.sendMessage(allow)
         sendMsg(p,"§b§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
@@ -165,7 +182,7 @@ object ServerLoan {
     fun borrow(p:Player, amount:Double){
 
         val max = getLoanAmount(p)
-        val borrowing = borrowingAmount(p)
+        val borrowing = getBorrowingAmount(p)
 
 
         if (amount <= 0.0){
@@ -216,7 +233,7 @@ object ServerLoan {
 
     fun setPaymentAmount(p:Player,amount:Double){
 
-        val now = borrowingAmount(p)
+        val now = getBorrowingAmount(p)
         val minPayment = now*frequency*revolvingFee
 
         if (amount <= 0.0){
@@ -359,7 +376,10 @@ object ServerLoan {
 
                     if (diffDay == 0 || diffDay%frequency!=0)continue
 
-                    var finalAmount = borrowing-(payment - (borrowing* revolvingFee* diffDay))
+                    //手数料
+                    val interest = borrowing* revolvingFee* diffDay
+                    //残った利用額
+                    var finalAmount = borrowing-(payment - interest)
 
                     if (finalAmount <0){ finalAmount = 0.0 }
 
@@ -370,14 +390,17 @@ object ServerLoan {
 
                         if (p.isOnline){
                             sendMsg(p.player!!,"§a§lMan10リボの支払いができました")
+                            if (finalAmount == 0.0){ sendMsg(p.player!!,"§a§lMan10リボの利用額が0円になりました！") }
                         }
 
                         continue
                     }else{
+
                         mysql.execute("UPDATE server_loan_tbl set " +
-                                "borrow_amount=${floor(borrowing+(borrowing* revolvingFee* diffDay))},last_pay_date=now() where uuid='${uuid}'")
+                                "borrow_amount=borrow_amount+${floor(interest)},last_pay_date=now() where uuid='${uuid}'")
                         if (p.isOnline){
                             sendMsg(p.player!!,"§c§lMan10リボの支払いに失敗しました")
+                            sendMsg(p.player!!,"§c§l利用額に${format(floor(interest))}円の利息が追加されました")
                         }
                     }
 

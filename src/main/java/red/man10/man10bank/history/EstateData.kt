@@ -11,6 +11,7 @@ import red.man10.man10bank.MySQLManager
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
 import red.man10.man10bank.cheque.Cheque
+import red.man10.man10bank.loan.ServerLoan
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -181,7 +182,8 @@ object EstateData {
 
     fun showOfflineUserEstate(show:Player,p:String){
 
-        val rs  = mysql.query("select * from estate_tbl where player='$p';")?:return
+        val uuid = Bank.getUUID(p)?:return
+        val rs  = mysql.query("select * from estate_tbl where uuid='$uuid';")?:return
 
         if (!rs.next()){
             mysql.close()
@@ -194,12 +196,15 @@ object EstateData {
         val cash = rs.getDouble("cash")
         val estate = rs.getDouble("estate")
 
+        val serverLoan = ServerLoan.getBorrowingAmount(uuid)
+
         sendMsg(show, "§e§l==========${p}のお金(オフライン)==========")
 
         sendMsg(show, " §b§l電子マネー:  §e§l${format(vault)}円")
         sendMsg(show, " §b§l現金:  §e§l${format(cash)}円")
         sendMsg(show, " §b§l銀行:  §e§l${format(bank)}円")
         sendMsg(show, " §b§lその他の資産:  §e§l${format(estate)}円")
+        sendMsg(show, " §c§lMan10リボ:  §e§l${format(serverLoan)}円")
 
         mysql.close()
         rs.close()

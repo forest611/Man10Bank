@@ -29,8 +29,6 @@ import red.man10.man10score.ScoreDatabase
 import java.text.Normalizer
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import kotlin.collections.HashMap
 
 class Man10Bank : JavaPlugin(),Listener {
@@ -694,7 +692,7 @@ class Man10Bank : JavaPlugin(),Listener {
         //時差による表示ずれ対策で、一旦所持金を呼び出す
         val bankAmount = Bank.getBalance(p.uniqueId)
 
-        val loan = ServerLoan.borrowingAmount(p)
+        val loan = ServerLoan.getBorrowingAmount(p)
         val payment = ServerLoan.getPaymentAmount(p)
         val nextDate = ServerLoan.getNextPayTime(p)
         val score = ScoreDatabase.getScore(p.uniqueId)
@@ -719,7 +717,7 @@ class Man10Bank : JavaPlugin(),Listener {
             sendMsg(sender," §b§l支払額:  §c§l${format(payment)}円")
             sendMsg(sender," §b§l次の支払日: §c§l${SimpleDateFormat("yyyy-MM-dd").format(nextDate.first)}")
             if (nextDate.second){
-                sendMsg(sender,"§c§l前回の引き落としができませんでした！ 銀行にお金を入れて支払いができないと、Jailされる可能性があります！")
+                sendMsg(sender," §c§l前回の引き落としができませんでした！ 銀行にお金を入れて支払いができないと、Jailされる可能性があります！")
             }
         }
 
