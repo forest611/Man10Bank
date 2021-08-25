@@ -171,7 +171,8 @@ object ServerLoan {
         sendMsg(p,"§e§kXX§b§lMan10リボ§e§kXX")
         sendMsg(p,"§b貸し出される金額:${format(amount)}")
         sendMsg(p,"§b現在の利用額:${format(borrowing)}")
-        sendMsg(p,"§b手数料の計算方法")//TODO:正しい手数料の計算式を書く
+        sendMsg(p,"§c利息の計算方法:§l<利用額>x<金利>x<最後に支払ってからの日数>")
+        sendMsg(p,"§c※支払額から利息を引いた額が返済に充てられます")
         sendMsg(p,"§b${frequency}日ごとに最低${format((borrowing+amount)*frequency*revolvingFee)}円支払う必要があります")
         p.sendMessage(allow)
         sendMsg(p,"§b§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
@@ -394,14 +395,13 @@ object ServerLoan {
                         }
 
                         continue
-                    }else{
+                    }
 
-                        mysql.execute("UPDATE server_loan_tbl set " +
-                                "borrow_amount=borrow_amount+${floor(interest)},last_pay_date=now() where uuid='${uuid}'")
-                        if (p.isOnline){
-                            sendMsg(p.player!!,"§c§lMan10リボの支払いに失敗しました")
-                            sendMsg(p.player!!,"§c§l利用額に${format(floor(interest))}円の利息が追加されました")
-                        }
+                    //                        mysql.execute("UPDATE server_loan_tbl set " +
+//                                "borrow_amount=borrow_amount+${floor(interest)},last_pay_date=now() where uuid='${uuid}'")
+                    if (p.isOnline){
+                        sendMsg(p.player!!,"§c§lMan10リボの支払いに失敗してスコアが減りました")
+//                            sendMsg(p.player!!,"§c§l利用額に${format(floor(interest))}円の利息が追加されました")
                     }
 
                     val score = ScoreDatabase.getScore(uuid)
