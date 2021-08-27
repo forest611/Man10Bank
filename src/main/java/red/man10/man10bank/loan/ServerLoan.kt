@@ -326,8 +326,9 @@ object ServerLoan {
         do {
             i++
             cal.add(Calendar.DAY_OF_MONTH, frequency)
-            if (i > 1)isLate = true
         } while (now.after(cal.time))
+
+        if (i > 1)isLate = true
 
         return Pair(cal.time,isLate)
     }
