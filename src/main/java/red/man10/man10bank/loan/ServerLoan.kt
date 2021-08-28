@@ -348,6 +348,27 @@ object ServerLoan {
 
     }
 
+    fun getLoanTop(page:Int): MutableList<Pair<String, Double>> {
+
+        val list = mutableListOf<Pair<String,Double>>()
+
+        val rs = mysql.query("SELECT player,borrow_amount FROM server_loan_tbl order by borrow_amount desc limit 10 offset ${(page*10)-10};")?:return list
+
+        while (rs.next()){
+
+            val p = rs.getString("player")
+            val borrowAmount = rs.getDouble("borrow_amount")
+
+            list.add(Pair(p,borrowAmount))
+        }
+
+        rs.close()
+        mysql.close()
+
+        return list
+    }
+
+
     //支払い処理
     fun paymentThread(){
 

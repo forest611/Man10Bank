@@ -165,7 +165,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
                     val balTopMap = EstateData.getBalanceTop(page)
-                    val totalMap = EstateData.getBalanceTotal()
+                    val total = EstateData.getBalanceTotal()
 
                     var i = (page*10)-9
 
@@ -178,14 +178,12 @@ class Man10Bank : JavaPlugin(),Listener {
                             i++
                         }
 
-                        if (totalMap != null){
-                            sendMsg(sender,"§e§l電子マネーの合計:${format(totalMap["vault"]?:0.0)}")
-                            sendMsg(sender,"§e§l現金の合計:${format(totalMap["cash"]?:0.0)}")
-                            sendMsg(sender,"§e§l銀行口座の合計:${format(totalMap["bank"]?:0.0)}")
-                            sendMsg(sender,"§e§lその他資産の合計:${format(totalMap["estate"]?:0.0)}")
-                            sendMsg(sender,"§e§l全ての合計:${format(totalMap["total"]?:0.0)}")
-
-                        }
+                        sendMsg(sender,"§e§l電子マネーの合計:${format(total.vault)}円")
+                        sendMsg(sender,"§e§l現金の合計:${format(total.cash)}円")
+                        sendMsg(sender,"§e§l銀行口座の合計:${format(total.bank)}円")
+                        sendMsg(sender,"§e§lその他資産の合計:${format(total.estate)}円")
+                        sendMsg(sender,"§c§l公的ローンの合計:${format(total.loan)}円")
+                        sendMsg(sender,"§e§l全ての合計:${format(total.total())}円")
 
                         return@Runnable
                     }
@@ -196,14 +194,48 @@ class Man10Bank : JavaPlugin(),Listener {
                         sender.sendMessage("§7§l${i}.§b§l${data.first} : §e§l${format(data.second)}円")
                         i++
                     }
+                    sender.sendMessage("§e§l電子マネーの合計:${format(total.vault)}円")
+                    sender.sendMessage("§e§l現金の合計:${format(total.estate)}円")
+                    sender.sendMessage("§e§l銀行口座の合計:${format(total.bank)}円")
+                    sender.sendMessage("§c§l公的ローンの合計:${format(total.loan)}円")
+                    sender.sendMessage("§e§l全ての合計:${format(total.total())}円")
 
-                    if (totalMap != null){
-                        sender.sendMessage("§e§l電子マネーの合計:${format(totalMap["vault"]?:0.0)}円")
-                        sender.sendMessage("§e§l現金の合計:${format(totalMap["estate"]?:0.0)}円")
-                        sender.sendMessage("§e§l銀行口座の合計:${format(totalMap["bank"]?:0.0)}円")
-                        sender.sendMessage("§e§l全ての合計:${format(totalMap["total"]?:0.0)}円")
+                })
 
+            }
+
+            "mloantop" ->{
+
+                val page = if (args.isEmpty()) 1 else args[0].toIntOrNull()?:1
+
+                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
+                    val loanTop = ServerLoan.getLoanTop(page)
+                    val total = EstateData.getBalanceTotal()
+
+                    var i = (page*10)-9
+
+                    if (sender is Player){
+
+                        sendMsg(sender,"§4§k§lXX§c§l借金トップ${page*10}§4§k§lXX")
+
+                        for (data in loanTop){
+                            sendMsg(sender,"§c§l${i}.§l${data.first} : §4§l${format(data.second)}円")
+                            i++
+                        }
+
+                        sendMsg(sender,"§c§l公的ローンの合計:${format(total.loan)}円")
+
+                        return@Runnable
                     }
+
+                    sender.sendMessage("§4§k§lXX§c§l借金トップ${page*10}§4§k§lXX")
+
+                    for (data in loanTop){
+                        sender.sendMessage("§c§l${i}.§l${data.first} : §4§l${format(data.second)}円")
+                        i++
+                    }
+
+                    sender.sendMessage("§c§l公的ローンの合計:${format(total.loan)}円")
 
                 })
 

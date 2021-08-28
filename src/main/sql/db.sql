@@ -69,6 +69,7 @@ create table estate_tbl
     bank double default 0 null,
     cash double default 0 null,
     estate double default 0 null,
+    loan double default 0 null,
     crypto double default 0 null,
     total double default 0 null,
     constraint estate_tbl_pk
@@ -90,6 +91,7 @@ create table estate_history_tbl
     bank double default 0 null,
     cash double default 0 null,
     estate double default 0 null,
+    loan double default 0 null,
     crypto double default 0 null,
     total double default 0 null,
     constraint estate_history_tbl_pk
@@ -107,6 +109,7 @@ create table server_estate_history
 	bank double default 0 null,
 	cash double default 0 null
 	estate double default 0 null,
+	loan double default 0 null,
 	crypto double default 0 null,
 	total double default 0 null,
 	year int null,

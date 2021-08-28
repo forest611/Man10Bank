@@ -13,24 +13,23 @@ import red.man10.man10bank.atm.ATMData
 import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.loan.ServerLoan
 import java.util.*
-import kotlin.collections.HashMap
 
 object EstateData {
 
     private val mysql = MySQLManager(Man10Bank.plugin,"Man10BankEstateHistory")
 
     //ヒストリーに追加
-    private fun addEstateHistory(p:Player, vault:Double, bank:Double,cash:Double, estate:Double){
+    private fun addEstateHistory(p:Player,struct:EstateStruct){
 
         val uuid = p.uniqueId
 
         val rs = mysql.query("SELECT * FROM estate_history_tbl WHERE uuid='${p.uniqueId}' ORDER BY date DESC LIMIT 1")
 
-        val total = vault+bank+estate + cash
+        val total = struct.total()
 
         if (rs==null || !rs.next()){
-            mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate, total) " +
-                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank},${cash}, ${estate}, ${total})")
+            mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate,loan, total) " +
+                    "VALUES ('${uuid}', now(), '${p.name}', ${struct.vault}, ${struct.bank},${struct.cash}, ${struct.estate},${struct.loan} ,${total})")
             return
         }
 
@@ -42,9 +41,9 @@ object EstateData {
         mysql.close()
         rs.close()
 
-        if (vault != lastVault || bank != lastBank || estate != lastEstate ||cash!=lastCash){
-            mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate, total) " +
-                    "VALUES ('${uuid}', now(), '${p.name}', ${vault}, ${bank},${cash}, ${estate}, ${total})")
+        if (struct.vault != lastVault || struct.bank != lastBank || struct.estate != lastEstate ||struct.cash!=lastCash){
+            mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate,loan, total) " +
+                    "VALUES ('${uuid}', now(), '${p.name}', ${struct.vault}, ${struct.bank},${struct.cash}, ${struct.estate},${struct.loan} , ${total})")
         }
 
 
@@ -92,16 +91,19 @@ object EstateData {
 
         val uuid = p.uniqueId
 
-        val vault = Man10Bank.vault.getBalance(uuid)
-        val bank = Bank.getBalance(uuid)
-        val cash = ATMData.getEnderChestMoney(p) + ATMData.getInventoryMoney(p)
-        val estate = getEstate(p)
-        val total = vault+bank+estate + cash
+        val struct = EstateStruct()
+
+        struct.vault = Man10Bank.vault.getBalance(uuid)
+        struct.bank = Bank.getBalance(uuid)
+        struct.cash = ATMData.getEnderChestMoney(p) + ATMData.getInventoryMoney(p)
+        struct.estate = getEstate(p)
+        struct.loan = ServerLoan.getBorrowingAmount(p)
 
         mysqlQueue.add("UPDATE estate_tbl SET " +
-                "date=now(), player='${p.name}', vault=${vault}, bank=${bank}, cash=${cash}, estate=${estate}, total=${total} WHERE uuid='${uuid}'")
+                "date=now(), player='${p.name}', vault=${struct.vault}, bank=${struct.bank}, cash=${struct.cash}," +
+                " estate=${struct.estate},loan=${struct.loan}, total=${struct.total()} WHERE uuid='${uuid}'")
 
-        addEstateHistory(p, vault, bank,cash, estate)
+        addEstateHistory(p,struct)
 
     }
 
@@ -125,7 +127,7 @@ object EstateData {
             return
         }
 
-        val rs = mysql.query("select sum(vault),sum(bank),sum(cash),sum(estate) from estate_tbl")?:return
+        val rs = mysql.query("select sum(vault),sum(bank),sum(cash),sum(estate),sum(loan) from estate_tbl")?:return
 
         rs.next()
 
@@ -133,31 +135,34 @@ object EstateData {
         val bankSum = rs.getDouble(2)
         val cashSum = rs.getDouble(3)
         val estateSum = rs.getDouble(4)
+        val loanSum = rs.getDouble(5)
         val total = vaultSum+bankSum+cashSum+estateSum
 
         rs.close()
         mysql.close()
 
-        mysqlQueue.add("INSERT INTO server_estate_history (vault, bank, cash, estate, total,year,month,day,hour, date) " +
-                "VALUES ($vaultSum, $bankSum,$cashSum, $estateSum, $total,$year,$month,$day,$hour, now())")
+        mysqlQueue.add("INSERT INTO server_estate_history (vault, bank, cash, estate,loan, total,year,month,day,hour, date) " +
+                "VALUES ($vaultSum, $bankSum,$cashSum, $estateSum,${loanSum}, $total,$year,$month,$day,$hour, now())")
+
+        Bukkit.getLogger().info("SavedServerEstateHistory")
 
     }
 
-    fun getBalanceTotal():HashMap<String,Double>?{
+    fun getBalanceTotal():EstateStruct{
 
-        val map = HashMap<String,Double>()
+        val struct = EstateStruct()
 
-        val rs = mysql.query("SELECT vault,bank,cash,estate,total from server_estate_history ORDER BY date DESC LIMIT 1")?:return null
-        if (!rs.next())return null
-        map["vault"] = rs.getDouble(1)
-        map["bank"] = rs.getDouble(2)
-        map["cash"] = rs.getDouble(3)
-        map["estate"] = rs.getDouble(4)
-        map["total"] = rs.getDouble(5)
+        val rs = mysql.query("SELECT vault,bank,cash,estate,loan from server_estate_history ORDER BY date DESC LIMIT 1")?:return struct
+        if (!rs.next())return struct
+        struct.vault = rs.getDouble(1)
+        struct.bank = rs.getDouble(2)
+        struct.cash = rs.getDouble(3)
+        struct.estate = rs.getDouble(4)
+        struct.loan = rs.getDouble(5)
 
         rs.close()
         mysql.close()
-        return map
+        return struct
     }
 
     fun getBalanceTop(page:Int): MutableList<Pair<String, Double>> {
@@ -195,8 +200,8 @@ object EstateData {
         val bank = rs.getDouble("bank")
         val cash = rs.getDouble("cash")
         val estate = rs.getDouble("estate")
-
-        val serverLoan = ServerLoan.getBorrowingAmount(uuid)
+        val serverLoan = rs.getDouble("loan")
+//        val serverLoan = ServerLoan.getBorrowingAmount(uuid)
 
         sendMsg(show, "§e§l==========${p}のお金(オフライン)==========")
 
@@ -238,9 +243,23 @@ object EstateData {
             if (Man10Bank.loggingServerHistory){
                 addServerHistory()
             }
-            Bukkit.getLogger().info("SavedServerEstateHistory")
 
             Thread.sleep(600000)
         }
     }
+}
+
+class EstateStruct{
+
+    var vault = 0.0
+    var bank = 0.0
+    var cash = 0.0
+    var estate = 0.0
+    var crypto = 0.0
+    var loan = 0.0
+
+    fun total():Double{
+        return vault+bank+cash+estate+crypto+loan
+    }
+
 }
