@@ -219,6 +219,8 @@ object ServerLoan {
             """.trimIndent())
 
         //2回目以降
+        }else if (borrowing==0.0){
+            mysql.execute(" UPDATE server_loan_tbl SET borrow_amount=borrow_amount+${amount},last_pay_date=now(),payment_amount=${minPaymentAmount*2} WHERE uuid = '${p.uniqueId}'")
         }else{
             mysql.execute(" UPDATE server_loan_tbl SET borrow_amount=borrow_amount+${amount},payment_amount=${minPaymentAmount*2} WHERE uuid = '${p.uniqueId}'")
         }

@@ -12,6 +12,7 @@ import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
 import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.loan.ServerLoan
+import red.man10.man10score.ScoreDatabase
 import java.util.*
 
 object EstateData {
@@ -201,6 +202,7 @@ object EstateData {
         val cash = rs.getDouble("cash")
         val estate = rs.getDouble("estate")
         val serverLoan = rs.getDouble("loan")
+        val score = ScoreDatabase.getScore(uuid)
 //        val serverLoan = ServerLoan.getBorrowingAmount(uuid)
 
         sendMsg(show, "§e§l==========${p}のお金(オフライン)==========")
@@ -209,6 +211,7 @@ object EstateData {
         sendMsg(show, " §b§l現金:  §e§l${format(cash)}円")
         sendMsg(show, " §b§l銀行:  §e§l${format(bank)}円")
         sendMsg(show, " §b§lその他の資産:  §e§l${format(estate)}円")
+        sendMsg(show, " §b§lスコア:  §a§l${score}")
         sendMsg(show, " §c§lMan10リボ:  §e§l${format(serverLoan)}円")
 
         mysql.close()
