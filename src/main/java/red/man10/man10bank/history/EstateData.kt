@@ -262,7 +262,7 @@ class EstateStruct{
     var loan = 0.0
 
     fun total():Double{
-        return vault+bank+cash+estate+crypto+loan
+        return vault+bank+cash+estate+crypto//+loan
     }
 
 }
