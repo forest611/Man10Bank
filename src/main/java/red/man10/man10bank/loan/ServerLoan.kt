@@ -41,26 +41,21 @@ object ServerLoan {
 
     fun checkServerLoan(p: Player){
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-            val maxLoan = getLoanAmount(p)
+        val maxLoan = getLoanAmount(p)
 
-            p.sendMessage("§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(maxServerLoanAmount)}円)")
+        p.sendMessage("§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(maxServerLoanAmount)}円)")
 
-            p.sendMessage(Component.text("§e§l§n[結果をシェアする]").clickEvent(ClickEvent.runCommand("/mrevo share")))
+        p.sendMessage(Component.text("§e§l§n[結果をシェアする]").clickEvent(ClickEvent.runCommand("/mrevo share")))
 
-            shareMap[p] = maxLoan
-        })
+        shareMap[p] = maxLoan
 
     }
 
     fun checkServerLoan(sender:Player,p:Player){
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-            val maxLoan = getLoanAmount(p)
+        val maxLoan = getLoanAmount(p)
 
-            sender.sendMessage("§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(maxServerLoanAmount)}円)")
-
-        })
+        sender.sendMessage("§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(maxServerLoanAmount)}円)")
 
     }
 
@@ -94,11 +89,6 @@ object ServerLoan {
             list[m] + 1
         }
 
-//        Bukkit.getLogger().info("スコア乗数${scoreMultiplier}現在のスコア${score}")
-//        Bukkit.getLogger().info("レコード数の乗数${recordMultiplier}レコード数の合計${records}")
-//        Bukkit.getLogger().info("中央値の乗数${medianMultiplier}中央値${median}")
-
-
         var calcAmount = median * medianMultiplier * score * scoreMultiplier * records * recordMultiplier
 
         if (calcAmount<0.0)calcAmount = 0.0
@@ -122,21 +112,21 @@ object ServerLoan {
         return ret
     }
 
-    fun getBorrowingAmount(uuid: UUID):Double{
-
-        val rs = mysql.query("SELECT borrow_amount from server_loan_tbl where uuid='${uuid}'")?:return 0.0
-
-        var ret = 0.0
-
-        if (rs.next()){
-            ret = rs.getDouble("borrow_amount")
-        }
-
-        rs.close()
-        mysql.close()
-
-        return ret
-    }
+//    fun getBorrowingAmount(uuid: UUID):Double{
+//
+//        val rs = mysql.query("SELECT borrow_amount from server_loan_tbl where uuid='${uuid}'")?:return 0.0
+//
+//        var ret = 0.0
+//
+//        if (rs.next()){
+//            ret = rs.getDouble("borrow_amount")
+//        }
+//
+//        rs.close()
+//        mysql.close()
+//
+//        return ret
+//    }
 
     fun showBorrowMessage(p:Player,amount: Double){
 
@@ -210,7 +200,7 @@ object ServerLoan {
             mysql.execute("INSERT INTO server_loan_tbl (player, uuid, borrow_date, last_pay_date, borrow_amount, payment_amount) " +
                     "VALUES ('${p.name}', '${p.uniqueId}', DEFAULT, DEFAULT, ${amount}, ${minPaymentAmount*2})")
 
-            sendMsg(p,"""
+            p.sendMessage("""
                 §e§l[返済について]
                 §c§lMan10リボは、借りた日から${frequency}日ずつ銀行から引き落とされます
                 §c§l支払いができなかった場合、スコアの減少などのペナルティがあるので、
@@ -220,9 +210,11 @@ object ServerLoan {
 
         //2回目以降
         }else if (borrowing==0.0){
-            mysql.execute(" UPDATE server_loan_tbl SET borrow_amount=borrow_amount+${amount},last_pay_date=now(),payment_amount=${minPaymentAmount*2} WHERE uuid = '${p.uniqueId}'")
+            mysql.execute(" UPDATE server_loan_tbl SET borrow_amount=${amount}, borrow_date=now(), " +
+                    "last_pay_date=now(),payment_amount=${minPaymentAmount*2} WHERE uuid = '${p.uniqueId}'")
         }else{
-            mysql.execute(" UPDATE server_loan_tbl SET borrow_amount=borrow_amount+${amount},payment_amount=${minPaymentAmount*2} WHERE uuid = '${p.uniqueId}'")
+            mysql.execute(" UPDATE server_loan_tbl SET borrow_amount=borrow_amount+${amount}" +
+                    ",payment_amount=${minPaymentAmount*2} WHERE uuid = '${p.uniqueId}'")
         }
 
         rs.close()
@@ -236,15 +228,15 @@ object ServerLoan {
 
     fun setPaymentAmount(p:Player,amount:Double){
 
-        val now = getBorrowingAmount(p)
-        val minPayment = now*frequency*revolvingFee
+        val nowBorrowing = getBorrowingAmount(p)
+        val minPayment = nowBorrowing*frequency*revolvingFee
 
         if (amount <= 0.0){
             sendMsg(p,"1円以上を入力してください")
             return
         }
 
-        if (now == 0.0){
+        if (nowBorrowing == 0.0){
             sendMsg(p,"§a§lあなたは現在Man10リボを使用していません")
             return
         }
@@ -252,6 +244,12 @@ object ServerLoan {
         if (amount<minPayment){
             sendMsg(p,"支払額は最低${format(minPayment)}円にしてください")
             return
+        }
+
+        if (amount>nowBorrowing){
+            sendMsg(p,"支払額が利用額を上回っています 一括返済する時は/mrevo payallコマンドを使ってください")
+            return
+
         }
 
         mysql.execute("UPDATE server_loan_tbl SET payment_amount=${amount} where uuid='${p.uniqueId}'")
@@ -384,7 +382,7 @@ object ServerLoan {
 
             if (nowValue != lastPaymentCycle){
 
-                Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い開始")) })
+                Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理開始")) })
 
                 val rs = mysql.query("select * from server_loan_tbl where borrow_amount != 0")?:continue
 
@@ -401,7 +399,7 @@ object ServerLoan {
 
                     if (diffDay == 0 || diffDay%frequency!=0)continue
 
-                    //手数料
+                    //利息
                     val interest = borrowing* revolvingFee* diffDay
                     //残った利用額
                     var finalAmount = borrowing-(payment - interest)
@@ -421,11 +419,8 @@ object ServerLoan {
                         continue
                     }
 
-                    //                        mysql.execute("UPDATE server_loan_tbl set " +
-//                                "borrow_amount=borrow_amount+${floor(interest)},last_pay_date=now() where uuid='${uuid}'")
                     if (p.isOnline){
                         sendMsg(p.player!!,"§c§lMan10リボの支払いに失敗してスコアが減りました")
-//                            sendMsg(p.player!!,"§c§l利用額に${format(floor(interest))}円の利息が追加されました")
                     }
 
                     val score = ScoreDatabase.getScore(uuid)
@@ -446,7 +441,7 @@ object ServerLoan {
                 plugin.config.set("lastPaymentCycle",nowValue)
                 plugin.saveConfig()
 
-                Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い終了")) })
+                Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理終了")) })
             }
 
             Thread.sleep(60000)

@@ -39,7 +39,7 @@ class ServerLoanCommand : CommandExecutor{
         when(args[0]){
 
             "check" ->{
-                ServerLoan.checkServerLoan(sender)
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { ServerLoan.checkServerLoan(sender) })
             }
 
             "checkop" ->{
@@ -53,7 +53,7 @@ class ServerLoanCommand : CommandExecutor{
                     return true
                 }
 
-                ServerLoan.checkServerLoan(sender,p)
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { ServerLoan.checkServerLoan(sender,p) })
             }
 
             "share" ->{
