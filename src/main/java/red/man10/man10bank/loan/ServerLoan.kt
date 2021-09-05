@@ -384,6 +384,10 @@ object ServerLoan {
 
                 Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理開始")) })
 
+                lastPaymentCycle = nowValue
+                plugin.config.set("lastPaymentCycle",nowValue)
+                plugin.saveConfig()
+
                 val rs = mysql.query("select * from server_loan_tbl where borrow_amount != 0")?:continue
 
                 while (rs.next()){
@@ -437,9 +441,6 @@ object ServerLoan {
                 rs.close()
                 mysql.close()
 
-                lastPaymentCycle = nowValue
-                plugin.config.set("lastPaymentCycle",nowValue)
-                plugin.saveConfig()
 
                 Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理終了")) })
             }
