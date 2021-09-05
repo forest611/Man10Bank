@@ -25,8 +25,6 @@ object ServerLoan {
     var recordMultiplier = 1.0//レコード数の乗数
     var medianMultiplier = 1.0//中央値の乗数
 
-    var paymentThread = false
-
     val shareMap = ConcurrentHashMap<Player,Double>()
     val commandList = mutableListOf<Player>()
 

@@ -56,6 +56,7 @@ class Man10Bank : JavaPlugin(),Listener {
         var loanRate : Double = 1.0
         var loanMax : Double = 10000000.0
 
+        var paymentThread = false
         var loggingServerHistory = false
     }
 
@@ -86,7 +87,9 @@ class Man10Bank : JavaPlugin(),Listener {
             EstateData.historyThread()
         })
 
-        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {ServerLoan.paymentThread()})
+        if (paymentThread){
+            Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {ServerLoan.paymentThread()})
+        }
 
     }
 
@@ -104,6 +107,7 @@ class Man10Bank : JavaPlugin(),Listener {
         loanMax = config.getDouble("loanmax",10000000.0)
         loanRate = config.getDouble("loanrate",1.0)
         loggingServerHistory = config.getBoolean("loggingServerHistory",false)
+        paymentThread = config.getBoolean("paymentThread",false)
 
         ServerLoan.medianMultiplier = config.getDouble("medianMultiplier")
         ServerLoan.recordMultiplier = config.getDouble("recordMultiplier")
@@ -111,7 +115,6 @@ class Man10Bank : JavaPlugin(),Listener {
         ServerLoan.maxServerLoanAmount = config.getDouble("maxServerLoan")
         ServerLoan.revolvingFee = config.getDouble("revolvingFee")
         ServerLoan.lastPaymentCycle = config.getInt("lastPaymentCycle")
-        ServerLoan.paymentThread = config.getBoolean("paymentThread",false)
 
         ATMData.loadItem()
     }
