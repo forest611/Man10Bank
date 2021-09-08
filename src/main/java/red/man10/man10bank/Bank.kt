@@ -143,7 +143,12 @@ object Bank {
     @Synchronized
     fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?):Boolean{
 
-        if (!bankEnable)return false
+        val pName = Bukkit.getOfflinePlayer(uuid).name
+
+        if (!bankEnable){
+            Bukkit.getLogger().warning("[入金エラー]Man10Bankが閉じています ユーザー:$pName")
+            return false
+        }
 
 //        if (!hasAccount(uuid)){
 //            createAccount(uuid)
@@ -153,7 +158,10 @@ object Bank {
 
         val ret = mysql.execute("update user_bank set balance=balance+$finalAmount where uuid='$uuid';")
 
-        if (!ret)return false
+        if (!ret){
+            Bukkit.getLogger().warning("[入金エラー]SQLの実行に失敗しました ユーザー:$pName")
+            return false
+        }
 
         addLog(uuid,plugin, note,displayNote?:note, finalAmount,true)
 
@@ -178,17 +186,29 @@ object Bank {
     @Synchronized
     fun withdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?):Boolean{
 
-        if (!bankEnable)return false
+        val pName = Bukkit.getOfflinePlayer(uuid).name
+
+        if (!bankEnable){
+            Bukkit.getLogger().warning("[出金エラー]Man10Bankが閉じています ユーザー:$pName")
+            return false
+        }
 
 //        if (!hasAccount(uuid))return false
 
         val finalAmount = floor(amount)
+        val balance = getBalance(uuid)
 
-        if (getBalance(uuid) < finalAmount)return false
+        if (balance < finalAmount){
+            Bukkit.getLogger().warning("[出金エラー]口座のお金が足りませんでした 残高:${balance} 出金額:${finalAmount} ユーザー:$pName")
+            return false
+        }
 
         val ret = mysql.execute("update user_bank set balance=balance-${finalAmount} where uuid='$uuid';")
 
-        if (!ret)return false
+        if (!ret){
+            Bukkit.getLogger().warning("[出金エラー]SQLの実行に失敗しました ユーザー:$pName")
+            return false
+        }
 
         addLog(uuid,plugin, note,displayNote?:note, finalAmount,false)
 
