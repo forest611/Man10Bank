@@ -312,53 +312,53 @@ object Bank {
 
             val uuid = UUID.fromString(split[1])
 
-            var _code = -1
-            var _amount = 1.0
-            var _message = ""
+            var errorCode = -1
+            var amount = 1.0
+            var errorMessage = ""
 
             try {
                 when(split[0]){
 
                     "deposit" ->{
 
-                        val amount = split[2].toDouble()
+                        val prioce = split[2].toDouble()
                         val pluginName = split[3]
                         val note = split[4]
                         val displayNote = split[5]
 
-                        _code = depositQueue(uuid,amount,pluginName,note,displayNote)
+                        errorCode = depositQueue(uuid,prioce,pluginName,note,displayNote)
                     }
 
                     "withdraw" ->{
-                        val amount = split[2].toDouble()
+                        val price = split[2].toDouble()
                         val pluginName = split[3]
                         val note = split[4]
                         val displayNote = split[5]
 
-                        _code = withdrawQueue(uuid,amount,pluginName,note,displayNote)
+                        errorCode = withdrawQueue(uuid,price,pluginName,note,displayNote)
 
                     }
 
                     "get" -> {
                         val ret  = getBalanceQueue(uuid)
-                        _amount = ret.first
-                        _code = ret.second
+                        amount = ret.first
+                        errorCode = ret.second
                     }
 
                 }
 
             }catch (e:Exception){
-                _message = e.message.toString()
-                Bukkit.getLogger().info("Man10BankQueueエラー:${_message}")
+                errorMessage = e.message.toString()
+                Bukkit.getLogger().info("Man10BankQueueエラー:${errorMessage}")
             }finally {
-                bankTransaction.second.onTransactionResult(_code,_amount,_message)
+                bankTransaction.second.onTransactionResult(errorCode,amount,errorMessage)
             }
 
         }
     }
 
     private fun addTransactionQueue(transaction: String, transactionCallBack: BankTransaction):BankTransaction{
-        Bukkit.getLogger().info("addTransactionQueue")
+//        Bukkit.getLogger().info("addTransactionQueue")
         bankQueue.add(Pair(transaction,transactionCallBack))
         return transactionCallBack
     }
@@ -421,7 +421,7 @@ object Bank {
 
         val lock = Lock()
 
-        addTransactionQueue(transaction) { _code: Int, _amount: Double, _message: String ->
+        addTransactionQueue(transaction) { _: Int, _amount: Double, _: String ->
             amount = _amount
             lock.unlock()
         }
