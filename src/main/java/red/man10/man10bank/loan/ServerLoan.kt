@@ -12,6 +12,7 @@ import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager
 import red.man10.man10score.ScoreDatabase
+import red.man10.man10score.ScoreDatabase.giveScore
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
@@ -290,7 +291,7 @@ object ServerLoan {
         val diffDay = round(((Date().time - date.time).toDouble() / (1000*60*60*24))).toInt()
         val payment = borrowing+(borrowing* revolvingFee*diffDay)
 
-        if (Bank.withdraw(p.uniqueId,payment, plugin,"Man10Revo","Man10リボの一括支払い")){
+        if (Bank.withdraw(p.uniqueId,payment, plugin,"Man10Revo","Man10リボの一括支払い").first==0){
             mysql.execute("UPDATE server_loan_tbl set borrow_amount=0,last_pay_date=now()" +
                     " where uuid='${p.uniqueId}'")
             sendMsg(p,"§a§l支払い完了！")
@@ -408,7 +409,7 @@ object ServerLoan {
 
                     if (finalAmount <0){ finalAmount = 0.0 }
 
-                    if (Bank.withdraw(uuid,payment, plugin,"Man10Revolving","Man10リボの支払い")){
+                    if (Bank.withdraw(uuid,payment, plugin,"Man10Revolving","Man10リボの支払い").first==0){
 
                         mysql.execute("UPDATE server_loan_tbl set borrow_amount=${floor(finalAmount)},last_pay_date=now()" +
                                 " where uuid='${uuid}'")
@@ -429,9 +430,9 @@ object ServerLoan {
                     val name = Bukkit.getOfflinePlayer(uuid).name!!
 
                     if (score> standardScore){
-                        ScoreDatabase.giveScore(name,-(score/2),"まんじゅうリボの未払い",Bukkit.getConsoleSender())
+                        giveScore(name,-(score/2),"まんじゅうリボの未払い",Bukkit.getConsoleSender())
                     }else{
-                        ScoreDatabase.giveScore(name,-100,"まんじゅうリボの未払い",Bukkit.getConsoleSender())
+                        giveScore(name,-100,"まんじゅうリボの未払い",Bukkit.getConsoleSender())
                     }
 
                 }

@@ -17,12 +17,12 @@ class BankAPI(private val plugin : JavaPlugin) {
      *
      */
     fun withdraw(uuid:UUID,amount:Double,note:String,displayNote:String):Boolean{
-        return Bank.withdraw(uuid,amount, plugin, note,displayNote)
+        return Bank.withdraw(uuid,amount, plugin, note,displayNote).first == 0
     }
 
     //アップデートに対応してない場合のための処理
     fun withdraw(uuid:UUID,amount:Double,note:String):Boolean{
-        return Bank.withdraw(uuid,amount, plugin, note,note)
+        return Bank.withdraw(uuid,amount, plugin, note,note).first == 0
     }
 
     /**

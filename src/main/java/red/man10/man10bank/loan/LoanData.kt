@@ -12,7 +12,6 @@ import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.MySQLManager
-import java.awt.Component
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -30,7 +29,7 @@ class LoanData {
 
     fun create(lend:Player, borrow: Player, borrowedAmount : Double, rate:Double, paybackDay:Int):Int{
 
-        if (!Bank.withdraw(lend.uniqueId, (borrowedAmount * Man10Bank.loanFee), plugin,"LoanCreate","借金の貸し出し"))return -1
+        if (Bank.withdraw(lend.uniqueId, (borrowedAmount * Man10Bank.loanFee), plugin,"LoanCreate","借金の貸し出し").first!=0)return -1
 
         Bank.deposit(borrow.uniqueId, borrowedAmount, plugin, "LoanCreate","借金の借り入れ")
 
@@ -109,7 +108,7 @@ class LoanData {
 
         val takeMan10Bank = floor(if (man10Bank<nowAmount)man10Bank else nowAmount)
 
-        if (takeMan10Bank != 0.0 && Bank.withdraw(borrow,takeMan10Bank, plugin,"paybackMoney","借金の返済")){
+        if (takeMan10Bank != 0.0 && Bank.withdraw(borrow,takeMan10Bank, plugin,"paybackMoney","借金の返済").first == 0){
 
             nowAmount -= takeMan10Bank
 

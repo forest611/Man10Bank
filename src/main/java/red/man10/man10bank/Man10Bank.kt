@@ -28,8 +28,7 @@ import red.man10.man10bank.loan.ServerLoanCommand
 import red.man10.man10score.ScoreDatabase
 import java.text.Normalizer
 import java.text.SimpleDateFormat
-import java.util.*
-import kotlin.collections.HashMap
+
 
 class Man10Bank : JavaPlugin(),Listener {
 
@@ -83,9 +82,9 @@ class Man10Bank : JavaPlugin(),Listener {
         getCommand("mlend")!!.setExecutor(LoanCommand())
         getCommand("mrevo")!!.setExecutor(ServerLoanCommand())
 
-        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
-            EstateData.historyThread()
-        })
+        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { Bank.bankQueue() })
+
+        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { EstateData.historyThread() })
 
         if (paymentThread){
             Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {ServerLoan.paymentThread()})
@@ -368,7 +367,7 @@ class Man10Bank : JavaPlugin(),Listener {
                         Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
                             val uuid = Bank.getUUID(args[1])?: return@Runnable
 
-                            if (!Bank.withdraw(uuid,amount,this,"TakenByCommand","サーバーから徴収")){
+                            if (Bank.withdraw(uuid,amount,this,"TakenByCommand","サーバーから徴収").first!=0){
                                 Bank.setBalance(uuid,0.0)
                                 sendMsg(sender,"§a回収額が残高を上回っていたので、残高が0になりました")
                                 return@Runnable
@@ -571,7 +570,7 @@ class Man10Bank : JavaPlugin(),Listener {
                         return@Runnable
                     }
 
-                    if (!Bank.withdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand","/withdrawによる出金")){
+                    if (Bank.withdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand","/withdrawによる出金").first != 0){
                         sendMsg(sender,"§c§l銀行のお金が足りません！")
                         return@Runnable
                     }
@@ -693,7 +692,7 @@ class Man10Bank : JavaPlugin(),Listener {
                     }
 
 
-                    if (!Bank.withdraw(sender.uniqueId,amount,this,"RemittanceTo${args[0]}","${args[0]}へ送金")){
+                    if (Bank.withdraw(sender.uniqueId,amount,this,"RemittanceTo${args[0]}","${args[0]}へ送金").first != 0){
                         sendMsg(sender,"§c§l送金する銀行のお金が足りません！")
                         return@Runnable
 
