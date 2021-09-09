@@ -17,7 +17,7 @@ import kotlin.math.floor
 
 object Bank {
 
-    private var mysql : MySQLManager = MySQLManager(plugin,"Man10OfflineBank")
+    private lateinit var mysql : MySQLManager
     private var bankQueue = LinkedBlockingQueue<Pair<String,BankTransaction>>()
 
     //////////////////////////////////
@@ -304,6 +304,8 @@ object Bank {
 
 
     fun bankQueue(){
+
+        mysql  = MySQLManager(plugin,"Man10OfflineBank")
 
         while (true){
             val bankTransaction = bankQueue.take()
