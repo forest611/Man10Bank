@@ -365,6 +365,19 @@ object Bank {
         return transactionCallBack
     }
 
+    fun asyncDeposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?,callback:BankTransaction){
+
+        val rNote = note.replace(";","")
+        val rDisplayNote = displayNote?.replace(";","")?:rNote
+
+        val transaction = "deposit;${uuid};${amount};${plugin.name};${rNote};${rDisplayNote}"
+
+        addTransactionQueue(transaction) { _code: Int, _amount: Double, _message: String ->
+            callback.onTransactionResult(_code,_amount,_message)
+        }
+
+    }
+
     /**
      * 同期で入金する処理
      */
@@ -372,21 +385,27 @@ object Bank {
 
         var ret = Triple(-1,0.0,"")
 
-        val rNote = note.replace(";","")
-        val rDisplayNote = displayNote?.replace(";","")?:rNote
-
-        val transaction = "deposit;${uuid};${amount};${plugin.name};${rNote};${rDisplayNote}"
-
         val lock = Lock()
 
-        addTransactionQueue(transaction) { _code: Int, _amount: Double, _message: String ->
+        asyncDeposit(uuid,amount,plugin,note,displayNote) { _code: Int, _amount: Double, _message: String ->
             ret = Triple(_code,_amount,_message)
             lock.unlock()
         }
 
         lock.lock()
-
         return ret
+    }
+
+    fun asyncWithdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?,callback: BankTransaction){
+
+        val rNote = note.replace(";","")
+        val rDisplayNote = displayNote?.replace(";","")?:rNote
+
+        val transaction = "withdraw;${uuid};${amount};${plugin.name};${rNote};${rDisplayNote}"
+
+        addTransactionQueue(transaction) { _code: Int, _amount: Double, _message: String ->
+            callback.onTransactionResult(_code,_amount,_message)
+        }
     }
 
     /**
@@ -398,12 +417,7 @@ object Bank {
 
         val lock = Lock()
 
-        val rNote = note.replace(";","")
-        val rDisplayNote = displayNote?.replace(";","")?:rNote
-
-        val transaction = "withdraw;${uuid};${amount};${plugin.name};${rNote};${rDisplayNote}"
-
-        addTransactionQueue(transaction) { _code: Int, _amount: Double, _message: String ->
+        asyncWithdraw(uuid,amount,plugin,note,displayNote) { _code: Int, _amount: Double, _message: String ->
             ret = Triple(_code,_amount,_message)
             lock.unlock()
         }
@@ -416,14 +430,24 @@ object Bank {
     /**
      * 金額を取得する処理
      */
+    fun asyncGetBalance(uuid: UUID,callback: BankTransaction){
+        val transaction = "get;${uuid}"
+
+        addTransactionQueue(transaction) { _code: Int, _amount: Double, _message: String ->
+            callback.onTransactionResult(_code,_amount,_message)
+        }
+
+    }
+    /**
+     * 金額を取得する処理
+     */
     fun getBalance(uuid: UUID):Double{
         var amount = -1.0
 
-        val transaction = "get;${uuid}"
 
         val lock = Lock()
 
-        addTransactionQueue(transaction) { _: Int, _amount: Double, _: String ->
+        asyncGetBalance(uuid){ _: Int, _amount: Double, _: String ->
             amount = _amount
             lock.unlock()
         }

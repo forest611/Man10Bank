@@ -20,7 +20,7 @@ class BankAPI(private val plugin : JavaPlugin) {
         return Bank.withdraw(uuid,amount, plugin, note,displayNote).first == 0
     }
 
-    //アップデートに対応してない場合のための処理
+    @Deprecated("displayNoteが設定できない", ReplaceWith("DisplayNoteつき"),DeprecationLevel.WARNING)
     fun withdraw(uuid:UUID,amount:Double,note:String):Boolean{
         return Bank.withdraw(uuid,amount, plugin, note,note).first == 0
     }
@@ -38,8 +38,21 @@ class BankAPI(private val plugin : JavaPlugin) {
     }
 
     //アップデートに対応してない場合のための処理
+    @Deprecated("displayNoteが設定できない", ReplaceWith("DisplayNoteつき"),DeprecationLevel.WARNING)
     fun deposit(uuid: UUID,amount: Double,note: String){
         Bank.deposit(uuid,amount, plugin, note,note)
+    }
+
+    fun asyncDeposit(uuid: UUID,amount: Double,note: String,displayNote: String,callback:Bank.BankTransaction){
+        Bank.asyncDeposit(uuid, amount, plugin, note, displayNote, callback)
+    }
+
+    fun asyncWithdraw(uuid: UUID,amount: Double,note: String,displayNote: String,callback:Bank.BankTransaction){
+        Bank.asyncWithdraw(uuid, amount, plugin, note, displayNote, callback)
+    }
+
+    fun asyncGetBalance(uuid:UUID,callback: Bank.BankTransaction){
+        Bank.asyncGetBalance(uuid, callback)
     }
 
     /**

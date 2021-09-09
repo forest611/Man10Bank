@@ -526,11 +526,16 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 }
 
-                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
-                    Bank.deposit(sender.uniqueId,amount,this,"PlayerDepositOnCommand","/depositによる入金")
+                Bank.asyncDeposit(sender.uniqueId,amount,this,"PlayerDepositOnCommand","/depositによる入金"){ code:Int,_:Double,_:String ->
 
-                    sendMsg(sender,"§a§l入金できました！")
-                })
+                    if (code != 0){
+                        sendMsg(sender,"入金エラーが発生しました")
+                        vault.deposit(sender.uniqueId,amount)
+                        return@asyncDeposit
+                    }
+
+                    if (code == 0){ sendMsg(sender,"§a§l入金できました！") }
+                }
 
                 return true
 
@@ -548,39 +553,37 @@ class Man10Bank : JavaPlugin(),Listener {
                     return true
                 }
 
-                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
 
-                    val amount = if (args[0] == "all"){
-                        Bank.getBalance(sender.uniqueId)
-                    }else{
+                val amount = if (args[0] == "all"){
+                    Bank.getBalance(sender.uniqueId)
+                }else{
 
-                        val a = args[0].replace(",","")
+                    val a = args[0].replace(",","")
 
-                        val b = ZenkakuToHankaku(a)
+                    val b = ZenkakuToHankaku(a)
 
-                        if (b == -1.0){
-                            sendMsg(sender,"§c§l数字で入力してください！")
-                            return@Runnable
-                        }
-                        b
+                    if (b == -1.0){
+                        sendMsg(sender,"§c§l数字で入力してください！")
+                        return true
                     }
+                    b
+                }
 
-                    if (amount < 1){
-                        sendMsg(sender,"§c§l1円以上を入力してください！")
-                        return@Runnable
-                    }
+                if (amount < 1){
+                    sendMsg(sender,"§c§l1円以上を入力してください！")
+                    return true
+                }
 
-                    if (Bank.withdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand","/withdrawによる出金").first != 0){
+
+                Bank.asyncWithdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand","/withdrawによる出金") { code: Int, _: Double, _: String ->
+                    if (code == 2){
                         sendMsg(sender,"§c§l銀行のお金が足りません！")
-                        return@Runnable
+                        return@asyncWithdraw
                     }
-
                     vault.deposit(sender.uniqueId,amount)
-
                     sendMsg(sender,"§a§l出金できました！")
+                }
 
-
-                })
                 return true
             }
 
