@@ -9,11 +9,10 @@ import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
+import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.Semaphore
-import java.util.concurrent.locks.ReentrantLock
 import kotlin.math.floor
 
 object Bank {
@@ -24,21 +23,21 @@ object Bank {
     //////////////////////////////////
     //口座を持っているかどうか
     //////////////////////////////////
-    @Synchronized
-    fun hasAccount(uuid:UUID):Boolean{
+    private fun hasAccount(uuid:UUID):Boolean{
 
+        val sql = MySQLManager(plugin,"Man10Bank")
 
-        val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid'")?:return false
+        val rs = sql.query("SELECT balance FROM user_bank WHERE uuid='$uuid'")?:return false
 
         if (rs.next()) {
 
-            mysql.close()
+            sql.close()
             rs.close()
 
             return true
         }
 
-        mysql.close()
+        sql.close()
         rs.close()
 
         return false
@@ -48,14 +47,15 @@ object Bank {
     /////////////////////////////////////
     //新規口座作成 既に持っていたら作らない
     /////////////////////////////////////
-    @Synchronized
     fun createAccount(uuid: UUID):Boolean{
+
+        val sql = MySQLManager(plugin,"Man10Bank")
 
         if (hasAccount(uuid))return false
 
         val p = Bukkit.getOfflinePlayer(uuid)
 
-        val ret  = mysql.execute("INSERT INTO user_bank (player, uuid, balance) " +
+        val ret  = sql.execute("INSERT INTO user_bank (player, uuid, balance) " +
                 "VALUES ('${p.name}', '$uuid', 0);")
 
         if (!ret)return false
@@ -89,6 +89,24 @@ object Bank {
 
     }
 
+
+    fun setBalance(uuid:UUID,amount: Double){
+
+        val sql = MySQLManager(plugin,"Man10Bank")
+
+        if (amount <0.0)return
+
+        if (!hasAccount(uuid)){
+            createAccount(uuid)
+        }
+
+        val ret = sql.execute("update user_bank set balance=$amount where uuid='$uuid';")
+
+        if (!ret)return
+
+        addLog(uuid,plugin.name, "SetBalanceByCommand","所持金を${format(amount)}にセット", amount,true)
+    }
+
     /**
      * オフライン口座の残高を確認する
      *
@@ -98,11 +116,6 @@ object Bank {
     private fun getBalanceQueue(uuid:UUID):Pair<Double,Int>{
 
         var bal = 0.0
-
-        if (!hasAccount(uuid)){
-            createAccount(uuid)
-            return Pair(bal,1)
-        }
 
         val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid';")?:return Pair(bal,2)
 
@@ -118,21 +131,6 @@ object Bank {
         mysql.close()
 
         return Pair(bal,0)
-    }
-
-    @Synchronized
-    fun setBalance(uuid:UUID,amount: Double){
-        if (amount <0.0)return
-
-        if (!hasAccount(uuid)){
-            createAccount(uuid)
-        }
-
-        val ret = mysql.execute("update user_bank set balance=$amount where uuid='$uuid';")
-
-        if (!ret)return
-
-        addLog(uuid,plugin.name, "SetBalanceByCommand","所持金を${format(amount)}にセット", amount,true)
     }
 
     /**
@@ -151,10 +149,6 @@ object Bank {
             Bukkit.getLogger().warning("[入金エラー]Man10Bankが閉じています ユーザー:$pName")
             return 1
         }
-
-//        if (!hasAccount(uuid)){
-//            createAccount(uuid)
-//        }
 
         val finalAmount = floor(amount)
 
@@ -197,7 +191,7 @@ object Bank {
 //        if (!hasAccount(uuid))return false
 
         val finalAmount = floor(amount)
-        val balance = getBalance(uuid)
+        val balance = getBalanceQueue(uuid).first
 
         if (balance < finalAmount){
             Bukkit.getLogger().warning("[出金エラー]口座のお金が足りませんでした 残高:${balance} 出金額:${finalAmount} ユーザー:$pName")
@@ -229,18 +223,20 @@ object Bank {
      */
     fun getUUID(player:String):UUID?{
 
-        val rs = mysql.query("SELECT uuid FROM user_bank WHERE player='$player';")?:return null
+        val sql = MySQLManager(plugin,"Man10Bank")
+
+        val rs = sql.query("SELECT uuid FROM user_bank WHERE player='$player';")?:return null
 
         if (rs.next()){
             val uuid = UUID.fromString(rs.getString("uuid"))
 
-            mysql.close()
+            sql.close()
             rs.close()
 
             return uuid
         }
 
-        mysql.close()
+        sql.close()
         rs.close()
 
         return null
@@ -252,11 +248,13 @@ object Bank {
     }
 
 
-    private val simpleDateFormat = SimpleDateFormat("yyyy-MM/dd HH:mm")
+    private val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm")
 
     fun getBankLog(p:Player,page:Int): MutableList<BankLog> {
 
-        val rs = mysql.query("select * from money_log where uuid='${p.uniqueId}' order by id desc Limit 10 offset ${(page)*10};")?:return Collections.emptyList()
+        val sql = MySQLManager(plugin,"Man10Bank")
+
+        val rs = sql.query("select * from money_log where uuid='${p.uniqueId}' order by id desc Limit 10 offset ${(page)*10};")?:return Collections.emptyList()
 
         val list = mutableListOf<BankLog>()
 
@@ -272,7 +270,7 @@ object Bank {
             list.add(data)
         }
 
-        mysql.close()
+        sql.close()
         rs.close()
 
         return list
@@ -316,80 +314,87 @@ object Bank {
 
             var _code = -1
             var _amount = 1.0
-            val _message = ""
+            var _message = ""
 
-            when(split[0]){
+            try {
+                when(split[0]){
 
-                "deposit" ->{
+                    "deposit" ->{
 
-                    val amount = split[2].toDouble()
-                    val pluginName = split[3]
-                    val note = split[4]
-                    val displayNote = split[5]
+                        val amount = split[2].toDouble()
+                        val pluginName = split[3]
+                        val note = split[4]
+                        val displayNote = split[5]
 
-                    _code = depositQueue(uuid,amount,pluginName,note,displayNote)
+                        _code = depositQueue(uuid,amount,pluginName,note,displayNote)
+                    }
+
+                    "withdraw" ->{
+                        val amount = split[2].toDouble()
+                        val pluginName = split[3]
+                        val note = split[4]
+                        val displayNote = split[5]
+
+                        _code = withdrawQueue(uuid,amount,pluginName,note,displayNote)
+
+                    }
+
+                    "get" -> {
+                        val ret  = getBalanceQueue(uuid)
+                        _amount = ret.first
+                        _code = ret.second
+                    }
+
                 }
 
-                "withdraw" ->{
-                    val amount = split[2].toDouble()
-                    val pluginName = split[3]
-                    val note = split[4]
-                    val displayNote = split[5]
-
-                    _code = withdrawQueue(uuid,amount,pluginName,note,displayNote)
-
-                }
-
-                "get" -> {
-                    val ret  = getBalanceQueue(uuid)
-                    _amount = ret.first
-                    _code = ret.second
-                }
-
+            }catch (e:Exception){
+                _message = e.message.toString()
+                Bukkit.getLogger().info("Man10BankQueueエラー:${_message}")
+            }finally {
+                bankTransaction.second.onTransactionResult(_code,_amount,_message)
             }
-
-            bankTransaction.second.onTransactionResult(_code,_amount,_message)
-
 
         }
     }
 
     private fun addTransactionQueue(transaction: String, transactionCallBack: BankTransaction):BankTransaction{
+        Bukkit.getLogger().info("addTransactionQueue")
         bankQueue.add(Pair(transaction,transactionCallBack))
         return transactionCallBack
     }
 
-    private fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?,callBack:BankTransaction){
+    /**
+     * 同期で入金する処理
+     */
+    fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?): Triple<Int, Double, String> {
+
+        var ret = Triple(-1,0.0,"")
 
         val rNote = note.replace(";","")
         val rDisplayNote = displayNote?.replace(";","")?:rNote
 
         val transaction = "deposit;${uuid};${amount};${plugin.name};${rNote};${rDisplayNote}"
 
+        val lock = Lock()
+
         addTransactionQueue(transaction) { _code: Int, _amount: Double, _message: String ->
-            callBack.onTransactionResult(_code,_amount,_message)
-        }
-
-    }
-
-    /**
-     * 同期で入金する処理
-     */
-    @Synchronized
-    fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?): Triple<Int, Double, String> {
-
-        var ret = Triple(-1,0.0,"")
-
-        //TODO:排他処理を作る
-
-        deposit(uuid, amount, plugin, note, displayNote) {  _code: Int, _amount: Double, _message: String ->
             ret = Triple(_code,_amount,_message)
+            lock.unlock()
         }
+
+        lock.lock()
 
         return ret
     }
 
-    private fun withdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?,callBack:BankTransaction){
+    /**
+     * 同期で出金する処理
+     */
+    fun withdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?): Triple<Int, Double, String> {
+
+        var ret = Triple(-1,0.0,"")
+
+        val lock = Lock()
 
         val rNote = note.replace(";","")
         val rDisplayNote = displayNote?.replace(";","")?:rNote
@@ -397,24 +402,11 @@ object Bank {
         val transaction = "withdraw;${uuid};${amount};${plugin.name};${rNote};${rDisplayNote}"
 
         addTransactionQueue(transaction) { _code: Int, _amount: Double, _message: String ->
-            callBack.onTransactionResult(_code,_amount,_message)
-        }
-
-    }
-
-    /**
-     * 同期で出金する処理
-     */
-    @Synchronized
-    fun withdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?): Triple<Int, Double, String> {
-
-        var ret = Triple(-1,0.0,"")
-
-        //TODO:排他処理を作る
-
-        withdraw(uuid,amount,plugin,note,displayNote) {  _code: Int, _amount: Double, _message: String ->
             ret = Triple(_code,_amount,_message)
+            lock.unlock()
         }
+
+        lock.lock()
 
         return ret
     }
@@ -422,21 +414,19 @@ object Bank {
     /**
      * 金額を取得する処理
      */
-    @Synchronized
     fun getBalance(uuid: UUID):Double{
         var amount = -1.0
 
         val transaction = "get;${uuid}"
 
-        //TODO:排他処理を作る
+        val lock = Lock()
 
         addTransactionQueue(transaction) { _code: Int, _amount: Double, _message: String ->
             amount = _amount
-            Bukkit.getLogger().info("2")
+            lock.unlock()
         }
 
-        Bukkit.getLogger().info("1")
-        Bukkit.getLogger().info("3")
+        lock.lock()
         return amount
 
     }
@@ -448,6 +438,19 @@ object Bank {
         var note = ""
         var dateFormat = ""
         var plugin = ""
+
+    }
+
+    class Lock{
+
+        private var isLock = false
+
+        fun lock(){
+            isLock = true
+            while (isLock){ Thread.sleep(1) }
+        }
+
+        fun unlock(){ isLock = false }
 
     }
 
