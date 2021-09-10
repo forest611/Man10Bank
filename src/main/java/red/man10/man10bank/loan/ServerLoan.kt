@@ -72,6 +72,8 @@ object ServerLoan {
         rs.close()
         mysql.close()
 
+        if (list.isEmpty()){ return 0.0 }
+
         val rs2 = mysql.query("select count(*) from estate_history_tbl where uuid='${p.uniqueId}';") ?: return 0.0
 
         val records = if (rs2.next()) rs2.getInt(1) else 0
