@@ -318,8 +318,6 @@ object Bank {
             var amount = 1.0
             var errorMessage = ""
 
-            Thread.sleep(5000)
-
             try {
                 when(split[0]){
 
@@ -383,7 +381,6 @@ object Bank {
     /**
      * 同期で入金する処理
      */
-    @Synchronized
     fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?): Triple<Int, Double, String> {
 
         var ret = Triple(-1,0.0,"")
@@ -414,7 +411,6 @@ object Bank {
     /**
      * 同期で出金する処理
      */
-    @Synchronized
     fun withdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?): Triple<Int, Double, String> {
 
         var ret = Triple(-1,0.0,"")
@@ -445,7 +441,6 @@ object Bank {
     /**
      * 金額を取得する処理
      */
-    @Synchronized
     fun getBalance(uuid: UUID):Double{
         var amount = -1.0
 
@@ -478,11 +473,13 @@ object Bank {
         private  var isLock = false
 
         fun lock(){
-            isLock = true
+            synchronized(this){ isLock = true }
             while (isLock){ Thread.sleep(1) }
         }
 
-        fun unlock(){ isLock = false }
+        fun unlock(){
+            synchronized(this){ isLock = false }
+        }
 
     }
 
