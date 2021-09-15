@@ -400,7 +400,11 @@ object ServerLoan {
 
                     val p = Bukkit.getOfflinePlayer(uuid)
 
-                    val diffDay = round((now.time.time - date.time).toDouble() / (1000*60*60*24)).toInt()
+//                    val diffDay = round((now.time.time - date.time).toDouble() / (1000*60*60*24)).toInt()
+                    val calDate = Calendar.getInstance()
+                    calDate.time = date
+
+                    val diffDay = now.get(Calendar.DAY_OF_YEAR) - calDate.get(Calendar.DAY_OF_YEAR)
 
                     if (diffDay == 0 || diffDay%frequency!=0)continue
 
