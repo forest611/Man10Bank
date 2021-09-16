@@ -54,3 +54,6 @@ commands:
   mrevo:
     default: op
     description: server loan system
+  ballog:
+    default: op
+    description: bank log

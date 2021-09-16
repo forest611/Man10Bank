@@ -6,16 +6,23 @@ import org.bukkit.entity.Player
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.format
+import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.MySQLManager
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
 import red.man10.man10bank.cheque.Cheque
+import red.man10.man10bank.history.EstateData.historyThread
 import red.man10.man10bank.loan.ServerLoan
 import red.man10.man10score.ScoreDatabase
 import java.util.*
 
 object EstateData {
+
+    init {
+        Bukkit.getLogger().info("StartHistoryThread")
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { historyThread() })
+    }
 
     private val mysql = MySQLManager(Man10Bank.plugin,"Man10BankEstateHistory")
 

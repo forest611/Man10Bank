@@ -20,6 +20,11 @@ object Bank {
     private lateinit var mysql : MySQLManager
     private var bankQueue = LinkedBlockingQueue<Pair<String,BankTransaction>>()
 
+    init {
+        Bukkit.getLogger().info("StartBankQueue")
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { bankQueue() })
+    }
+
     //////////////////////////////////
     //口座を持っているかどうか
     //////////////////////////////////

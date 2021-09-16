@@ -5,6 +5,7 @@ import net.kyori.adventure.text.event.ClickEvent
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import red.man10.man10bank.Bank
+import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.prefix
@@ -37,6 +38,12 @@ object ServerLoan {
 
     private const val standardScore = 200
 
+    init {
+        Bukkit.getLogger().info("StartPaymentThread")
+        if (Man10Bank.paymentThread){
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { paymentThread() })
+        }
+    }
 
     fun checkServerLoan(p: Player){
 

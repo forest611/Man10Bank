@@ -82,13 +82,13 @@ class Man10Bank : JavaPlugin(),Listener {
         getCommand("mlend")!!.setExecutor(LoanCommand())
         getCommand("mrevo")!!.setExecutor(ServerLoanCommand())
 
-        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { Bank.bankQueue() })
+//        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { Bank.bankQueue() })
 
-        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { EstateData.historyThread() })
+//        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { EstateData.historyThread() })
 
-        if (paymentThread){
-            Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {ServerLoan.paymentThread()})
-        }
+//        if (paymentThread){
+//            Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {ServerLoan.paymentThread()})
+//        }
 
     }
 
@@ -712,6 +712,40 @@ class Man10Bank : JavaPlugin(),Listener {
                 return true
 
             }
+
+            "ballog" -> {
+
+                if (sender !is Player)return false
+
+                val page = if (args.isNotEmpty()) args[0].toIntOrNull()?:0 else 0
+
+                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
+                    val list = Bank.getBankLog(sender,page)
+
+                    sendMsg(sender,"§d§l===========銀行の履歴==========")
+                    for (data in list){
+
+                        val tag = if (data.isDeposit) "§a[入金]" else "§c[出金]"
+                        sendMsg(sender,"$tag §e${data.dateFormat} §e§l${format(data.amount)} §e${data.note}")
+
+                    }
+
+                    val previous = if (page!=0) {
+                        text("${prefix}§b§l<<==前のページ ").clickEvent(ClickEvent.runCommand("/ballog ${page-1}"))
+                    }else text(prefix)
+
+                    val next = if (list.size == 10){
+                        text("§b§l次のページ==>>").clickEvent(ClickEvent.runCommand("/ballog ${page+1}"))
+                    }else text("")
+
+                    sender.sendMessage(previous.append(next))
+
+                })
+
+                return true
+
+
+            }
         }
 
         return true
@@ -769,6 +803,7 @@ class Man10Bank : JavaPlugin(),Listener {
         val withdraw = text("$prefix §c[電子マネーを銀行から出す]  §n/withdraw").clickEvent(ClickEvent.suggestCommand("/withdraw "))
         val revo = text("$prefix §e[Man10リボを使う]  §n/mrevo borrow").clickEvent(ClickEvent.suggestCommand("/mrevo borrow "))
         val ranking = text("$prefix §6[お金持ちランキング]  §n/mbaltop").clickEvent(ClickEvent.runCommand("/mbaltop"))
+        val log = text("$prefix §7[銀行の履歴]  §n/ballog").clickEvent(ClickEvent.runCommand("/ballog"))
 
         sender.sendMessage(pay)
         sender.sendMessage(atm)
@@ -776,6 +811,7 @@ class Man10Bank : JavaPlugin(),Listener {
         sender.sendMessage(withdraw)
         sender.sendMessage(revo)
         sender.sendMessage(ranking)
+        sender.sendMessage(log)
 
     }
 
