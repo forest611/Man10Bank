@@ -761,13 +761,13 @@ class Man10Bank : JavaPlugin(),Listener {
     private fun showBalance(sender:Player,p:Player){
 
         //時差による表示ずれ対策で、一旦所持金を呼び出す
-        val bankAmount = Bank.getBalance(p.uniqueId)
 
         val loan = ServerLoan.getBorrowingAmount(p)
         val payment = ServerLoan.getPaymentAmount(p)
         val nextDate = ServerLoan.getNextPayTime(p)
         val score = ScoreDatabase.getScore(p.uniqueId)
 
+        val bankAmount = Bank.getBalance(p.uniqueId)
         var cash = -1.0
         var estate = -1.0
 
@@ -777,8 +777,8 @@ class Man10Bank : JavaPlugin(),Listener {
         }
         sendMsg(sender,"§e§l==========${p.name}のお金==========")
         sendMsg(sender," §b§l電子マネー:  §e§l${format(vault.getBalance(p.uniqueId))}円")
-        sendMsg(sender," §b§l現金:  §e§l${format(cash)}円")
         sendMsg(sender," §b§l銀行:  §e§l${format(bankAmount)}円")
+        if (cash>0.0){ sendMsg(sender," §b§l現金:  §e§l${format(cash)}円") }
         if (estate>0.0){ sendMsg(sender," §b§lその他の資産:  §e§l${format(estate)}円") }
 
         sendMsg(sender," §b§lスコア: §a§l${format(score.toDouble())}")
