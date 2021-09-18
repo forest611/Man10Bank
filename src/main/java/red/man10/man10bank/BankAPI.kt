@@ -43,15 +43,15 @@ class BankAPI(private val plugin : JavaPlugin) {
         Bank.deposit(uuid,amount, plugin, note,note)
     }
 
-    fun asyncDeposit(uuid: UUID,amount: Double,note: String,displayNote: String,callback:Bank.BankTransaction){
+    fun asyncDeposit(uuid: UUID,amount: Double,note: String,displayNote: String,callback:Bank.ResultTransaction){
         Bank.asyncDeposit(uuid, amount, plugin, note, displayNote, callback)
     }
 
-    fun asyncWithdraw(uuid: UUID,amount: Double,note: String,displayNote: String,callback:Bank.BankTransaction){
+    fun asyncWithdraw(uuid: UUID,amount: Double,note: String,displayNote: String,callback:Bank.ResultTransaction){
         Bank.asyncWithdraw(uuid, amount, plugin, note, displayNote, callback)
     }
 
-    fun asyncGetBalance(uuid:UUID,callback: Bank.BankTransaction){
+    fun asyncGetBalance(uuid:UUID,callback: Bank.ResultTransaction){
         Bank.asyncGetBalance(uuid, callback)
     }
 
