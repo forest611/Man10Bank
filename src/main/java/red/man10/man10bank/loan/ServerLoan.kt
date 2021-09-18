@@ -336,7 +336,6 @@ object ServerLoan {
         val next = Calendar.getInstance()
         next.time = last
 
-        Bukkit.getLogger().info("diff:${diff} add${((diff/ frequency)+1)* frequency}")
         next.add(Calendar.DAY_OF_MONTH,((diff/ frequency)+1)* frequency)
 
         return Pair(next.time,isLate)
