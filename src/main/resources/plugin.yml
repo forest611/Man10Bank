@@ -6,8 +6,9 @@ softdepend:
   - Man10CommonLibs
   - Man10Mail
   - Essentials
+  - Man10Score
 main: red.man10.man10bank.Man10Bank
-api-version: 1.16
+api-version: 1.17
 commands:
   mbal:
     default: op

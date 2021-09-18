@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
 import kotlin.math.round
 
+
 object ServerLoan {
 
     private val mysql = MySQLManager(plugin,"Man10ServerLoan")
@@ -321,24 +322,24 @@ object ServerLoan {
             return null
         }
 
-        val cal = Calendar.getInstance()
-        cal.time = rs.getTimestamp("last_pay_date")
+        val last = rs.getTimestamp("last_pay_date")
 
         rs.close()
         mysql.close()
 
         val now = Date()
 
-        var isLate = false
-        var i = 0
-        do {
-            i++
-            cal.add(Calendar.DAY_OF_MONTH, frequency)
-        } while (now.after(cal.time))
+        val diff = dateDiff(last,now)
 
-        if (i > 1)isLate = true
+        val isLate = diff>frequency
 
-        return Pair(cal.time,isLate)
+        val next = Calendar.getInstance()
+        next.time = last
+
+        Bukkit.getLogger().info("diff:${diff} add${((diff/ frequency)+1)* frequency}")
+        next.add(Calendar.DAY_OF_MONTH,((diff/ frequency)+1)* frequency)
+
+        return Pair(next.time,isLate)
     }
 
     fun addLastPayTime(who:String,hour:Int):Int{
@@ -378,7 +379,7 @@ object ServerLoan {
 
 
     //支払い処理
-    fun paymentThread(){
+    private fun paymentThread(){
 
         val now = Calendar.getInstance()
 
@@ -390,71 +391,11 @@ object ServerLoan {
 
             if (nowValue != lastPaymentCycle){
 
-                Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理開始")) })
-
                 lastPaymentCycle = nowValue
                 plugin.config.set("lastPaymentCycle",nowValue)
                 plugin.saveConfig()
 
-                val rs = mysql.query("select * from server_loan_tbl where borrow_amount != 0")?:continue
-
-                while (rs.next()){
-
-                    val uuid = UUID.fromString(rs.getString("uuid"))
-                    val borrowing = rs.getDouble("borrow_amount")
-                    val payment = rs.getDouble("payment_amount")
-                    val date = rs.getTimestamp("last_pay_date")
-
-                    val p = Bukkit.getOfflinePlayer(uuid)
-
-//                    val diffDay = round((now.time.time - date.time).toDouble() / (1000*60*60*24)).toInt()
-                    val calDate = Calendar.getInstance()
-                    calDate.time = date
-
-                    val diffDay = now.get(Calendar.DAY_OF_YEAR) - calDate.get(Calendar.DAY_OF_YEAR)
-
-                    if (diffDay == 0 || diffDay%frequency!=0)continue
-
-                    //利息
-                    val interest = borrowing* revolvingFee* diffDay
-                    //残った利用額
-                    var finalAmount = borrowing-(payment - interest)
-
-                    if (finalAmount <0){ finalAmount = 0.0 }
-
-                    if (Bank.withdraw(uuid,payment, plugin,"Man10Revolving","Man10リボの支払い").first==0){
-
-                        mysql.execute("UPDATE server_loan_tbl set borrow_amount=${floor(finalAmount)},last_pay_date=now()" +
-                                " where uuid='${uuid}'")
-
-                        if (p.isOnline){
-                            sendMsg(p.player!!,"§a§lMan10リボの支払いができました")
-                            if (finalAmount == 0.0){ sendMsg(p.player!!,"§a§lMan10リボの利用額が0円になりました！") }
-                        }
-
-                        continue
-                    }
-
-                    if (p.isOnline){
-                        sendMsg(p.player!!,"§c§lMan10リボの支払いに失敗してスコアが減りました")
-                    }
-
-                    val score = ScoreDatabase.getScore(uuid)
-                    val name = Bukkit.getOfflinePlayer(uuid).name!!
-
-                    if (score> standardScore){
-                        giveScore(name,-(score/2),"まんじゅうリボの未払い",Bukkit.getConsoleSender())
-                    }else{
-                        giveScore(name,-100,"まんじゅうリボの未払い",Bukkit.getConsoleSender())
-                    }
-
-                }
-
-                rs.close()
-                mysql.close()
-
-
-                Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理終了")) })
+                batch()
             }
 
             Thread.sleep(60000)
@@ -463,4 +404,80 @@ object ServerLoan {
 
     }
 
+    private fun batch(){
+
+        val now = Date()
+
+        Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理開始")) })
+
+        val rs = mysql.query("select * from server_loan_tbl where borrow_amount != 0")
+
+        if (rs == null){
+            mysql.close()
+            return
+        }
+
+        while (rs.next()){
+
+            val uuid = UUID.fromString(rs.getString("uuid"))
+            val borrowing = rs.getDouble("borrow_amount")
+            val payment = rs.getDouble("payment_amount")
+            val date = rs.getTimestamp("last_pay_date")
+
+            val p = Bukkit.getOfflinePlayer(uuid)
+
+            val diffDay = dateDiff(date,now)
+
+            if (diffDay == 0 || diffDay%frequency!=0)continue
+
+            //利息
+            val interest = borrowing* revolvingFee * diffDay
+            //残った利用額
+            var finalAmount = borrowing-(payment - interest)
+
+            if (finalAmount <0){ finalAmount = 0.0 }
+
+            if (Bank.withdraw(uuid,payment, plugin,"Man10Revolving","Man10リボの支払い").first==0){
+
+                mysql.execute("UPDATE server_loan_tbl set borrow_amount=${floor(finalAmount)},last_pay_date=now()" +
+                        " where uuid='${uuid}'")
+
+                if (p.isOnline){
+                    sendMsg(p.player!!,"§a§lMan10リボの支払いができました")
+                    if (finalAmount == 0.0){ sendMsg(p.player!!,"§a§lMan10リボの利用額が0円になりました！") }
+                }
+
+                continue
+            }
+
+            if (p.isOnline){
+                sendMsg(p.player!!,"§c§lMan10リボの支払いに失敗してスコアが減りました")
+            }
+
+            val score = ScoreDatabase.getScore(uuid)
+            val name = Bukkit.getOfflinePlayer(uuid).name!!
+
+            if (score> standardScore){
+                giveScore(name,-(score/2),"まんじゅうリボの未払い",Bukkit.getConsoleSender())
+            }else{
+                giveScore(name,-100,"まんじゅうリボの未払い",Bukkit.getConsoleSender())
+            }
+
+        }
+
+        rs.close()
+        mysql.close()
+
+
+        Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理終了")) })
+
+    }
+
+    private fun dateDiff(from:Date, to:Date): Int {
+        // 差分の日数を計算する
+        val dateTimeTo = to.time
+        val dateTimeFrom = from.time
+        val dayDiff = (dateTimeTo - dateTimeFrom) / (1000 * 60 * 60 * 24)
+        return dayDiff.toInt()
+    }
 }
