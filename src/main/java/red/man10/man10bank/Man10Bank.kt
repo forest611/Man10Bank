@@ -787,8 +787,8 @@ class Man10Bank : JavaPlugin(),Listener {
             sendMsg(sender," §b§lまんじゅうリボ:  §c§l${format(loan)}円")
             sendMsg(sender," §b§l支払額:  §c§l${format(payment)}円")
             sendMsg(sender," §b§l次の支払日: §c§l${SimpleDateFormat("yyyy-MM-dd").format(nextDate.first)}")
-            if (nextDate.second){
-                sendMsg(sender," §c§l前回の引き落としができませんでした！ 銀行にお金を入れて支払いができないと、Jailされる可能性があります！")
+            if (nextDate.second>0){
+                sendMsg(sender," §c§lMan10リボの支払いに失敗しました(失敗回数:${nextDate.second})。支払いに失敗するとスコアの減少やJailがあります")
             }
         }
 

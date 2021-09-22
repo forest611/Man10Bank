@@ -312,9 +312,9 @@ object ServerLoan {
 
     }
 
-    fun getNextPayTime(p:Player): Pair<Date,Boolean>? {
+    fun getNextPayTime(p:Player): Pair<Date,Int>? {
 
-        val rs = mysql.query("select last_pay_date from server_loan_tbl where uuid='${p.uniqueId}';")?:return null
+        val rs = mysql.query("select last_pay_date,failed_payment from server_loan_tbl where uuid='${p.uniqueId}';")?:return null
 
         if (!rs.next()){
             mysql.close()
@@ -323,22 +323,17 @@ object ServerLoan {
         }
 
         val last = rs.getTimestamp("last_pay_date")
+        val failedCount = rs.getInt("failed_payment")
 
         rs.close()
         mysql.close()
 
-        val now = Date()
-
-        val diff = dateDiff(last,now)
-
-        val isLate = diff>frequency
-
         val next = Calendar.getInstance()
         next.time = last
 
-        next.add(Calendar.DAY_OF_MONTH,((diff/ frequency)+1)* frequency)
+        next.add(Calendar.DAY_OF_MONTH,frequency)
 
-        return Pair(next.time,isLate)
+        return Pair(next.time,failedCount)
     }
 
     fun addLastPayTime(who:String,hour:Int):Int{
@@ -409,10 +404,12 @@ object ServerLoan {
 
         Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理開始")) })
 
-        val rs = mysql.query("select * from server_loan_tbl where borrow_amount != 0")
+        val sql = MySQLManager(plugin,"Man10ServerLoan")
+
+        val rs = sql.query("select * from server_loan_tbl where borrow_amount != 0")
 
         if (rs == null){
-            mysql.close()
+            sql.close()
             return
         }
 
@@ -427,7 +424,7 @@ object ServerLoan {
 
             val diffDay = dateDiff(date,now)
 
-            if (diffDay == 0 || diffDay%frequency!=0)continue
+            if (diffDay<frequency)continue
 
             //利息
             val interest = borrowing* revolvingFee * diffDay
@@ -438,19 +435,22 @@ object ServerLoan {
 
             if (Bank.withdraw(uuid,payment, plugin,"Man10Revolving","Man10リボの支払い").first==0){
 
-                mysql.execute("UPDATE server_loan_tbl set borrow_amount=${floor(finalAmount)},last_pay_date=now()" +
+                sql.execute("UPDATE server_loan_tbl set borrow_amount=${floor(finalAmount)},last_pay_date=now()" +
                         " where uuid='${uuid}'")
 
                 if (p.isOnline){
                     sendMsg(p.player!!,"§a§lMan10リボの支払いができました")
                     if (finalAmount == 0.0){ sendMsg(p.player!!,"§a§lMan10リボの利用額が0円になりました！") }
                 }
-
                 continue
             }
 
+            sql.execute("UPDATE server_loan_tbl set borrow_amount=${floor(borrowing+interest)},last_pay_date=now()," +
+                    "failed_payment=failed_payment+1 where uuid='${uuid}'")
+
             if (p.isOnline){
-                sendMsg(p.player!!,"§c§lMan10リボの支払いに失敗してスコアが減りました")
+                sendMsg(p.player!!,"§c§lMan10リボの支払いに失敗！スコアが減りました")
+                sendMsg(p.player!!,"§c§lスコアが減り、支払えなかった利息が追加されました")
             }
 
             val score = ScoreDatabase.getScore(uuid)
@@ -465,7 +465,7 @@ object ServerLoan {
         }
 
         rs.close()
-        mysql.close()
+        sql.close()
 
 
         Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理終了")) })
