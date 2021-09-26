@@ -1,6 +1,6 @@
 package red.man10.man10bank.loan
 
-import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent.runCommand
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
@@ -15,7 +15,6 @@ import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import java.text.SimpleDateFormat
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
 
@@ -35,7 +34,7 @@ class LoanCommand : CommandExecutor{
         if (args.size!=4 && args.size != 1) {
 
             sendMsg(sender,"§a/mlend <プレイヤー> <金額> <期間(日)> <金利(0.0〜${loanRate})>")
-            sendMsg(sender,"§a金額の10%を手数料としていただきます")
+            sendMsg(sender,"§a金額の${loanFee*100}%を手数料としていただきます")
             return true
 
         }
@@ -85,7 +84,7 @@ class LoanCommand : CommandExecutor{
                 if (id == -1){
 
                     sendMsg(sender,"§c§l相手の銀行のお金が足りませんでした")
-                    sendMsg(cache.lend,"§c§l銀行のお金が足りません！${format(cache.amount* loanFee)}円入れてください！")
+                    sendMsg(cache.lend,"§c§l銀行のお金が足りません！${format(cache.amount+(cache.amount* loanFee))}円入れてください！")
                     return@Runnable
 
                 }
@@ -153,23 +152,18 @@ class LoanCommand : CommandExecutor{
             day = args[2].toInt()
             rate = args[3].toDouble()
 
-            if (rate > loanRate){
-                sendMsg(sender,"§c金利は${loanRate}以下にしてください！")
+            if (rate > loanRate || rate<0.0){
+                sendMsg(sender,"§c金利は0以上、${loanRate}以下にしてください！")
                 return true
             }
 
-            if (amount < 1 || day < 0 || rate<0.0){
-                sendMsg(sender,"§c数値に問題があります")
+            if (day>365 || day<=0){
+                sendMsg(sender,"§c返済期限は１日以上、一年以内にしてください！")
                 return true
             }
 
-            if (day>365){
-                sendMsg(sender,"§c返済期限は一年以内にしてください！")
-                return true
-            }
-
-            if (amount>Man10Bank.loanMax){
-                sendMsg(sender,"§貸出金額は${format(Man10Bank.loanMax)}円以下に設定してください！")
+            if (amount>Man10Bank.loanMax || amount < 1){
+                sendMsg(sender,"§貸出金額は1円以上、${format(Man10Bank.loanMax)}円以下に設定してください！")
                 return true
             }
 
@@ -178,19 +172,19 @@ class LoanCommand : CommandExecutor{
             return true
         }
 
-        val allowOrDeny = Component.text("${prefix}§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow"))
-            .append(Component.text("§c§l§n[借りない]").clickEvent(runCommand("/mlend deny")))
+        val allowOrDeny = text("${prefix}§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow"))
+            .append(text("§c§l§n[借りない]").clickEvent(runCommand("/mlend deny")))
 
-        val sdf = SimpleDateFormat("yyyy/MM/dd")
+        val sdf = SimpleDateFormat("yyyy-MM-dd")
 
         sendMsg(sender,"§a§l借金の提案を相手に提示しました")
 
         sendMsg(borrow,"§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
         sendMsg(borrow,"§e§kXX§b§l借金の提案§e§kXX")
-        sendMsg(borrow,"§e提案者:${sender.name}")
+        sendMsg(borrow,"§e貸し出す人:${sender.name}")
         sendMsg(borrow,"§e貸し出される金額:${format(amount)}")
         sendMsg(borrow,"§e返す金額:${format(LoanData.calcRate(amount,day,rate))}")
-        sendMsg(borrow,"§e返済日:$${sdf.format(LoanData.calcDate(day))}")
+        sendMsg(borrow,"§e返す日:$${sdf.format(LoanData.calcDate(day))}")
         borrow.sendMessage(allowOrDeny)
         sendMsg(borrow,"§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
 

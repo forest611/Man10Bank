@@ -82,14 +82,6 @@ class Man10Bank : JavaPlugin(),Listener {
         getCommand("mlend")!!.setExecutor(LoanCommand())
         getCommand("mrevo")!!.setExecutor(ServerLoanCommand())
 
-//        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { Bank.bankQueue() })
-
-//        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { EstateData.historyThread() })
-
-//        if (paymentThread){
-//            Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {ServerLoan.paymentThread()})
-//        }
-
     }
 
     override fun onDisable() {
@@ -102,9 +94,10 @@ class Man10Bank : JavaPlugin(),Listener {
 
         reloadConfig()
 
-        loanFee = config.getDouble("loanfee",1.1)
-        loanMax = config.getDouble("loanmax",10000000.0)
-        loanRate = config.getDouble("loanrate",1.0)
+        loanFee = config.getDouble("mlendFee",0.1)
+        loanMax = config.getDouble("mlendMax",10000000.0)
+        loanRate = config.getDouble("mlendRate",1.0)
+
         loggingServerHistory = config.getBoolean("loggingServerHistory",false)
         paymentThread = config.getBoolean("paymentThread",false)
 
@@ -828,9 +821,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
     @EventHandler (priority = EventPriority.LOWEST)
     fun logout(e:PlayerQuitEvent){
-        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable  {
-            EstateData.saveCurrentEstate(e.player)
-        })
+        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { EstateData.saveCurrentEstate(e.player) })
     }
 
     @EventHandler
@@ -840,6 +831,6 @@ class Man10Bank : JavaPlugin(),Listener {
 
         val p = e.player as Player
 
-        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable  { EstateData.saveCurrentEstate(p) })
+        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { EstateData.saveCurrentEstate(p) })
     }
 }

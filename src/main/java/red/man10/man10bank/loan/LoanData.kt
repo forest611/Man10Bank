@@ -21,15 +21,15 @@ class LoanData {
 
 
     lateinit var paybackDate : Date
-    lateinit var borrow: UUID
-    var nowAmount : Double = 0.0
-    var id : Int = 0
+    private lateinit var borrow: UUID
+    private var nowAmount : Double = 0.0
+    private var id : Int = 0
 
     private val mysql = MySQLManager(plugin,"Man10Loan")
 
     fun create(lend:Player, borrow: Player, borrowedAmount : Double, rate:Double, paybackDay:Int):Int{
 
-        if (Bank.withdraw(lend.uniqueId, (borrowedAmount * Man10Bank.loanFee), plugin,"LoanCreate","借金の貸し出し").first!=0)return -1
+        if (Bank.withdraw(lend.uniqueId, borrowedAmount+(borrowedAmount * Man10Bank.loanFee), plugin,"LoanCreate","借金の貸し出し").first!=0)return -1
 
         Bank.deposit(borrow.uniqueId, borrowedAmount, plugin, "LoanCreate","借金の借り入れ")
 
@@ -84,7 +84,7 @@ class LoanData {
 
     }
 
-    fun save(amount:Double){
+    private fun save(amount:Double){
 
         val mysql = MySQLManager(plugin,"Man10Loan")
 
@@ -165,7 +165,7 @@ class LoanData {
         meta.lore = mutableListOf(
             "§4§l========[Man10Bank]========",
             "   §7§l債務者:  ${Bukkit.getOfflinePlayer(borrow).name}",
-            "   §8§l有効日:  ${SimpleDateFormat("yyyy/MM/dd").format(paybackDate)}",
+            "   §8§l有効日:  ${SimpleDateFormat("yyyy-MM-dd").format(paybackDate)}",
             "   §7§l支払額:  ${Man10Bank.format(nowAmount)}",
             "§4§l==========================")
 
