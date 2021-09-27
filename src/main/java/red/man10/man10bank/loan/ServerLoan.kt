@@ -22,7 +22,6 @@ import kotlin.math.round
 
 object ServerLoan {
 
-    private val mysql = MySQLManager(plugin,"Man10ServerLoan")
 
     var scoreMultiplier = 1.0//スコアの乗数
     var recordMultiplier = 1.0//レコード数の乗数
@@ -71,6 +70,8 @@ object ServerLoan {
 
         val list = mutableListOf<Double>()
 
+        val mysql = MySQLManager(plugin,"Man10ServerLoan")
+
         val rs = mysql.query("select total from estate_history_tbl where uuid='${p.uniqueId}';") ?: return 0.0
 
         while (rs.next()) {
@@ -106,6 +107,8 @@ object ServerLoan {
     }
 
     fun getBorrowingAmount(p:Player):Double{
+
+        val mysql = MySQLManager(plugin,"Man10ServerLoan")
 
         val rs = mysql.query("SELECT borrow_amount from server_loan_tbl where uuid='${p.uniqueId}'")?:return 0.0
 
@@ -201,6 +204,8 @@ object ServerLoan {
             return
         }
 
+        val mysql = MySQLManager(plugin,"Man10ServerLoan")
+
         val rs = mysql.query("SELECT payment_amount From server_loan_tbl where uuid='${p.uniqueId}'")?:return
 
         //初借金の場合
@@ -261,6 +266,8 @@ object ServerLoan {
 
         }
 
+        val mysql = MySQLManager(plugin,"Man10ServerLoan")
+
         mysql.execute("UPDATE server_loan_tbl SET payment_amount=${amount} where uuid='${p.uniqueId}'")
 
         sendMsg(p,"支払額を変更しました！")
@@ -268,6 +275,8 @@ object ServerLoan {
     }
 
     fun getPaymentAmount(p:Player):Double{
+
+        val mysql = MySQLManager(plugin,"Man10ServerLoan")
 
         val rs = mysql.query("select payment_amount from server_loan_tbl where uuid='${p.uniqueId}';")?:return 0.0
         if (!rs.next()){
@@ -283,6 +292,8 @@ object ServerLoan {
     }
 
     fun paymentAll(p:Player){
+
+        val mysql = MySQLManager(plugin,"Man10ServerLoan")
 
         val rs = mysql.query("select last_pay_date,borrow_amount from server_loan_tbl where uuid='${p.uniqueId}'")?:return
         if (!rs.next()){
@@ -314,6 +325,8 @@ object ServerLoan {
 
     fun getNextPayTime(p:Player): Pair<Date,Int>? {
 
+        val mysql = MySQLManager(plugin,"Man10ServerLoan")
+
         val rs = mysql.query("select last_pay_date,failed_payment from server_loan_tbl where uuid='${p.uniqueId}';")?:return null
 
         if (!rs.next()){
@@ -338,6 +351,8 @@ object ServerLoan {
 
     fun addLastPayTime(who:String,hour:Int):Int{
 
+        val mysql = MySQLManager(plugin,"Man10ServerLoan")
+
         if (who == "all"){
             mysql.execute("update server_loan_tbl set last_pay_date=DATE_ADD(last_pay_date,INTERVAL $hour HOUR)")
             return 0
@@ -354,6 +369,8 @@ object ServerLoan {
     fun getLoanTop(page:Int): MutableList<Pair<String, Double>> {
 
         val list = mutableListOf<Pair<String,Double>>()
+
+        val mysql = MySQLManager(plugin,"Man10ServerLoan")
 
         val rs = mysql.query("SELECT player,borrow_amount FROM server_loan_tbl order by borrow_amount desc limit 10 offset ${(page*10)-10};")?:return list
 

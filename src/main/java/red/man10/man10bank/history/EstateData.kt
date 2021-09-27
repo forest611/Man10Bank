@@ -23,14 +23,12 @@ object EstateData {
         Bukkit.getLogger().info("StartHistoryThread")
         Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { historyThread() })
     }
-
-    private val mysql = MySQLManager(Man10Bank.plugin,"Man10BankEstateHistory")
-
     //ヒストリーに追加
     private fun addEstateHistory(p:Player,struct:EstateStruct){
 
         val uuid = p.uniqueId
 
+        val mysql = MySQLManager(plugin,"Man10BankEstateHistory")
         val rs = mysql.query("SELECT * FROM estate_history_tbl WHERE uuid='${p.uniqueId}' ORDER BY date DESC LIMIT 1")
 
         val total = struct.total()
@@ -61,6 +59,8 @@ object EstateData {
     }
 
     fun createEstateData(p:Player){
+
+        val mysql = MySQLManager(plugin,"Man10BankEstateHistory")
 
         val rs = mysql.query("SELECT player from estate_tbl where uuid='${p.uniqueId}'")
 
@@ -126,6 +126,8 @@ object EstateData {
         val day = calender.get(Calendar.DAY_OF_MONTH)
         val hour = calender.get(Calendar.HOUR_OF_DAY)
 
+        val mysql = MySQLManager(plugin,"Man10BankEstateHistory")
+
         val rs1 = mysql.query("select * from server_estate_history where " +
                 "year=$year and month=$month and day=$day and hour=$hour;")
 
@@ -158,6 +160,8 @@ object EstateData {
 
     fun getBalanceTotal():EstateStruct{
 
+        val mysql = MySQLManager(plugin,"Man10BankEstateHistory")
+
         val struct = EstateStruct()
 
         val rs = mysql.query("SELECT vault,bank,cash,estate,loan from server_estate_history ORDER BY date DESC LIMIT 1")?:return struct
@@ -174,6 +178,8 @@ object EstateData {
     }
 
     fun getBalanceTop(page:Int): MutableList<Pair<String, Double>> {
+
+        val mysql = MySQLManager(plugin,"Man10BankEstateHistory")
 
         val list = mutableListOf<Pair<String,Double>>()
 
@@ -196,6 +202,9 @@ object EstateData {
     fun showOfflineUserEstate(show:Player,p:String){
 
         val uuid = Bank.getUUID(p)?:return
+
+        val mysql = MySQLManager(plugin,"Man10BankEstateHistory")
+
         val rs  = mysql.query("select * from estate_tbl where uuid='$uuid';")?:return
 
         if (!rs.next()){

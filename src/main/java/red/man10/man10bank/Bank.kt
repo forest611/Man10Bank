@@ -3,12 +3,15 @@ package red.man10.man10bank
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
+import red.man10.man10bank.Bank.IntTransaction
+import red.man10.man10bank.Bank.PairTransaction
 import red.man10.man10bank.Man10Bank.Companion.bankEnable
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
+import red.man10.man10bank.history.EstateData
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
@@ -18,6 +21,7 @@ object Bank {
 
     private lateinit var mysql : MySQLManager
     private var bankQueue = LinkedBlockingQueue<Pair<Any,ResultTransaction>>()
+    private val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm")
 
     init {
         Bukkit.getLogger().info("StartBankQueue")
@@ -29,19 +33,17 @@ object Bank {
     //////////////////////////////////
     private fun hasAccount(uuid:UUID):Boolean{
 
-        val sql = MySQLManager(plugin,"Man10Bank")
-
-        val rs = sql.query("SELECT balance FROM user_bank WHERE uuid='$uuid'")?:return false
+//        val sql = MySQLManager(plugin,"Man10Bank")
+//
+        val rs = mysql.query("SELECT balance FROM user_bank WHERE uuid='$uuid'")?:return false
 
         if (rs.next()) {
-
-            sql.close()
+            mysql.close()
             rs.close()
-
             return true
         }
 
-        sql.close()
+        mysql.close()
         rs.close()
 
         return false
@@ -51,15 +53,13 @@ object Bank {
     /////////////////////////////////////
     //新規口座作成 既に持っていたら作らない
     /////////////////////////////////////
-    fun createAccount(uuid: UUID):Boolean{
-
-        val sql = MySQLManager(plugin,"Man10Bank")
+    private fun createAccount(uuid: UUID):Boolean{
 
         if (hasAccount(uuid))return false
 
         val p = Bukkit.getOfflinePlayer(uuid)
 
-        val ret  = sql.execute("INSERT INTO user_bank (player, uuid, balance) " +
+        val ret  = mysql.execute("INSERT INTO user_bank (player, uuid, balance) " +
                 "VALUES ('${p.name}', '$uuid', 0);")
 
         if (!ret)return false
@@ -226,12 +226,9 @@ object Bank {
 
     }
 
-    fun changeName(player: Player){
+    private fun changeName(player: Player){
         mysqlQueue.add("update user_bank set player='${player.name}' where uuid='${player.uniqueId}';")
     }
-
-
-    private val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm")
 
     fun getBankLog(p:Player,page:Int): MutableList<BankLog> {
 
@@ -397,7 +394,7 @@ object Bank {
 
         val lock = Lock()
 
-        asyncGetBalance(uuid){ _: Int, _amount: Double, _: String ->
+        asyncGetBalance(uuid){ _, _amount, _ ->
             amount = _amount
             lock.unlock()
         }
@@ -406,6 +403,21 @@ object Bank {
 
         return amount
 
+    }
+
+    ////////////////////////////////
+    //ログイン時にまとめてやる処理(アカウントの作成、名前を更新、資産レコード作成など)
+    /////////////////////////////////
+    fun loginProcess(p:Player){
+        val t = IntTransaction {
+            createAccount(p.uniqueId)
+            changeName(p)
+            EstateData.createEstateData(p)
+
+            return@IntTransaction 0
+        }
+
+        addTransactionQueue(t) { _, _, _ -> }
     }
 
     class BankLog{
