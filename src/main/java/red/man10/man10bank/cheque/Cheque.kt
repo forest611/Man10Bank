@@ -65,7 +65,7 @@ object Cheque :Listener{
         chequeItem.itemMeta = meta
 
         mysql.execute("INSERT INTO cheque_tbl (player, uuid, amount, note, date, used) " +
-                "VALUES ('${p.name}', '${p.uniqueId}', ${amount}, '$note', now(),  DEFAULT);")
+                "VALUES ('${p.name}', '${p.uniqueId}', ${amount}, '${if (note !=null)MySQLManager.escapeStringForMySQL(note) else null}', now(),  DEFAULT);")
 
         p.inventory.addItem(chequeItem)
 
