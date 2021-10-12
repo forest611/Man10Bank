@@ -489,11 +489,10 @@ object ServerLoan {
 
     }
 
-    private fun dateDiff(from:Date, to:Date): Int {
+    private fun dateDiff(from: Date, to: Date): Int {
         // 差分の日数を計算する
         val dateTimeTo = to.time
         val dateTimeFrom = from.time
-        val dayDiff = (dateTimeTo - dateTimeFrom) / (1000 * 60 * 60 * 24)
-        return dayDiff.toInt()
+        return (dateTimeTo / (1000 * 60 * 60 * 24)).toInt() - (dateTimeFrom / (1000 * 60 * 60 * 24)).toInt()
     }
 }
