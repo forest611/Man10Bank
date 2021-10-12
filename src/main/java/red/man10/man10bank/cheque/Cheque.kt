@@ -84,6 +84,7 @@ object Cheque :Listener{
                 PersistentDataType.DOUBLE]?:return 0.0
     }
 
+    @Synchronized
     private fun useCheque(p:Player, item:ItemStack){
 
         val id = getChequeID(item)
