@@ -52,6 +52,9 @@ commands:
   mchequeop:
     default: op
     description: issue money
+  mcheque:
+    default: op
+    description: issue chheque
   mrevo:
     default: op
     description: server loan system

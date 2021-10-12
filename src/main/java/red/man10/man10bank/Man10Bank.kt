@@ -28,6 +28,7 @@ import red.man10.man10bank.loan.ServerLoanCommand
 import red.man10.man10score.ScoreDatabase
 import java.text.Normalizer
 import java.text.SimpleDateFormat
+import kotlin.math.floor
 
 
 class Man10Bank : JavaPlugin(),Listener {
@@ -124,6 +125,31 @@ class Man10Bank : JavaPlugin(),Listener {
                 val note = if (args.size>1)args[1] else null
 
                 Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { Cheque.createCheque(sender,amount,note,true) })
+
+                return true
+            }
+
+            "mcheque" ->{//mcheque amount <memo>
+                if (sender !is Player)return false
+//                if (!sender.hasPermission(OP))return false
+
+//                val amount = args[0].toDoubleOrNull()?:return false
+
+                if (args.isEmpty()){
+                    sendMsg(sender,"§e§l/mcheque <金額> <メモ>")
+                    return true
+                }
+
+                val amount = floor(ZenkakuToHankaku(args[0]))
+
+                if (amount<=0.0){
+                    sendMsg(sender,"金額を1以上にしてください")
+                    return true
+                }
+
+                val note = if (args.size>1)args[1] else null
+
+                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { Cheque.createCheque(sender,amount,note,false) })
 
                 return true
             }
