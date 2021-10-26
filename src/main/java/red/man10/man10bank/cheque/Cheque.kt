@@ -24,6 +24,7 @@ object Cheque :Listener{
 
     private val mysql = MySQLManager(plugin,"Man10BankCheque")
 
+    @Synchronized
     fun createCheque(p:Player, amount:Double, note:String?, isOP:Boolean){
 
         val rs = mysql.query("select id from cheque_tbl order by id desc limit 1;")?:return
@@ -99,7 +100,7 @@ object Cheque :Listener{
             return
         }
 
-        mysql.execute("update cheque_tbl set used=1 where id=$id;")
+        mysql.execute("update cheque_tbl set used=1,use_date=now(),use_player='${p.name}' where id=$id;")
 
         val amount = getChequeAmount(item)
 
