@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
+import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
@@ -120,6 +121,12 @@ object Cheque :Listener{
         if (getChequeID(item) == -1)return
 
         e.isCancelled = true
+
+        if (!e.player.hasPermission(Man10Bank.USE_CHEQUE)){
+            sendMsg(e.player,"§cあなたは小切手をお金に変える権限がありません")
+            return
+        }
+
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { useCheque(e.player,item) })
     }

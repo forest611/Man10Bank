@@ -49,6 +49,8 @@ class Man10Bank : JavaPlugin(),Listener {
         }
 
         const val OP = "man10bank.op"
+        const val USE_CHEQUE = "man10bank.use_cheque"
+        const val ISSUE_CHEQUE = "man10bank.issue_cheque"
 
         var bankEnable = true
 
@@ -131,9 +133,10 @@ class Man10Bank : JavaPlugin(),Listener {
 
             "mcheque" ->{//mcheque amount <memo>
                 if (sender !is Player)return false
-//                if (!sender.hasPermission(OP))return false
-
-//                val amount = args[0].toDoubleOrNull()?:return false
+                if (!sender.hasPermission(ISSUE_CHEQUE)){
+                    sendMsg(sender,"§cあなたは小切手を発行する権限がありません")
+                    return false
+                }
 
                 if (args.isEmpty()){
                     sendMsg(sender,"§e§l/mcheque <金額> <メモ>")
