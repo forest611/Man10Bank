@@ -575,36 +575,39 @@ class Man10Bank : JavaPlugin(),Listener {
                     return true
                 }
 
+                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
+                    val amount = if (args[0] == "all"){
+                        Bank.getBalance(sender.uniqueId)
+                    }else{
 
-                val amount = if (args[0] == "all"){
-                    Bank.getBalance(sender.uniqueId)
-                }else{
+                        val a = args[0].replace(",","")
 
-                    val a = args[0].replace(",","")
+                        val b = ZenkakuToHankaku(a)
 
-                    val b = ZenkakuToHankaku(a)
-
-                    if (b == -1.0){
-                        sendMsg(sender,"§c§l数字で入力してください！")
-                        return true
+                        if (b == -1.0){
+                            sendMsg(sender,"§c§l数字で入力してください！")
+                            return@Runnable
+                        }
+                        b
                     }
-                    b
-                }
 
-                if (amount < 1){
-                    sendMsg(sender,"§c§l1円以上を入力してください！")
-                    return true
-                }
-
-
-                Bank.asyncWithdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand","/withdrawによる出金") { code: Int, _: Double, _: String ->
-                    if (code == 2){
-                        sendMsg(sender,"§c§l銀行のお金が足りません！")
-                        return@asyncWithdraw
+                    if (amount < 1){
+                        sendMsg(sender,"§c§l1円以上を入力してください！")
+                        return@Runnable
                     }
-                    vault.deposit(sender.uniqueId,amount)
-                    sendMsg(sender,"§a§l出金できました！")
-                }
+
+
+                    Bank.asyncWithdraw(sender.uniqueId,amount,this,"PlayerWithdrawOnCommand","/withdrawによる出金") { code: Int, _: Double, _: String ->
+                        if (code == 2){
+                            sendMsg(sender,"§c§l銀行のお金が足りません！")
+                            return@asyncWithdraw
+                        }
+                        vault.deposit(sender.uniqueId,amount)
+                        sendMsg(sender,"§a§l出金できました！")
+                    }
+
+                })
+
 
                 return true
             }
