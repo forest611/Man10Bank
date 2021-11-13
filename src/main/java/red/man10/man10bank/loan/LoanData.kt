@@ -189,6 +189,19 @@ class LoanData {
             return floor(amount * (1.0+(day/30*rate)))
         }
 
+        fun getTotalLoan(p:Player):Double{
+
+            val mysql = MySQLManager(plugin,"Man10Bank")
+            val rs = mysql.query("select SUM(amount) from loan_table where borrow_uuid='${p.uniqueId}';")?:return 0.0
+            rs.next()
+            val amount = rs.getDouble(1)
+
+            rs.close()
+            mysql.close()
+
+            return amount
+        }
+
         val lendMap = ConcurrentHashMap<Int,LoanData>()
 
         var enable = true

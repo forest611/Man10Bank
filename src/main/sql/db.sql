@@ -107,7 +107,7 @@ create table server_estate_history
 	id int auto_increment,
 	vault double null,
 	bank double default 0 null,
-	cash double default 0 null
+	cash double default 0 null,
 	estate double default 0 null,
 	loan double default 0 null,
 	crypto double default 0 null,
@@ -152,7 +152,7 @@ create table server_loan_tbl
 ',
 	borrow_amount double null comment '借りた金額の合計',
 	payment_amount double null comment '週ごとの支払額',
-	failed_payment int 0 comment '支払いに失敗した回数'
+	failed_payment int default 0 comment '支払いに失敗した回数',
 	constraint server_loan_tbl_pk
 		primary key (id)
 );

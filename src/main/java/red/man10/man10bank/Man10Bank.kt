@@ -21,10 +21,7 @@ import red.man10.man10bank.atm.ATMInventory
 import red.man10.man10bank.atm.ATMListener
 import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.history.EstateData
-import red.man10.man10bank.loan.Event
-import red.man10.man10bank.loan.LoanCommand
-import red.man10.man10bank.loan.ServerLoan
-import red.man10.man10bank.loan.ServerLoanCommand
+import red.man10.man10bank.loan.*
 import red.man10.man10score.ScoreDatabase
 import java.text.Normalizer
 import java.text.SimpleDateFormat
@@ -279,6 +276,12 @@ class Man10Bank : JavaPlugin(),Listener {
 
                     "help" ->{
                         showCommand(sender)
+                    }
+
+                    "bs" ->{
+                        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
+                            showBalanceSheet(sender,sender)
+                        })
                     }
 
                     "log" ->{
@@ -793,13 +796,10 @@ class Man10Bank : JavaPlugin(),Listener {
         val score = ScoreDatabase.getScore(p.uniqueId)
 
         val bankAmount = Bank.getBalance(p.uniqueId)
-        var cash = -1.0
-        var estate = -1.0
 
-        if (p.player != null){
-            cash = ATMData.getInventoryMoney(p.player!!) + ATMData.getEnderChestMoney(p.player!!)
-            estate = EstateData.getEstate(p)
-        }
+        val cash: Double = ATMData.getInventoryMoney(p) + ATMData.getEnderChestMoney(p)
+        val estate: Double = EstateData.getEstate(p)
+
         sendMsg(sender,"§e§l==========${p.name}のお金==========")
         sendMsg(sender," §b§l電子マネー:  §e§l${format(vault.getBalance(p.uniqueId))}円")
         sendMsg(sender," §b§l銀行:  §e§l${format(bankAmount)}円")
@@ -821,12 +821,35 @@ class Man10Bank : JavaPlugin(),Listener {
 
     }
 
+    private fun showBalanceSheet(sender:Player,p:Player){
+
+        val serverLoan = ServerLoan.getBorrowingAmount(p)
+        val userLoan = LoanData.getTotalLoan(p)
+        val bankAmount = Bank.getBalance(p.uniqueId)
+        val cash: Double = ATMData.getInventoryMoney(p) + ATMData.getEnderChestMoney(p)
+        val estate: Double = EstateData.getEstate(p)
+        val bal = vault.getBalance(p.uniqueId)
+
+        val assets = bankAmount+cash+estate+bal
+        val liability = serverLoan + userLoan
+        val equity = assets-liability
+
+        sender.sendMessage("§e§l===============${p.name}のバランスシート=================")
+        sender.sendMessage(String.format(" §b現金:        %14s §f| §c個人間借金:            §c%14s", format(cash), format(userLoan)))
+        sender.sendMessage(String.format(" §b電子マネー:   %14s §f| §cMan10リボ:            §c%14s", format(bal), format(serverLoan)))
+        sender.sendMessage(String.format(" §b銀行:        %14s §f| §c合計負債:              §c%14s", format(bankAmount), format(liability)))
+        sender.sendMessage(String.format(" §bその他:      %14s §f| §a純資産:                §a%14s", format(estate), format(equity)))
+        sender.sendMessage(String.format(" §b合計資産:     %14s §f| §c負債と純資産:          §b%14s", format(assets), format(assets)))
+
+    }
+
+
     private fun showCommand(sender:Player){
         val pay = text("$prefix §e[電子マネーを友達に送る]  §n/pay").clickEvent(ClickEvent.suggestCommand("/pay "))
         val atm = text("$prefix §a[電子マネーのチャージ・現金化]  §n/atm").clickEvent(ClickEvent.runCommand("/atm"))
         val deposit = text("$prefix §b[電子マネーを銀行に入れる]  §n/deposit").clickEvent(ClickEvent.suggestCommand("/deposit "))
         val withdraw = text("$prefix §c[電子マネーを銀行から出す]  §n/withdraw").clickEvent(ClickEvent.suggestCommand("/withdraw "))
-        val revo = text("$prefix §e[Man10リボを使う]  §n/mrevo borrow").clickEvent(ClickEvent.suggestCommand("/mrevo borrow "))
+        val revolving = text("$prefix §e[Man10リボを使う]  §n/mrevo borrow").clickEvent(ClickEvent.suggestCommand("/mrevo borrow "))
         val ranking = text("$prefix §6[お金持ちランキング]  §n/mbaltop").clickEvent(ClickEvent.runCommand("/mbaltop"))
         val log = text("$prefix §7[銀行の履歴]  §n/ballog").clickEvent(ClickEvent.runCommand("/ballog"))
 
@@ -834,7 +857,7 @@ class Man10Bank : JavaPlugin(),Listener {
         sender.sendMessage(atm)
         sender.sendMessage(deposit)
         sender.sendMessage(withdraw)
-        sender.sendMessage(revo)
+        sender.sendMessage(revolving)
         sender.sendMessage(ranking)
         sender.sendMessage(log)
 
