@@ -2,7 +2,9 @@ package red.man10.man10bank.history
 
 import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
+import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.format
@@ -12,7 +14,7 @@ import red.man10.man10bank.MySQLManager
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
 import red.man10.man10bank.cheque.Cheque
-import red.man10.man10bank.history.EstateData.historyThread
+import red.man10.man10bank.loan.LoanData
 import red.man10.man10bank.loan.ServerLoan
 import red.man10.man10score.ScoreDatabase
 import java.util.*
@@ -238,19 +240,29 @@ object EstateData {
     //その他の資産を返す
     fun getEstate(p:Player):Double{
 
-        var cheque = 0.0
+        var estate = 0.0
 
         for (item in p.inventory.contents){
             if (item ==null ||item.type == Material.AIR)continue
-            cheque+=Cheque.getChequeAmount(item)
+            estate+=Cheque.getChequeAmount(item)
+
+//            val noteID = item.itemMeta.persistentDataContainer[NamespacedKey(plugin,"id"), PersistentDataType.INTEGER]?:continue
+//            val data = LoanData.lendMap[noteID]?: LoanData().load(noteID)?:continue
+//            estate+=data.debt
+
         }
 
         for (item in p.enderChest.contents){
             if (item ==null ||item.type == Material.AIR)continue
-            cheque+=Cheque.getChequeAmount(item)
+            estate+=Cheque.getChequeAmount(item)
+
+//            val noteID = item.itemMeta.persistentDataContainer[NamespacedKey(plugin,"id"), PersistentDataType.INTEGER]?:continue
+//            val data = LoanData.lendMap[noteID]?: LoanData().load(noteID)?:continue
+//            estate+=data.debt
+
         }
 
-        return cheque
+        return estate
 
     }
 

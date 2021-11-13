@@ -22,7 +22,7 @@ class LoanData {
 
     lateinit var paybackDate : Date
     private lateinit var borrow: UUID
-    private var nowAmount : Double = 0.0
+    var debt : Double = 0.0
     private var id : Int = 0
 
     private val mysql = MySQLManager(plugin,"Man10Loan")
@@ -34,7 +34,7 @@ class LoanData {
         Bank.deposit(borrow.uniqueId, borrowedAmount, plugin, "LoanCreate","借金の借り入れ")
 
         //30日を基準に金利が設定される
-        nowAmount = calcRate(borrowedAmount,paybackDay,rate)
+        debt = calcRate(borrowedAmount,paybackDay,rate)
 
         this.borrow = borrow.uniqueId
 
@@ -48,7 +48,7 @@ class LoanData {
                 "'${borrow.uniqueId}', " +
                 "now(), " +
                 "'${SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(paybackDate.time)}', " +
-                "$nowAmount);")
+                "$debt);")
 
         val rs = mysql.query("SELECT id from loan_table order by id desc limit 1;")?:return -2
         rs.next()
@@ -71,7 +71,7 @@ class LoanData {
         if (!rs.next())return null
 
         borrow = UUID.fromString(rs.getString("borrow_uuid"))
-        nowAmount = rs.getDouble("amount")
+        debt = rs.getDouble("amount")
         paybackDate = rs.getDate("payback_date")
         this.id = rs.getInt("id")
 
@@ -100,17 +100,17 @@ class LoanData {
         val borrowPlayer = Bukkit.getOfflinePlayer(borrow)
         val isOnline = borrowPlayer.isOnline
 
-        if (nowAmount <= 0.0)return
+        if (debt <= 0.0)return
 
         val man10Bank = Bank.getBalance(borrow)
 
         val balance = Man10Bank.vault.getBalance(borrow)
 
-        val takeMan10Bank = floor(if (man10Bank<nowAmount)man10Bank else nowAmount)
+        val takeMan10Bank = floor(if (man10Bank<debt)man10Bank else debt)
 
         if (takeMan10Bank != 0.0 && Bank.withdraw(borrow,takeMan10Bank, plugin,"paybackMoney","借金の返済").first == 0){
 
-            nowAmount -= takeMan10Bank
+            debt -= takeMan10Bank
 
             if (takeMan10Bank>0){
                 sendMsg(p,"§eMan10Bankから${Man10Bank.format(takeMan10Bank)}円回収成功しました！")
@@ -119,11 +119,11 @@ class LoanData {
 
         }
 
-        val takeBalance = floor(if (balance<(nowAmount))balance else nowAmount)
+        val takeBalance = floor(if (balance<(debt))balance else debt)
 
         if (isOnline && takeBalance != 0.0 && Man10Bank.vault.withdraw(borrow,takeBalance)){
 
-            nowAmount -= floor(takeBalance)
+            debt -= floor(takeBalance)
 
             if (takeBalance>0){
                 sendMsg(p,"§e所持金から${Man10Bank.format(takeBalance)}円回収成功しました！")
@@ -136,7 +136,7 @@ class LoanData {
             sendMsg(borrowPlayer.player!!,"§e${p.name}から借金の回収が行われました！")
         }
 
-        if (nowAmount>0){
+        if (debt>0){
 
             Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.addItem(getNote()) })
 
@@ -150,7 +150,7 @@ class LoanData {
 
         }
 
-        save(nowAmount)
+        save(debt)
 
     }
 
@@ -166,7 +166,7 @@ class LoanData {
             "§4§l========[Man10Bank]========",
             "   §7§l債務者:  ${Bukkit.getOfflinePlayer(borrow).name}",
             "   §8§l有効日:  ${SimpleDateFormat("yyyy-MM-dd").format(paybackDate)}",
-            "   §7§l支払額:  ${Man10Bank.format(nowAmount)}",
+            "   §7§l支払額:  ${Man10Bank.format(debt)}",
             "§4§l==========================")
 
         meta.persistentDataContainer.set(NamespacedKey(plugin,"id"), PersistentDataType.INTEGER,id)
