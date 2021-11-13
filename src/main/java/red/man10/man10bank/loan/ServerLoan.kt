@@ -94,9 +94,9 @@ object ServerLoan {
         val m = list.size / 2
 
         val median: Double = if (list.size % 2 == 0) {
-            (list[m] + list[m + 1]) / 2.0
+            (list[m-1] + list[m]) / 2.0
         } else {
-            list[m] + 1
+            list[m-1]
         }
 
         var calcAmount = median * medianMultiplier * score * scoreMultiplier * records * recordMultiplier
