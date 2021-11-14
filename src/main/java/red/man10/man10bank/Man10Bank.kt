@@ -25,6 +25,7 @@ import red.man10.man10bank.loan.*
 import red.man10.man10score.ScoreDatabase
 import java.text.Normalizer
 import java.text.SimpleDateFormat
+import kotlin.math.abs
 import kotlin.math.floor
 
 
@@ -833,13 +834,14 @@ class Man10Bank : JavaPlugin(),Listener {
         val assets = bankAmount+cash+estate+bal
         val liability = serverLoan + userLoan
         val equity = assets-liability
+        val symbol = if (equity<0) { "△" } else {""}
 
         sender.sendMessage("§e§l===============${p.name}のバランスシート=================")
         sender.sendMessage(String.format(" §b現金:        %14s §f| §c個人間借金:            §c%14s", format(cash), format(userLoan)))
         sender.sendMessage(String.format(" §b電子マネー:   %14s §f| §cMan10リボ:            §c%14s", format(bal), format(serverLoan)))
         sender.sendMessage(String.format(" §b銀行:        %14s §f| §c合計負債:              §c%14s", format(bankAmount), format(liability)))
-        sender.sendMessage(String.format(" §bその他:      %14s §f| §a純資産:                §a%14s", format(estate), format(equity)))
-        sender.sendMessage(String.format(" §b合計資産:     %14s §f| §c負債と純資産:          §b%14s", format(assets), format(assets)))
+        sender.sendMessage(String.format(" §bその他:      %14s §f| §a純資産:                §a%14s", format(estate), "${format(abs(equity))}${symbol}"))
+        sender.sendMessage(String.format(" §b合計資産:     %14s §f| §c負債と純資産:          §b%14s", format(assets), format(liability+equity)))
 
     }
 
