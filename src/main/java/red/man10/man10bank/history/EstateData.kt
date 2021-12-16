@@ -2,9 +2,8 @@ package red.man10.man10bank.history
 
 import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
-import org.bukkit.persistence.PersistentDataType
+import org.bukkit.scheduler.BukkitTask
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.format
@@ -14,17 +13,67 @@ import red.man10.man10bank.MySQLManager
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
 import red.man10.man10bank.cheque.Cheque
-import red.man10.man10bank.loan.LoanData
 import red.man10.man10bank.loan.ServerLoan
 import red.man10.man10score.ScoreDatabase
 import java.util.*
+import kotlin.collections.HashMap
 
 object EstateData {
+
+    private var shopCacheUpdateTask : BukkitTask? = null //ショップキャッシュ更新タスク
 
     init {
         Bukkit.getLogger().info("StartHistoryThread")
         Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { historyThread() })
+        if(shopCacheUpdateTask == null) shopCacheUpdateTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, Runnable { cacheShopTotal() }, 0, 20*300)
     }
+
+    //======== shop ログ関係 =======
+
+    private val shopLogCache = HashMap<UUID, Double>()
+    private fun cacheShopTotal(){
+
+        val mysql = MySQLManager(plugin,"Man10BankShopHistory")
+        val shopRecords = mysql.query(
+            "SELECT `table`.`name`, \n" +
+                    " `table`.`uuid`, \n" +
+                    " SUM(`table`.`money`) AS `money` \n" +
+                      "FROM \n" +
+                    "(\n" +
+                    "SELECT man10_shop_v2.man10shop_permissions.`name`,\n" +
+                    "man10_shop_v2.man10shop_permissions.`uuid`,\n" +
+                    "man10_shop_v2.man10shop_shops.`money`\n" +
+                    "FROM man10_shop_v2.man10shop_permissions\n" +
+                    "INNER JOIN man10_shop_v2.man10shop_shops ON man10_shop_v2.man10shop_permissions.shop_id = man10_shop_v2.man10shop_shops.shop_id\n" +
+                    "WHERE man10_shop_v2.man10shop_shops.deleted = 0\n" +
+                    "AND man10_shop_v2.man10shop_permissions.permission = \"OWNER\"\n" +
+                    "AND man10_shop_v2.man10shop_shops.`admin` = \"false\"\n" +
+                    "GROUP BY man10_shop_v2.man10shop_permissions.`shop_id`\n" +
+                    ") \n" +
+                    "AS `table` \n" +
+                    "GROUP BY `table`.`uuid`\n" +
+                    "ORDER BY money DESC"
+        )?: return
+
+        shopLogCache.clear()
+        while(shopRecords.next()){
+            shopLogCache[UUID.fromString(shopRecords.getString("uuid"))] = shopRecords.getDouble("money")
+        }
+    }
+
+    fun getShopTotalBalance(p: Player): Double{
+        return getShopTotalBalance(p.uniqueId)
+    }
+
+    fun getShopTotalBalance(uuid: UUID): Double {
+        if (!shopLogCache.containsKey(uuid)) return 0.0
+        return shopLogCache[uuid] ?: return 0.0
+    }
+
+    //=============================
+
+
+
     //ヒストリーに追加
     private fun addEstateHistory(p:Player,struct:EstateStruct){
 
@@ -36,8 +85,8 @@ object EstateData {
         val total = struct.total()
 
         if (rs==null || !rs.next()){
-            mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate,loan, total) " +
-                    "VALUES ('${uuid}', now(), '${p.name}', ${struct.vault}, ${struct.bank},${struct.cash}, ${struct.estate},${struct.loan} ,${total})")
+            mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate, loan, shop, total) " +
+                    "VALUES ('${uuid}', now(), '${p.name}', ${struct.vault}, ${struct.bank},${struct.cash}, ${struct.estate},${struct.loan},${struct.shop}, ${total})")
             return
         }
 
@@ -45,13 +94,14 @@ object EstateData {
         val lastBank = rs.getDouble("bank")
         val lastCash = rs.getDouble("cash")
         val lastEstate = rs.getDouble("estate")
+        val shopBalance = rs.getDouble("shop")
 
         mysql.close()
         rs.close()
 
-        if (struct.vault != lastVault || struct.bank != lastBank || struct.estate != lastEstate ||struct.cash!=lastCash){
-            mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate,loan, total) " +
-                    "VALUES ('${uuid}', now(), '${p.name}', ${struct.vault}, ${struct.bank},${struct.cash}, ${struct.estate},${struct.loan} , ${total})")
+        if (struct.vault != lastVault || struct.bank != lastBank || struct.estate != lastEstate ||struct.cash!=lastCash || struct.shop != shopBalance){
+            mysqlQueue.add("INSERT INTO estate_history_tbl (uuid, date, player, vault, bank, cash, estate,loan, shop, total) " +
+                    "VALUES ('${uuid}', now(), '${p.name}', ${struct.vault}, ${struct.bank},${struct.cash}, ${struct.estate},${struct.loan} , ${struct.shop}, ${total})")
         }
 
 
@@ -67,8 +117,8 @@ object EstateData {
         val rs = mysql.query("SELECT player from estate_tbl where uuid='${p.uniqueId}'")
 
         if (rs== null || !rs.next()){
-            mysql.execute("INSERT INTO estate_tbl (uuid, date, player, vault, bank, cash, estate, total) " +
-                    "VALUES ('${p.uniqueId}', now(), '${p.name}', 0, 0, 0, 0, 0)")
+            mysql.execute("INSERT INTO estate_tbl (uuid, date, player, vault, bank, cash, estate, shop, total) " +
+                    "VALUES ('${p.uniqueId}', now(), '${p.name}', 0, 0, 0, 0, 0, 0)")
 
         }
     }
@@ -108,10 +158,11 @@ object EstateData {
         struct.cash = ATMData.getEnderChestMoney(p) + ATMData.getInventoryMoney(p)
         struct.estate = getEstate(p)
         struct.loan = ServerLoan.getBorrowingAmount(p)
+        struct.shop = getShopTotalBalance(p);
 
         mysqlQueue.add("UPDATE estate_tbl SET " +
                 "date=now(), player='${p.name}', vault=${struct.vault}, bank=${struct.bank}, cash=${struct.cash}," +
-                " estate=${struct.estate},loan=${struct.loan}, total=${struct.total()} WHERE uuid='${uuid}'")
+                " estate=${struct.estate},loan=${struct.loan}, shop=${struct.shop}, total=${struct.total()} WHERE uuid='${uuid}'")
 
         addEstateHistory(p,struct)
 
@@ -143,18 +194,23 @@ object EstateData {
 
         rs.next()
 
+        val shopData = mysql.query("SELECT SUM(money) AS `total` FROM man10_shop_v2.man10shop_shops WHERE deleted = 0 AND admin = \"false\"")?: return //shop全体合計
+
+        shopData.next()
+
         val vaultSum = rs.getDouble(1)
         val bankSum = rs.getDouble(2)
         val cashSum = rs.getDouble(3)
         val estateSum = rs.getDouble(4)
         val loanSum = rs.getDouble(5)
-        val total = vaultSum+bankSum+cashSum+estateSum
+        val shopSum = shopData.getDouble(1)
+        val total = vaultSum+bankSum+cashSum+estateSum+shopSum
 
         rs.close()
         mysql.close()
 
-        mysqlQueue.add("INSERT INTO server_estate_history (vault, bank, cash, estate,loan, total,year,month,day,hour, date) " +
-                "VALUES ($vaultSum, $bankSum,$cashSum, $estateSum,${loanSum}, $total,$year,$month,$day,$hour, now())")
+        mysqlQueue.add("INSERT INTO server_estate_history (vault, bank, cash, estate,loan, shop, total,year,month,day,hour, date) " +
+                "VALUES ($vaultSum, $bankSum,$cashSum, $estateSum,${loanSum}, $shopSum, $total,$year,$month,$day,$hour, now())")
 
         Bukkit.getLogger().info("SavedServerEstateHistory")
 
@@ -229,6 +285,7 @@ object EstateData {
         sendMsg(show, " §b§l現金:  §e§l${format(cash)}円")
         sendMsg(show, " §b§l銀行:  §e§l${format(bank)}円")
         sendMsg(show, " §b§lその他の資産:  §e§l${format(estate)}円")
+        sendMsg(show, " §b§lショップ口座:  §e§l${format(getShopTotalBalance(uuid))}円")
         sendMsg(show, " §b§lスコア:  §a§l${score}")
         sendMsg(show, " §c§lMan10リボ:  §e§l${format(serverLoan)}円")
 
@@ -288,9 +345,10 @@ class EstateStruct{
     var estate = 0.0
     var crypto = 0.0
     var loan = 0.0
+    var shop = 0.0
 
     fun total():Double{
-        return vault+bank+cash+estate+crypto//+loan
+        return vault+bank+cash+estate+crypto+shop//+loan
     }
 
 }

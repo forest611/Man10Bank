@@ -806,6 +806,7 @@ class Man10Bank : JavaPlugin(),Listener {
         sendMsg(sender," §b§l銀行:  §e§l${format(bankAmount)}円")
         if (cash>0.0){ sendMsg(sender," §b§l現金:  §e§l${format(cash)}円") }
         if (estate>0.0){ sendMsg(sender," §b§lその他の資産:  §e§l${format(estate)}円") }
+        if(EstateData.getShopTotalBalance(p) > 0.0) sendMsg(sender, " §b§lショップ口座:  §e§l${format(EstateData.getShopTotalBalance(p))}円")
 
         sendMsg(sender," §b§lスコア: §a§l${format(score.toDouble())}")
 
