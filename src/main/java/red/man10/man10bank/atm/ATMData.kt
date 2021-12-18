@@ -41,7 +41,7 @@ object ATMData {
         return true
     }
 
-    private fun getMoneyAmount(itemStack: ItemStack):Double{
+    fun getMoneyAmount(itemStack: ItemStack):Double{
 
         val type = getMoneyType(itemStack)
 
@@ -88,29 +88,6 @@ object ATMData {
         }
     }
 
-    fun getInventoryMoney(p:Player):Double{
-        var cash = 0.0
-
-        for (item in p.inventory.contents){
-            if (item ==null ||item.type == Material.AIR)continue
-            val money = getMoneyAmount(item)
-            cash+=money
-        }
-
-        return cash
-    }
-
-    fun getEnderChestMoney(p:Player):Double{
-        var cash = 0.0
-
-        for (item in p.enderChest.contents){
-            if (item ==null ||item.type == Material.AIR)continue
-            val money = getMoneyAmount(item)
-            cash+=money
-        }
-
-        return cash
-    }
 
     private fun addLog(p:Player, amount: Double, deposit:Boolean){
         MySQLManager.mysqlQueue.add("INSERT INTO atm_log (player, uuid, amount, deposit, date) " +

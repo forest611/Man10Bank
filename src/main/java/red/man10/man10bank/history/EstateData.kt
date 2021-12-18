@@ -2,7 +2,9 @@ package red.man10.man10bank.history
 
 import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.bukkit.block.ShulkerBox
 import org.bukkit.entity.Player
+import org.bukkit.inventory.meta.BlockStateMeta
 import org.bukkit.scheduler.BukkitTask
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
@@ -16,7 +18,6 @@ import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.loan.ServerLoan
 import red.man10.man10score.ScoreDatabase
 import java.util.*
-import kotlin.collections.HashMap
 
 object EstateData {
 
@@ -155,7 +156,7 @@ object EstateData {
 
         struct.vault = Man10Bank.vault.getBalance(uuid)
         struct.bank = Bank.getBalance(uuid)
-        struct.cash = ATMData.getEnderChestMoney(p) + ATMData.getInventoryMoney(p)
+        struct.cash = getCash(p)
         struct.estate = getEstate(p)
         struct.loan = ServerLoan.getBorrowingAmount(p)
         struct.shop = getShopTotalBalance(p);
@@ -299,31 +300,79 @@ object EstateData {
 
         var estate = 0.0
 
+        //インベントリ
         for (item in p.inventory.contents){
             if (item ==null ||item.type == Material.AIR)continue
             estate+=Cheque.getChequeAmount(item)
 
-//            val noteID = item.itemMeta.persistentDataContainer[NamespacedKey(plugin,"id"), PersistentDataType.INTEGER]?:continue
-//            val data = LoanData.lendMap[noteID]?: LoanData().load(noteID)?:continue
-//            estate+=data.debt
-
+            //しゅるかーの中身も確かめる
+            val meta = item.itemMeta
+            if (meta != null && meta is BlockStateMeta && meta.blockState is ShulkerBox &&  meta.hasBlockState()){
+                for (item2 in (meta.blockState as ShulkerBox).inventory){
+                    if (item2 ==null ||item2.type == Material.AIR)continue
+                    estate+=Cheque.getChequeAmount(item2)
+                }
+            }
         }
 
+        //エンダーチェスト
         for (item in p.enderChest.contents){
             if (item ==null ||item.type == Material.AIR)continue
             estate+=Cheque.getChequeAmount(item)
 
-//            val noteID = item.itemMeta.persistentDataContainer[NamespacedKey(plugin,"id"), PersistentDataType.INTEGER]?:continue
-//            val data = LoanData.lendMap[noteID]?: LoanData().load(noteID)?:continue
-//            estate+=data.debt
-
+            //しゅるかーの中身も確かめる
+            val meta = item.itemMeta
+            if (meta != null && meta is BlockStateMeta && meta.blockState is ShulkerBox &&  meta.hasBlockState()){
+                for (item2 in (meta.blockState as ShulkerBox).inventory){
+                    if (item2 ==null ||item2.type == Material.AIR)continue
+                    estate+=Cheque.getChequeAmount(item2)
+                }
+            }
         }
 
         return estate
 
     }
 
-    fun historyThread(){
+    fun getCash(p:Player):Double{
+
+        var cash = 0.0
+
+        for (item in p.inventory.contents){
+            if (item ==null ||item.type == Material.AIR)continue
+            val money = ATMData.getMoneyAmount(item)
+            cash+=money
+
+            //しゅるかーの中身も確かめる
+            val meta = item.itemMeta
+            if (meta != null && meta is BlockStateMeta && meta.blockState is ShulkerBox &&  meta.hasBlockState()){
+                for (item2 in (meta.blockState as ShulkerBox).inventory){
+                    if (item2 ==null ||item2.type == Material.AIR)continue
+                    cash+=ATMData.getMoneyAmount(item2)
+                }
+            }
+        }
+
+        for (item in p.enderChest.contents){
+            if (item ==null ||item.type == Material.AIR)continue
+            val money = ATMData.getMoneyAmount(item)
+            cash+=money
+
+            //しゅるかーの中身も確かめる
+            val meta = item.itemMeta
+            if (meta != null && meta is BlockStateMeta && meta.blockState is ShulkerBox &&  meta.hasBlockState()){
+                for (item2 in (meta.blockState as ShulkerBox).inventory){
+                    if (item2 ==null ||item2.type == Material.AIR)continue
+                    cash+=ATMData.getMoneyAmount(item2)
+                }
+            }
+
+        }
+
+        return cash
+
+    }
+    private fun historyThread(){
 
         while (true){
 //            saveCurrentEstate()

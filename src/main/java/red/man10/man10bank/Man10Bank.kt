@@ -798,7 +798,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
         val bankAmount = Bank.getBalance(p.uniqueId)
 
-        val cash: Double = ATMData.getInventoryMoney(p) + ATMData.getEnderChestMoney(p)
+        val cash: Double = EstateData.getCash(p)
         val estate: Double = EstateData.getEstate(p)
 
         sendMsg(sender,"§e§l==========${p.name}のお金==========")
@@ -828,7 +828,7 @@ class Man10Bank : JavaPlugin(),Listener {
         val serverLoan = ServerLoan.getBorrowingAmount(p)
         val userLoan = LoanData.getTotalLoan(p)
         val bankAmount = Bank.getBalance(p.uniqueId)
-        val cash: Double = ATMData.getInventoryMoney(p) + ATMData.getEnderChestMoney(p)
+        val cash: Double = EstateData.getCash(p)
         val estate: Double = EstateData.getEstate(p)
         val bal = vault.getBalance(p.uniqueId)
 
