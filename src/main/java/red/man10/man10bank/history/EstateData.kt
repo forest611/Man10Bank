@@ -223,13 +223,14 @@ object EstateData {
 
         val struct = EstateStruct()
 
-        val rs = mysql.query("SELECT vault,bank,cash,estate,loan from server_estate_history ORDER BY date DESC LIMIT 1")?:return struct
+        val rs = mysql.query("SELECT vault,bank,cash,estate,loan,shop from server_estate_history ORDER BY date DESC LIMIT 1")?:return struct
         if (!rs.next())return struct
         struct.vault = rs.getDouble(1)
         struct.bank = rs.getDouble(2)
         struct.cash = rs.getDouble(3)
         struct.estate = rs.getDouble(4)
         struct.loan = rs.getDouble(5)
+        struct.shop = rs.getDouble(6)
 
         rs.close()
         mysql.close()

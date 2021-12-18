@@ -204,6 +204,7 @@ class Man10Bank : JavaPlugin(),Listener {
                         sendMsg(sender,"§e§l電子マネーの合計:${format(total.vault)}円")
                         sendMsg(sender,"§e§l現金の合計:${format(total.cash)}円")
                         sendMsg(sender,"§e§l銀行口座の合計:${format(total.bank)}円")
+                        sendMsg(sender,"§e§lショップ残高の合計:${format(total.shop)}円")
                         sendMsg(sender,"§e§lその他資産の合計:${format(total.estate)}円")
                         sendMsg(sender,"§c§l公的ローンの合計:${format(total.loan)}円")
                         sendMsg(sender,"§e§l全ての合計:${format(total.total())}円")
@@ -220,6 +221,8 @@ class Man10Bank : JavaPlugin(),Listener {
                     sender.sendMessage("§e§l電子マネーの合計:${format(total.vault)}円")
                     sender.sendMessage("§e§l現金の合計:${format(total.estate)}円")
                     sender.sendMessage("§e§l銀行口座の合計:${format(total.bank)}円")
+                    sender.sendMessage("§e§lショップ残高の合計:${format(total.shop)}円")
+                    sender.sendMessage("§e§lその他資産の合計:${format(total.estate)}円")
                     sender.sendMessage("§c§l公的ローンの合計:${format(total.loan)}円")
                     sender.sendMessage("§e§l全ての合計:${format(total.total())}円")
 
@@ -730,7 +733,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
                     }
 
-                    Bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}","${args[0]}からの送金")
+                    Bank.deposit(uuid,amount,this,"RemittanceFrom${sender.name}","${sender.name}からの送金")
 
                     sendMsg(sender,"§a§l送金成功！")
 
