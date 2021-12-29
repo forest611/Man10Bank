@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent
 import org.apache.commons.lang.math.NumberUtils
 import org.bukkit.Bukkit
+import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -14,6 +15,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
@@ -37,6 +39,8 @@ class Man10Bank : JavaPlugin(),Listener {
         lateinit var vault : VaultManager
 
         lateinit var plugin : Man10Bank
+
+        lateinit var dunceHat : ItemStack
 
         fun sendMsg(p:Player,msg:String){
             p.sendMessage(prefix+msg)
@@ -101,6 +105,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
         loggingServerHistory = config.getBoolean("loggingServerHistory",false)
         paymentThread = config.getBoolean("paymentThread",false)
+
+        dunceHat = config.getItemStack("dunceHat")?: ItemStack(Material.STONE)
 
         ServerLoan.medianMultiplier = config.getDouble("medianMultiplier")
         ServerLoan.recordMultiplier = config.getDouble("recordMultiplier")
@@ -496,6 +502,18 @@ class Man10Bank : JavaPlugin(),Listener {
 
                     }
 
+                    "hat" ->{
+                        if (!sender.hasPermission(OP))return false
+
+                        val item = sender.inventory.itemInMainHand
+
+                        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
+                            config.set("dunceHat",item)
+                            saveConfig()
+                        })
+
+                    }
+
                     else ->{
                         val p = Bukkit.getOfflinePlayer(args[0]).player
 
@@ -872,11 +890,22 @@ class Man10Bank : JavaPlugin(),Listener {
     @EventHandler
     fun login(e:PlayerJoinEvent){
 
-        Bank.loginProcess(e.player)
+        val p = e.player
+
+        Bank.loginProcess(p)
 
         Bukkit.getScheduler().runTaskAsynchronously(this, Runnable  {
             Thread.sleep(3000)
-            showBalance(e.player,e.player)
+            showBalance(p,p)
+
+            val score = ScoreDatabase.getScore(p.uniqueId)
+            if (score<=-300 && ServerLoan.getPaymentAmount(p)>0){
+                sendMsg(p,"§c§lあなたは借金の支払いをせずにスコアが-300を下回っているので、§e[§8§lLoser&e]§c§lになっています！ ")
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"/lp user ${p.name} parent add loser")
+                Bukkit.getScheduler().runTask(this,Runnable{
+                    p.inventory.helmet = dunceHat
+                })
+            }
         })
     }
 
