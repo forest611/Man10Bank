@@ -42,6 +42,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
         lateinit var dunceHat : ItemStack
 
+        var kickDunce = false
+
         fun sendMsg(p:Player,msg:String){
             p.sendMessage(prefix+msg)
         }
@@ -107,6 +109,7 @@ class Man10Bank : JavaPlugin(),Listener {
         paymentThread = config.getBoolean("paymentThread",false)
 
         dunceHat = config.getItemStack("dunceHat")?: ItemStack(Material.STONE)
+        kickDunce = config.getBoolean("kickDunce",false)
 
         ServerLoan.medianMultiplier = config.getDouble("medianMultiplier")
         ServerLoan.recordMultiplier = config.getDouble("recordMultiplier")
@@ -900,6 +903,12 @@ class Man10Bank : JavaPlugin(),Listener {
 
             val score = ScoreDatabase.getScore(p.uniqueId)
             if (score<=-300 && ServerLoan.getPaymentAmount(p)>0){
+
+                if (kickDunce){
+                    p.kick(text("§c§lあなたは借金の支払いをせずにスコアが-300を下回っているので、このワールドに入れません！"))
+                    return@Runnable
+                }
+
                 sendMsg(p,"§c§lあなたは借金の支払いをせずにスコアが-300を下回っているので、§e[§8§lLoser&e]§c§lになっています！ ")
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"/lp user ${p.name} parent add loser")
                 Bukkit.getScheduler().runTask(this,Runnable{
