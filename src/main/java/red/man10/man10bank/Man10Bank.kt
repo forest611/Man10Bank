@@ -905,7 +905,9 @@ class Man10Bank : JavaPlugin(),Listener {
             if (score<=-300 && ServerLoan.getPaymentAmount(p)>0){
 
                 if (kickDunce){
-                    p.kick(text("§c§lあなたは借金の支払いをせずにスコアが-300を下回っているので、このワールドに入れません！"))
+                    Bukkit.getScheduler().runTask(this,Runnable{
+                        p.kick(text("§c§lあなたは借金の支払いをせずにスコアが-300を下回っているので、このワールドに入れません！"))
+                    })
                     return@Runnable
                 }
 
