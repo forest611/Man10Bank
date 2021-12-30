@@ -902,7 +902,7 @@ class Man10Bank : JavaPlugin(),Listener {
             showBalance(p,p)
 
             val score = ScoreDatabase.getScore(p.uniqueId)
-            if (score<=-300 && ServerLoan.getPaymentAmount(p)>0){
+            if (score<=-300 && ServerLoan.getBorrowingAmount(p)>0){
 
                 if (kickDunce){
                     Bukkit.getScheduler().runTask(this,Runnable{
