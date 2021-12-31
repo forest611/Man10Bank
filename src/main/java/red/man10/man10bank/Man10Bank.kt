@@ -911,9 +911,9 @@ class Man10Bank : JavaPlugin(),Listener {
                     return@Runnable
                 }
 
-                sendMsg(p,"§c§lあなたは借金の支払いをせずにスコアが-300を下回っているので、§e[§8§lLoser&e]§c§lになっています！ ")
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"/lp user ${p.name} parent add loser")
+                sendMsg(p,"§c§lあなたは借金の支払いをせずにスコアが-300を下回っているので、§e[§8§lLoser§e]§c§lになっています！ ")
                 Bukkit.getScheduler().runTask(this,Runnable{
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"lp user ${p.name} parent add loser")
                     p.inventory.helmet = dunceHat
                 })
             }
