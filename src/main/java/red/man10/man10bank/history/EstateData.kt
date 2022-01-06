@@ -9,6 +9,7 @@ import org.bukkit.scheduler.BukkitTask
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.format
+import red.man10.man10bank.Man10Bank.Companion.isInstalledShop
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.MySQLManager
@@ -26,7 +27,9 @@ object EstateData {
     init {
         Bukkit.getLogger().info("StartHistoryThread")
         Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { historyThread() })
-        if(shopCacheUpdateTask == null) shopCacheUpdateTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, Runnable { cacheShopTotal() }, 0, 20*300)
+        if (isInstalledShop){
+            if(shopCacheUpdateTask == null) shopCacheUpdateTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, Runnable { cacheShopTotal() }, 0, 20*300)
+        }
     }
 
     //======== shop ログ関係 =======
@@ -195,16 +198,21 @@ object EstateData {
 
         rs.next()
 
-        val shopData = mysql.query("SELECT SUM(money) AS `total` FROM man10_shop_v2.man10shop_shops WHERE deleted = 0 AND admin = \"false\"")?: return //shop全体合計
+        val shopSum = if (isInstalledShop){
+            val shopData = mysql.query("SELECT SUM(money) AS `total` FROM man10_shop_v2.man10shop_shops WHERE deleted = 0 AND admin = \"false\"")?: return //shop全体合計
 
-        shopData.next()
+            shopData.next()
+
+            shopData.getDouble(1)
+        }else{
+            0.0
+        }
 
         val vaultSum = rs.getDouble(1)
         val bankSum = rs.getDouble(2)
         val cashSum = rs.getDouble(3)
         val estateSum = rs.getDouble(4)
         val loanSum = rs.getDouble(5)
-        val shopSum = shopData.getDouble(1)
         val total = vaultSum+bankSum+cashSum+estateSum+shopSum
 
         rs.close()

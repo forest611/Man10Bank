@@ -44,6 +44,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
         var kickDunce = false
 
+        var isInstalledShop = false
+
         fun sendMsg(p:Player,msg:String){
             p.sendMessage(prefix+msg)
         }
@@ -110,6 +112,14 @@ class Man10Bank : JavaPlugin(),Listener {
 
         dunceHat = config.getItemStack("dunceHat")?: ItemStack(Material.STONE)
         kickDunce = config.getBoolean("kickDunce",false)
+
+        isInstalledShop = config.getBoolean("isInstalledShop", true)
+
+        val hasShop = plugin.server.pluginManager.getPlugin("Man10ShopV2")!=null
+
+        if (!hasShop && isInstalledShop){
+            Bukkit.getLogger().warning("このサーバーにはMan10ShopV2が導入されていません！")
+        }
 
         ServerLoan.medianMultiplier = config.getDouble("medianMultiplier")
         ServerLoan.recordMultiplier = config.getDouble("recordMultiplier")
@@ -913,10 +923,12 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 sendMsg(p,"§c§lあなたは借金の支払いをせずにスコアが-300を下回っているので、§e[§8§lLoser§e]§c§lになっています！ ")
                 Bukkit.getScheduler().runTask(this,Runnable{
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"lp user ${p.name} parent add loser")
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"man10kit pop ${p.name} ")
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"man10kit set ${p.name} loser")
-//                    p.inventory.helmet = dunceHat
+
+                    if (!p.hasPermission("man10bank.loser")){
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"lp user ${p.name} parent add loser")
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"man10kit pop ${p.name} ")
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"man10kit set ${p.name} loser")
+                    }
                 })
             }
         })
