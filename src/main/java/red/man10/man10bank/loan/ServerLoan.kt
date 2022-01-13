@@ -14,6 +14,7 @@ import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager
 import red.man10.man10score.ScoreDatabase
 import red.man10.man10score.ScoreDatabase.giveScore
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
@@ -65,46 +66,92 @@ object ServerLoan {
 
     }
 
-    private fun getLoanAmount(p: Player): Double {
-        val score = ScoreDatabase.getScore(p.uniqueId)
+    private fun getLoanAmount(p:Player):Double{
 
-        val list = mutableListOf<Double>()
+        val score = ScoreDatabase.getScore(p.uniqueId)
 
         val mysql = MySQLManager(plugin,"Man10ServerLoan")
 
-        val rs = mysql.query("select total from estate_history_tbl where uuid='${p.uniqueId}';") ?: return 0.0
+        val sdf = SimpleDateFormat("yyyy-MM-dd")
+        val cal = Calendar.getInstance()
+        cal.time = Date()
+        cal.add(Calendar.DAY_OF_YEAR,-30)
 
-        while (rs.next()) {
-            list.add(rs.getDouble("total"))
+        val rs = mysql.query("select avg(total) from estate_history_tbl where uuid='${p.uniqueId}' and date>'${sdf.format(cal)}' group by date_format(date,'%Y%m%d');")?:return 0.0
+
+        val first = if (rs.next()) {rs.getDouble(1)} else {0.0}
+        val last = if (rs.last()) {rs.getDouble(1)} else {0.0}
+
+        val profit = first-last
+
+        val list = mutableListOf<Double>()
+
+        rs.beforeFirst()
+
+        while (rs.next()){ list.add(rs.getDouble(1)) }
+
+        list.sort()
+        val centerIndex = list.size / 2
+
+        val median: Double = if (list.size % 2 == 0) {
+            (list[centerIndex-1] + list[centerIndex]) / 2.0
+        } else {
+            list[centerIndex-1]
         }
 
         rs.close()
         mysql.close()
 
-        if (list.isEmpty()){ return 0.0 }
+        Bukkit.getLogger().info("score:${score}")
+        Bukkit.getLogger().info("median:${median}")
+        Bukkit.getLogger().info("first:${first}")
+        Bukkit.getLogger().info("last:${last}")
+        Bukkit.getLogger().info("profit:${profit}")
+        Bukkit.getLogger().info("date:${sdf.format(cal)}")
 
-        val rs2 = mysql.query("select count(*) from estate_history_tbl where uuid='${p.uniqueId}';") ?: return 0.0
-
-        val records = if (rs2.next()) rs2.getInt(1) else 0
-
-        rs2.close()
-        mysql.close()
-
-        list.sort()
-        val m = list.size / 2
-
-        val median: Double = if (list.size % 2 == 0) {
-            (list[m-1] + list[m]) / 2.0
-        } else {
-            list[m-1]
-        }
-
-        var calcAmount = median * medianMultiplier * score * scoreMultiplier * records * recordMultiplier
-
-        if (calcAmount<0.0)calcAmount = 0.0
-
-        return if (maxServerLoanAmount < calcAmount) maxServerLoanAmount else calcAmount
+        return (profit+(median* medianMultiplier))*(score* scoreMultiplier)
     }
+
+//    private fun getLoanAmount(p: Player): Double {
+//        val score = ScoreDatabase.getScore(p.uniqueId)
+//
+//        val list = mutableListOf<Double>()
+//
+//        val mysql = MySQLManager(plugin,"Man10ServerLoan")
+//
+//        val rs = mysql.query("select total from estate_history_tbl where uuid='${p.uniqueId}';") ?: return 0.0
+//
+//        while (rs.next()) {
+//            list.add(rs.getDouble("total"))
+//        }
+//
+//        rs.close()
+//        mysql.close()
+//
+//        if (list.isEmpty()){ return 0.0 }
+//
+//        val rs2 = mysql.query("select count(*) from estate_history_tbl where uuid='${p.uniqueId}';") ?: return 0.0
+//
+//        val records = if (rs2.next()) rs2.getInt(1) else 0
+//
+//        rs2.close()
+//        mysql.close()
+//
+//        list.sort()
+//        val m = list.size / 2
+//
+//        val median: Double = if (list.size % 2 == 0) {
+//            (list[m-1] + list[m]) / 2.0
+//        } else {
+//            list[m-1]
+//        }
+//
+//        var calcAmount = median * medianMultiplier * score * scoreMultiplier * records * recordMultiplier
+//
+//        if (calcAmount<0.0)calcAmount = 0.0
+//
+//        return if (maxServerLoanAmount < calcAmount) maxServerLoanAmount else calcAmount
+//    }
 
     fun getBorrowingAmount(p:Player):Double{
 
