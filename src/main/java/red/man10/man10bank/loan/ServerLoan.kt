@@ -77,18 +77,21 @@ object ServerLoan {
         cal.time = Date()
         cal.add(Calendar.DAY_OF_YEAR,-30)
 
-        val rs = mysql.query("select avg(total) from estate_history_tbl where uuid='${p.uniqueId}' and date>'${sdf.format(cal)}' group by date_format(date,'%Y%m%d');")?:return 0.0
+        val rs = mysql.query("select avg(total) from estate_history_tbl where uuid='${p.uniqueId}' and date>'${sdf.format(cal.time)}' group by date_format(date,'%Y%m%d');")?:return 0.0
 
-        val first = if (rs.next()) {rs.getDouble(1)} else {0.0}
-        val last = if (rs.last()) {rs.getDouble(1)} else {0.0}
+//        val first = if (rs.next()) {rs.getDouble(1)} else {0.0}
+//        rs.afterLast()
+//        val last = if (rs.previous()) { rs.getDouble(1) } else {0.0}
 
-        val profit = first-last
 
         val list = mutableListOf<Double>()
 
-        rs.beforeFirst()
-
         while (rs.next()){ list.add(rs.getDouble(1)) }
+
+        val first = if (list.isNotEmpty()) list[0] else 0.0
+        val last = if (list.isNotEmpty()) list[list.size-1] else 0.0
+
+        val profit = last-first
 
         list.sort()
         val centerIndex = list.size / 2
@@ -107,9 +110,15 @@ object ServerLoan {
         Bukkit.getLogger().info("first:${first}")
         Bukkit.getLogger().info("last:${last}")
         Bukkit.getLogger().info("profit:${profit}")
-        Bukkit.getLogger().info("date:${sdf.format(cal)}")
+        Bukkit.getLogger().info("date:${sdf.format(cal.time)}")
 
-        return (profit+(median* medianMultiplier))*(score* scoreMultiplier)
+        var calcAmount = (profit+(median* medianMultiplier))*(score* scoreMultiplier)
+
+        Bukkit.getLogger().info("Calc Amount:${calcAmount}")
+
+        if (calcAmount<0.0)calcAmount = 0.0
+
+        return if (maxServerLoanAmount < calcAmount) maxServerLoanAmount else calcAmount
     }
 
 //    private fun getLoanAmount(p: Player): Double {
