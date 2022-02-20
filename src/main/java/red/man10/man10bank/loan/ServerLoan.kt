@@ -543,7 +543,7 @@ object ServerLoan {
 
             if (score> standardScore){
                 giveScore(name,-(score/2),"まんじゅうリボの未払い",Bukkit.getConsoleSender())
-            }else{
+            }else if ((score-100)>-300){
                 giveScore(name,-100,"まんじゅうリボの未払い",Bukkit.getConsoleSender())
             }
 
