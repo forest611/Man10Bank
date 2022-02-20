@@ -913,16 +913,21 @@ class Man10Bank : JavaPlugin(),Listener {
             showBalance(p,p)
 
             val score = ScoreDatabase.getScore(p.uniqueId)
-            if (score<=-300 && ServerLoan.getBorrowingAmount(p)>0){
+
+            if (score>=0)return@Runnable
+
+            val nextDate = ServerLoan.getNextPayTime(p)?:return@Runnable
+
+            if (nextDate.second>0 && ServerLoan.getBorrowingAmount(p)>0){
 
                 if (kickDunce){
                     Bukkit.getScheduler().runTask(this,Runnable{
-                        p.kick(text("§c§lあなたは借金の支払いをせずにスコアが-300を下回っているので、このワールドに入れません！"))
+                        p.kick(text("§c§lあなたは§e[§8§lLoser§e]§c§lなのでこのワールドに入れません！"))
                     })
                     return@Runnable
                 }
 
-                sendMsg(p,"§c§lあなたは借金の支払いをせずにスコアが-300を下回っているので、§e[§8§lLoser§e]§c§lになっています！ ")
+                sendMsg(p,"§c§lあなたは借金の支払いをせずにスコアが0を下回っているので、§e[§8§lLoser§e]§c§lになっています！ ")
                 Bukkit.getScheduler().runTask(this,Runnable{
 
                     if (!p.hasPermission("man10bank.loser")){
