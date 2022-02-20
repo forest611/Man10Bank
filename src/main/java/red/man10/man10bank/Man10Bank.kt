@@ -121,12 +121,13 @@ class Man10Bank : JavaPlugin(),Listener {
             Bukkit.getLogger().warning("このサーバーにはMan10ShopV2が導入されていません！")
         }
 
-        ServerLoan.medianMultiplier = config.getDouble("medianMultiplier")
-        ServerLoan.recordMultiplier = config.getDouble("recordMultiplier")
-        ServerLoan.scoreMultiplier = config.getDouble("scoreMultiplier")
-        ServerLoan.maxServerLoanAmount = config.getDouble("maxServerLoan")
-        ServerLoan.revolvingFee = config.getDouble("revolvingFee")
-        ServerLoan.lastPaymentCycle = config.getInt("lastPaymentCycle")
+        ServerLoan.medianPercentage = config.getDouble("revolving.medianPercentage")
+        ServerLoan.profitPercentage = config.getDouble("revolving.profitPercentage")
+        ServerLoan.scorePercentage = config.getDouble("revolving.scorePercentage")
+        ServerLoan.maxServerLoanAmount = config.getDouble("revolving.maxServerLoan")
+        ServerLoan.revolvingFee = config.getDouble("revolving.revolvingFee")
+        ServerLoan.lastPaymentCycle = config.getInt("revolving.lastPaymentCycle")
+        ServerLoan.isEnable = config.getBoolean("revolving.enable",false)
 
         ATMData.loadItem()
     }

@@ -9,8 +9,10 @@ loanfee: 1.1
 loanmax: 10000000.0
 loanrate: 1.0
 loggingServerHistory: true
-medianMultiplier: 1.0
-recordMultiplier: 1.0
-scoreMultiplier: 1.0
-maxServerLoan: 5000000
-revolvingFee: 0.005
+revolving:
+  medianPercentage: 1.0
+  recordPercentage: 1.0
+  scorePercentage: 1.0
+  maxServerLoan: 5000000
+  revolvingFee: 0.005
+  isEnable: true

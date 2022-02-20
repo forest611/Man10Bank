@@ -6,6 +6,7 @@ import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Man10Bank.Companion.OP
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.prefix
@@ -24,9 +25,12 @@ import kotlin.math.round
 object ServerLoan {
 
 
-    var scoreMultiplier = 1.0//スコアの乗数
-    var recordMultiplier = 1.0//レコード数の乗数
-    var medianMultiplier = 1.0//中央値の乗数
+    //貸し出し金額を計算するための割合
+    var scorePercentage = 0.0
+    var profitPercentage = 0.0
+    var medianPercentage = 0.0
+
+    var isEnable = true
 
     val shareMap = ConcurrentHashMap<Player,Double>()
     val commandList = mutableListOf<Player>()
@@ -92,6 +96,7 @@ object ServerLoan {
         val last = if (list.isNotEmpty()) list[list.size-1] else 0.0
 
         val profit = last-first
+        val recordSize = list.size
 
         list.sort()
         val centerIndex = list.size / 2
@@ -105,14 +110,19 @@ object ServerLoan {
         rs.close()
         mysql.close()
 
-        Bukkit.getLogger().info("score:${score}")
-        Bukkit.getLogger().info("median:${median}")
-        Bukkit.getLogger().info("first:${first}")
-        Bukkit.getLogger().info("last:${last}")
-        Bukkit.getLogger().info("profit:${profit}")
-        Bukkit.getLogger().info("date:${sdf.format(cal.time)}")
+        if (p.hasPermission(OP)){
 
-        var calcAmount = (profit+(median* medianMultiplier))*(score* scoreMultiplier)
+            sendMsg(p,"Perm S:${scorePercentage},M:${medianPercentage},P:${profitPercentage}")
+            sendMsg(p,"Score:${score}")
+            sendMsg(p,"Median:${format(median)}")
+            sendMsg(p,"FirstAmount:${format(first)}")
+            sendMsg(p,"LastAmount:${format(last)}")
+            sendMsg(p,"MonthProfit:${format(profit)}")
+            sendMsg(p,"RecordSize:${recordSize}")
+            sendMsg(p,"CheckDate:${sdf.format(cal.time)}")
+        }
+
+        var calcAmount = ((profit* profitPercentage)+(median* medianPercentage))*(score* scorePercentage)
 
         Bukkit.getLogger().info("Calc Amount:${calcAmount}")
 
@@ -459,7 +469,7 @@ object ServerLoan {
             if (nowValue != lastPaymentCycle){
 
                 lastPaymentCycle = nowValue
-                plugin.config.set("lastPaymentCycle",nowValue)
+                plugin.config.set("revolving.lastPaymentCycle",nowValue)
                 plugin.saveConfig()
 
                 batch()

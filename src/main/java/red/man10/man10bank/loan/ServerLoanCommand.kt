@@ -80,6 +80,12 @@ class ServerLoanCommand : CommandExecutor{
                     return true
                 }
 
+                if (!ServerLoan.isEnable){
+                    sendMsg(sender,"現在新規貸し出しはできません。返済は可能です。")
+                    return true
+
+                }
+
                 val amount = args[1].toDoubleOrNull()?:return true
 
                 Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
@@ -91,6 +97,12 @@ class ServerLoanCommand : CommandExecutor{
             "confirm" ->{
 
                 if (!ServerLoan.commandList.contains(sender))return false
+
+                if (!ServerLoan.isEnable){
+                    sendMsg(sender,"現在新規貸し出しはできません。返済は可能です。")
+                    return true
+
+                }
 
                 ServerLoan.commandList.remove(sender)
 
@@ -135,8 +147,23 @@ class ServerLoanCommand : CommandExecutor{
                     }
 
                 })
+            }
 
+            "on" ->{
 
+                if (!sender.hasPermission(OP))return true
+
+                ServerLoan.isEnable = true
+                plugin.config.set("revolving.enable",true)
+                plugin.saveConfig()
+            }
+
+            "off" ->{
+                if (!sender.hasPermission(OP))return true
+
+                ServerLoan.isEnable = false
+                plugin.config.set("revolving.enable",false)
+                plugin.saveConfig()
 
             }
 
