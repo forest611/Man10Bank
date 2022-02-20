@@ -123,7 +123,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
         ServerLoan.medianPercentage = config.getDouble("revolving.medianPercentage")
         ServerLoan.profitPercentage = config.getDouble("revolving.profitPercentage")
-        ServerLoan.scorePercentage = config.getDouble("revolving.scorePercentage")
+        ServerLoan.scoreParam = config.getDouble("revolving.scoreParam")
         ServerLoan.maxServerLoanAmount = config.getDouble("revolving.maxServerLoan")
         ServerLoan.revolvingFee = config.getDouble("revolving.revolvingFee")
         ServerLoan.lastPaymentCycle = config.getInt("revolving.lastPaymentCycle")

@@ -26,7 +26,7 @@ object ServerLoan {
 
 
     //貸し出し金額を計算するための割合
-    var scorePercentage = 0.0
+    var scoreParam = 500.0
     var profitPercentage = 0.0
     var medianPercentage = 0.0
 
@@ -110,21 +110,23 @@ object ServerLoan {
         rs.close()
         mysql.close()
 
+        //スコアの量によって最終的にかけられる金額が変わる(0なら借りれない) 1-1/(x/500+2)
+        val scoreMulti = if (score<0) 0.0 else 1.0-1.0/((score.toDouble() / scoreParam)+2.0)
+
         if (p.hasPermission(OP)){
 
-            sendMsg(p,"Perm S:${scorePercentage},M:${medianPercentage},P:${profitPercentage}")
+            sendMsg(p,"Perm S:${scoreParam},M:${medianPercentage},P:${profitPercentage}")
             sendMsg(p,"Score:${score}")
             sendMsg(p,"Median:${format(median)}")
             sendMsg(p,"FirstAmount:${format(first)}")
             sendMsg(p,"LastAmount:${format(last)}")
             sendMsg(p,"MonthProfit:${format(profit)}")
             sendMsg(p,"RecordSize:${recordSize}")
-            sendMsg(p,"CheckDate:${sdf.format(cal.time)}")
+            sendMsg(p,"Calculated:${format((profit*recordSize/30* profitPercentage)+(median* medianPercentage))}")
+
         }
 
-        var calcAmount = ((profit* profitPercentage)+(median* medianPercentage))*(score* scorePercentage)
-
-        Bukkit.getLogger().info("Calc Amount:${calcAmount}")
+        var calcAmount = ((profit*recordSize/30* profitPercentage)+(median* medianPercentage))*scoreMulti
 
         if (calcAmount<0.0)calcAmount = 0.0
 
