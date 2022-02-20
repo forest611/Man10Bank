@@ -113,20 +113,20 @@ object ServerLoan {
         //スコアの量によって最終的にかけられる金額が変わる(0なら借りれない) 1-1/(x/500+2)
         val scoreMulti = if (score<0) 0.0 else 1.0-1.0/((score.toDouble() / scoreParam)+2.0)
 
-        if (p.hasPermission(OP)){
+//        if (p.hasPermission(OP)){
+//
+//            sendMsg(p,"Perm S:${scoreParam},M:${medianPercentage},P:${profitPercentage}")
+//            sendMsg(p,"Score:${score}")
+//            sendMsg(p,"Median:${format(median)}")
+//            sendMsg(p,"FirstAmount:${format(first)}")
+//            sendMsg(p,"LastAmount:${format(last)}")
+//            sendMsg(p,"MonthProfit:${format(profit)}")
+//            sendMsg(p,"RecordSize:${recordSize}")
+//            sendMsg(p,"Calculated:${format((profit*recordSize/30* profitPercentage)+(median* medianPercentage))}")
+//
+//        }
 
-            sendMsg(p,"Perm S:${scoreParam},M:${medianPercentage},P:${profitPercentage}")
-            sendMsg(p,"Score:${score}")
-            sendMsg(p,"Median:${format(median)}")
-            sendMsg(p,"FirstAmount:${format(first)}")
-            sendMsg(p,"LastAmount:${format(last)}")
-            sendMsg(p,"MonthProfit:${format(profit)}")
-            sendMsg(p,"RecordSize:${recordSize}")
-            sendMsg(p,"Calculated:${format((profit*recordSize/30* profitPercentage)+(median* medianPercentage))}")
-
-        }
-
-        var calcAmount = ((profit*recordSize/30* profitPercentage)+(median* medianPercentage))*scoreMulti
+        var calcAmount = ((profit* profitPercentage)+(median* medianPercentage))*scoreMulti*recordSize/30
 
         if (calcAmount<0.0)calcAmount = 0.0
 
