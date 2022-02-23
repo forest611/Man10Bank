@@ -56,7 +56,11 @@ object ServerLoan {
 
         p.sendMessage("§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(maxServerLoanAmount)}円)")
 
-        p.sendMessage(Component.text("§e§l§n[結果をシェアする]").clickEvent(ClickEvent.runCommand("/mrevo share")))
+        val shareButton = Component.text("§e§l§n[結果をシェアする]").clickEvent(ClickEvent.runCommand("/mrevo share"))
+        val borrowButton = Component.text(" §e§l§n[${format(maxLoan)}円借りる]").clickEvent(ClickEvent.runCommand("/mrevo borrow $maxLoan"))
+
+        p.sendMessage(shareButton.append(borrowButton))
+
 
         shareMap[p] = maxLoan
 
@@ -81,7 +85,7 @@ object ServerLoan {
         cal.time = Date()
         cal.add(Calendar.DAY_OF_YEAR,-30)
 
-        val rs = mysql.query("select avg(total) from estate_history_tbl where uuid='${p.uniqueId}' and date>'${sdf.format(cal.time)}' group by date_format(date,'%Y%m%d');")?:return 0.0
+        val rs = mysql.query("select avg(total),loan from estate_history_tbl where uuid='${p.uniqueId}' and date>'${sdf.format(cal.time)}' group by date_format(date,'%Y%m%d');")?:return 0.0
 
 //        val first = if (rs.next()) {rs.getDouble(1)} else {0.0}
 //        rs.afterLast()
@@ -90,12 +94,18 @@ object ServerLoan {
 
         val list = mutableListOf<Double>()
 
-        while (rs.next()){ list.add(rs.getDouble(1)) }
+        var loan = 0.0
+
+        while (rs.next()){
+            list.add(rs.getDouble(1))
+            loan = rs.getDouble(2)
+        }
+
 
         val first = if (list.isNotEmpty()) list[0] else 0.0
         val last = if (list.isNotEmpty()) list[list.size-1] else 0.0
 
-        val profit = last-first
+        val profit = last-first-loan
         val recordSize = list.size
 
         list.sort()
@@ -132,47 +142,6 @@ object ServerLoan {
 
         return if (maxServerLoanAmount < calcAmount) maxServerLoanAmount else calcAmount
     }
-
-//    private fun getLoanAmount(p: Player): Double {
-//        val score = ScoreDatabase.getScore(p.uniqueId)
-//
-//        val list = mutableListOf<Double>()
-//
-//        val mysql = MySQLManager(plugin,"Man10ServerLoan")
-//
-//        val rs = mysql.query("select total from estate_history_tbl where uuid='${p.uniqueId}';") ?: return 0.0
-//
-//        while (rs.next()) {
-//            list.add(rs.getDouble("total"))
-//        }
-//
-//        rs.close()
-//        mysql.close()
-//
-//        if (list.isEmpty()){ return 0.0 }
-//
-//        val rs2 = mysql.query("select count(*) from estate_history_tbl where uuid='${p.uniqueId}';") ?: return 0.0
-//
-//        val records = if (rs2.next()) rs2.getInt(1) else 0
-//
-//        rs2.close()
-//        mysql.close()
-//
-//        list.sort()
-//        val m = list.size / 2
-//
-//        val median: Double = if (list.size % 2 == 0) {
-//            (list[m-1] + list[m]) / 2.0
-//        } else {
-//            list[m-1]
-//        }
-//
-//        var calcAmount = median * medianMultiplier * score * scoreMultiplier * records * recordMultiplier
-//
-//        if (calcAmount<0.0)calcAmount = 0.0
-//
-//        return if (maxServerLoanAmount < calcAmount) maxServerLoanAmount else calcAmount
-//    }
 
     fun getBorrowingAmount(p:Player):Double{
 
