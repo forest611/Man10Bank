@@ -473,6 +473,7 @@ object ServerLoan {
             val borrowing = rs.getDouble("borrow_amount")
             val payment = rs.getDouble("payment_amount")
             val date = rs.getTimestamp("last_pay_date")
+            val isStopInterest = rs.getInt("stop_interest") == 1
 
             val p = Bukkit.getOfflinePlayer(uuid)
 
@@ -498,6 +499,8 @@ object ServerLoan {
                 }
                 continue
             }
+
+            if (isStopInterest)continue
 
             sql.execute("UPDATE server_loan_tbl set borrow_amount=${floor(borrowing+interest)},last_pay_date=now()," +
                     "failed_payment=failed_payment+1 where uuid='${uuid}'")

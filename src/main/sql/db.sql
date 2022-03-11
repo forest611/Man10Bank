@@ -156,6 +156,7 @@ create table server_loan_tbl
 	borrow_amount double null comment '借りた金額の合計',
 	payment_amount double null comment '週ごとの支払額',
 	failed_payment int default 0 comment '支払いに失敗した回数',
+	stop_interest tinyint default 0 comment '利息をたすかどうか'
 	constraint server_loan_tbl_pk
 		primary key (id)
 );

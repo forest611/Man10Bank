@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent
 import org.apache.commons.lang.math.NumberUtils
 import org.bukkit.Bukkit
-import org.bukkit.Material
+import org.bukkit.Location
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -15,7 +15,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
@@ -39,8 +38,6 @@ class Man10Bank : JavaPlugin(),Listener {
         lateinit var vault : VaultManager
 
         lateinit var plugin : Man10Bank
-
-        lateinit var dunceHat : ItemStack
 
         var kickDunce = false
 
@@ -66,6 +63,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
         var paymentThread = false
         var loggingServerHistory = false
+
+        var workWorld : Location? = null
     }
 
     private val checking = HashMap<Player,Command>()
@@ -110,10 +109,11 @@ class Man10Bank : JavaPlugin(),Listener {
         loggingServerHistory = config.getBoolean("loggingServerHistory",false)
         paymentThread = config.getBoolean("paymentThread",false)
 
-        dunceHat = config.getItemStack("dunceHat")?: ItemStack(Material.STONE)
         kickDunce = config.getBoolean("kickDunce",false)
 
         isInstalledShop = config.getBoolean("isInstalledShop", true)
+
+        workWorld = config.getLocation("workWorld",null)
 
         val hasShop = plugin.server.pluginManager.getPlugin("Man10ShopV2")!=null
 
@@ -516,17 +516,14 @@ class Man10Bank : JavaPlugin(),Listener {
 
                     }
 
-                    "hat" ->{
+                    "work" ->{
                         if (!sender.hasPermission(OP))return false
 
-                        val item = sender.inventory.itemInMainHand
-
-                        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
-                            config.set("dunceHat",item)
-                            saveConfig()
-                        })
-
+                        workWorld = sender.location
+                        config.set("workWorld", workWorld)
+                        saveConfig()
                     }
+
 
                     else ->{
                         val p = Bukkit.getOfflinePlayer(args[0]).player
@@ -908,15 +905,15 @@ class Man10Bank : JavaPlugin(),Listener {
 
         Bank.loginProcess(p)
 
-        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable  {
+        Bukkit.getScheduler().runTaskAsynchronously(this, Runnable Thread@{
             Thread.sleep(3000)
             showBalance(p,p)
 
             val score = ScoreDatabase.getScore(p.uniqueId)
 
-            if (score>=0)return@Runnable
+            if (score>=0)return@Thread
 
-            val nextDate = ServerLoan.getNextPayTime(p)?:return@Runnable
+            val nextDate = ServerLoan.getNextPayTime(p)?:return@Thread
 
             if (nextDate.second>0 && ServerLoan.getBorrowingAmount(p)>0){
 
@@ -924,16 +921,22 @@ class Man10Bank : JavaPlugin(),Listener {
                     Bukkit.getScheduler().runTask(this,Runnable{
                         p.kick(text("§c§lあなたは§e[§8§lLoser§e]§c§lなのでこのワールドに入れません！"))
                     })
-                    return@Runnable
+                    return@Thread
                 }
 
                 sendMsg(p,"§c§lあなたは借金の支払いをせずにスコアが0を下回っているので、§e[§8§lLoser§e]§c§lになっています！ ")
-                Bukkit.getScheduler().runTask(this,Runnable{
+
+                Bukkit.getScheduler().runTask(this,Runnable MainTask@{
+
+                    if (workWorld!=null){
+                        p.teleport(workWorld!!)
+                        return@MainTask
+                    }
 
                     if (!p.hasPermission("man10bank.loser")){
                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"lp user ${p.name} parent add loser")
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"man10kit pop ${p.name} ")
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"man10kit set ${p.name} loser")
+//                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"man10kit pop ${p.name} ")
+//                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"man10kit set ${p.name} loser")
                     }
                 })
             }
