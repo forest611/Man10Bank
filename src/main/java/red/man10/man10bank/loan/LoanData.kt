@@ -156,10 +156,10 @@ class LoanData {
 
     fun getNote():ItemStack{
 
-        val note = ItemStack(Material.PINK_DYE)
+        val note = ItemStack(Material.PAPER)
         val meta = note.itemMeta
 
-        meta.setCustomModelData(10)
+        meta.setCustomModelData(2)
 
         meta.displayName(text("§c§l約束手形 §7§l(Promissory Note)"))
         meta.lore = mutableListOf(
@@ -200,6 +200,22 @@ class LoanData {
             mysql.close()
 
             return amount
+        }
+
+        fun getLoanData(uuid: UUID):Set<Pair<Int,Double>>{
+
+            val mysql = MySQLManager(plugin,"Man10Bank")
+            val rs = mysql.query("select id,amount from loan_table where borrow_uuid='${uuid}';")?:return Collections.emptySet()
+
+            val set = mutableSetOf<Pair<Int,Double>>()
+
+            while (rs.next()){
+                set.add(Pair(rs.getInt("id"),rs.getDouble("amount")))
+            }
+
+            rs.close()
+            mysql.close()
+            return set
         }
 
         val lendMap = ConcurrentHashMap<Int,LoanData>()

@@ -7,6 +7,7 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.loanFee
@@ -31,7 +32,7 @@ class LoanCommand : CommandExecutor{
 
         if (sender !is Player)return true
 
-        if (args.size!=4 && args.size != 1) {
+        if (args.isEmpty()) {
 
             sendMsg(sender,"§a/mlend <プレイヤー> <金額> <期間(日)> <金利(0.0〜${loanRate})>")
             sendMsg(sender,"§a金額の${loanFee*100}%を手数料としていただきます")
@@ -114,6 +115,53 @@ class LoanCommand : CommandExecutor{
             cache.lend.sendMessage("§c相手が借金の提案を拒否しました！")
 
             cacheMap.remove(sender)
+
+            return true
+        }
+
+        if (args[0] == "userdata"){
+            if (!sender.hasPermission(OP))return true
+
+            Thread{
+                val uuid = Bank.getUUID(args[1])
+                if (uuid == null){
+                    sendMsg(sender,"存在しないユーザーです")
+                    return@Thread
+                }
+
+                sendMsg(sender,args[1])
+                sendMsg(sender,"手形の再発行用ID/金額")
+
+                val data = LoanData.getLoanData(uuid)
+                data.forEach { sendMsg(sender,"§c§l${it.first}/${format(it.second)}") }
+            }.start()
+
+            return true
+
+        }
+
+        if (args[0] == "reissue"){
+
+            if (!sender.hasPermission(OP))return true
+
+            val id = args[1].toIntOrNull()
+
+            if (id==null){
+                sendMsg(sender,"数字を入力してください")
+                return true
+            }
+
+            Thread{
+                val data = LoanData().load(id)
+
+                if (data==null){
+                    sendMsg(sender,"借金情報が見つかりません")
+                    return@Thread
+                }
+
+                Bukkit.getScheduler().runTask(plugin,Runnable{ sender.inventory.addItem(data.getNote()) })
+
+            }.start()
 
             return true
         }
