@@ -6,7 +6,6 @@ import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
-import red.man10.man10bank.Man10Bank.Companion.OP
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.prefix
@@ -473,7 +472,7 @@ object ServerLoan {
             val borrowing = rs.getDouble("borrow_amount")
             val payment = rs.getDouble("payment_amount")
             val date = rs.getTimestamp("last_pay_date")
-            val isStopInterest = rs.getInt("stop_interest") == 1
+//            val isStopInterest = rs.getInt("stop_interest") == 1
 
             val p = Bukkit.getOfflinePlayer(uuid)
 
@@ -500,7 +499,22 @@ object ServerLoan {
                 continue
             }
 
-            if (isStopInterest)continue
+//            if (isStopInterest)continue
+
+
+            val score = ScoreDatabase.getScore(uuid)
+            val name = Bukkit.getOfflinePlayer(uuid).name!!
+
+            if (score<-300){
+                Bukkit.getLogger().info("スコア-300以下なので支払い処理通過 mcid:$name score:$score")
+                continue
+            }
+
+            if (score> standardScore){
+                giveScore(name,-(score/2),"まんじゅうリボの未払い",Bukkit.getConsoleSender())
+            }else if ((score-100)>-300){
+                giveScore(name,-100,"まんじゅうリボの未払い",Bukkit.getConsoleSender())
+            }
 
             sql.execute("UPDATE server_loan_tbl set borrow_amount=${floor(borrowing+interest)},last_pay_date=now()," +
                     "failed_payment=failed_payment+1 where uuid='${uuid}'")
@@ -508,15 +522,6 @@ object ServerLoan {
             if (p.isOnline){
                 sendMsg(p.player!!,"§c§lMan10リボの支払いに失敗！スコアが減りました")
                 sendMsg(p.player!!,"§c§lスコアが減り、支払えなかった利息が追加されました")
-            }
-
-            val score = ScoreDatabase.getScore(uuid)
-            val name = Bukkit.getOfflinePlayer(uuid).name!!
-
-            if (score> standardScore){
-                giveScore(name,-(score/2),"まんじゅうリボの未払い",Bukkit.getConsoleSender())
-            }else if ((score-100)>-300){
-                giveScore(name,-100,"まんじゅうリボの未払い",Bukkit.getConsoleSender())
             }
 
         }
