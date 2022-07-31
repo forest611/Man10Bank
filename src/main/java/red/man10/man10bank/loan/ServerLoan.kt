@@ -12,6 +12,8 @@ import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager
+import red.man10.man10bank.loan.ServerLoan.getBorrowingAmount
+import red.man10.man10bank.loan.ServerLoan.getNextPayTime
 import red.man10.man10score.ScoreDatabase
 import red.man10.man10score.ScoreDatabase.giveScore
 import java.text.SimpleDateFormat
@@ -531,6 +533,22 @@ object ServerLoan {
 
 
         Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理終了")) })
+
+    }
+
+    fun isLoser(p:Player):Boolean{
+
+        val score = ScoreDatabase.getScore(p.uniqueId)
+
+        if (score>=0)return false
+
+        val nextDate = getNextPayTime(p) ?:return false
+
+        if (nextDate.second>0 && getBorrowingAmount(p) >0){
+            return true
+        }
+
+        return false
 
     }
 

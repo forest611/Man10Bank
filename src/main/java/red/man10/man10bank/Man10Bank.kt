@@ -908,38 +908,6 @@ class Man10Bank : JavaPlugin(),Listener {
         Bukkit.getScheduler().runTaskAsynchronously(this, Runnable Thread@{
             Thread.sleep(3000)
             showBalance(p,p)
-
-            val score = ScoreDatabase.getScore(p.uniqueId)
-
-            if (score>=0)return@Thread
-
-            val nextDate = ServerLoan.getNextPayTime(p)?:return@Thread
-
-            if (nextDate.second>0 && ServerLoan.getBorrowingAmount(p)>0){
-
-                if (kickDunce){
-                    Bukkit.getScheduler().runTask(this,Runnable{
-                        p.kick(text("§c§lあなたは§e[§8§lLoser§e]§c§lなのでこのワールドに入れません！"))
-                    })
-                    return@Thread
-                }
-
-                sendMsg(p,"§c§lあなたは借金の支払いをせずにスコアが0を下回っているので、§e[§8§lLoser§e]§c§lになっています！ ")
-
-                Bukkit.getScheduler().runTask(this,Runnable MainTask@{
-
-                    if (workWorld!=null){
-                        p.teleport(workWorld!!)
-                        return@MainTask
-                    }
-
-                    if (!p.hasPermission("man10bank.loser")){
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"lp user ${p.name} parent add loser")
-//                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"man10kit pop ${p.name} ")
-//                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),"man10kit set ${p.name} loser")
-                    }
-                })
-            }
         })
     }
 
