@@ -512,6 +512,20 @@ class Man10Bank : JavaPlugin(),Listener {
                             reloadConfig()
                             loadConfig()
                             Bank.reload()
+                            sendMsg(sender,"リロード完了")
+
+                            sendMsg(sender,"laonFee:${loanFee}")
+                            sendMsg(sender,"loanMax:${loanMax}")
+                            sendMsg(sender,"loanRate:${loanRate}")
+                            sendMsg(sender,"loggingServerHistory:${loggingServerHistory}")
+                            sendMsg(sender,"kickDunce:${kickDunce}")
+                            sendMsg(sender,"workWorld:${workWorld?.world?.name?:"NULL"}")
+                            sendMsg(sender,"lendParameter:${ServerLoan.lendParameter}")
+                            sendMsg(sender,"borrowStandardScore:${ServerLoan.borrowStandardScore}")
+                            sendMsg(sender,"minServerLoanAmount:${ServerLoan.minServerLoanAmount}")
+                            sendMsg(sender,"maxServerLoanAmount:${ServerLoan.maxServerLoanAmount}")
+                            sendMsg(sender,"revoFee:${ServerLoan.revolvingFee}")
+
                         })
 
                     }
