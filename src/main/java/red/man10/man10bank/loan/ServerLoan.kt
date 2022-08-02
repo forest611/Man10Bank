@@ -110,7 +110,9 @@ object ServerLoan {
         //（無条件で借りられる額）+〔(一カ月の残高中央値-スコアによる天引き)×3.55］＝貸出可能金額
         //債務者のスコア/基準スコア
 
-        val scoreMulti = score.toDouble()/ borrowStandardScore
+        var scoreMulti = score.toDouble()/ borrowStandardScore
+
+        if (scoreMulti > 1.0) scoreMulti = 1.0
 
         var calcAmount = minServerLoanAmount+ (median*scoreMulti* lendParameter)
 
