@@ -12,8 +12,6 @@ import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager
-import red.man10.man10bank.loan.ServerLoan.getBorrowingAmount
-import red.man10.man10bank.loan.ServerLoan.getNextPayTime
 import red.man10.man10score.ScoreDatabase
 import red.man10.man10score.ScoreDatabase.giveScore
 import java.text.SimpleDateFormat
@@ -27,22 +25,22 @@ object ServerLoan {
 
 
     //貸し出し金額を計算するための割合
-    var scoreParam = 500.0
-    var profitPercentage = 0.0
-    var medianPercentage = 0.0
+    var lendParameter : Double = 3.55
+    var borrowStandardScore : Int = 1
+    private const val loserStandardScore : Int = 200
 
     var isEnable = true
 
     val shareMap = ConcurrentHashMap<Player,Double>()
     val commandList = mutableListOf<Player>()
 
-    var maxServerLoanAmount = 1_000_000.0
+    var maxServerLoanAmount : Double = 1_000_000.0
+    var minServerLoanAmount : Double = 50000.0
 
     var revolvingFee = 0.1 //日率の割合
     private var frequency = 3
     var lastPaymentCycle = 0
 
-    private const val standardScore = 200
 
     init {
         Bukkit.getLogger().info("StartPaymentThread")
@@ -86,33 +84,21 @@ object ServerLoan {
         cal.time = Date()
         cal.add(Calendar.DAY_OF_YEAR,-30)
 
-        val rs = mysql.query("select avg(total),loan from estate_history_tbl where uuid='${p.uniqueId}' and date>'${sdf.format(cal.time)}' group by date_format(date,'%Y%m%d');")?:return 0.0
-
-//        val first = if (rs.next()) {rs.getDouble(1)} else {0.0}
-//        rs.afterLast()
-//        val last = if (rs.previous()) { rs.getDouble(1) } else {0.0}
-
+        val rs = mysql.query("select avg(total) from estate_history_tbl " +
+                "where uuid='${p.uniqueId}' and date>'${sdf.format(cal.time)}' group by date_format(date,'%Y%m%d');")?:return 0.0
 
         val list = mutableListOf<Double>()
 
-        var loan = 0.0
-
         while (rs.next()){
             list.add(rs.getDouble(1))
-            loan = rs.getDouble(2)
         }
-
-
-        val first = if (list.isNotEmpty()) list[0] else 0.0
-        val last = if (list.isNotEmpty()) list[list.size-1] else 0.0
-
-        val profit = last-first-loan
-        val recordSize = list.size
 
         list.sort()
         val centerIndex = list.size / 2
 
-        val median: Double = if (list.size % 2 == 0) {
+        val median: Double = if(list.size == 0){
+            0.0
+        } else if (list.size % 2 == 0) {
             (list[centerIndex-1] + list[centerIndex]) / 2.0
         } else {
             list[centerIndex-1]
@@ -121,23 +107,13 @@ object ServerLoan {
         rs.close()
         mysql.close()
 
-        //スコアの量によって最終的にかけられる金額が変わる(0なら借りれない) 1-1/(x/500+2)
-        val scoreMulti = if (score<0) 0.0 else 1.0-1.0/((score.toDouble() / scoreParam)+2.0)
+        //（無条件で借りられる額）+〔(一カ月の残高中央値-スコアによる天引き)×3.55］＝貸出可能金額
+        //債務者のスコア/基準スコア
 
-//        if (p.hasPermission(OP)){
-//
-//            sendMsg(p,"Perm S:${scoreParam},M:${medianPercentage},P:${profitPercentage}")
-//            sendMsg(p,"Score:${score}")
-//            sendMsg(p,"Median:${format(median)}")
-//            sendMsg(p,"FirstAmount:${format(first)}")
-//            sendMsg(p,"LastAmount:${format(last)}")
-//            sendMsg(p,"MonthProfit:${format(profit)}")
-//            sendMsg(p,"RecordSize:${recordSize}")
-//            sendMsg(p,"Calculated:${format((profit*recordSize/30* profitPercentage)+(median* medianPercentage))}")
-//
-//        }
+        val scoreMulti = score.toDouble()/ borrowStandardScore
 
-        var calcAmount = ((profit* profitPercentage)+(median* medianPercentage))*scoreMulti*recordSize/30
+        var calcAmount = minServerLoanAmount+ (median*scoreMulti* lendParameter)
+
 
         if (calcAmount<0.0)calcAmount = 0.0
 
@@ -145,10 +121,14 @@ object ServerLoan {
     }
 
     fun getBorrowingAmount(p:Player):Double{
+        return getBorrowingAmount(p.uniqueId)
+    }
+
+    fun getBorrowingAmount(uuid: UUID):Double{
 
         val mysql = MySQLManager(plugin,"Man10ServerLoan")
 
-        val rs = mysql.query("SELECT borrow_amount from server_loan_tbl where uuid='${p.uniqueId}'")?:return 0.0
+        val rs = mysql.query("SELECT borrow_amount from server_loan_tbl where uuid='${uuid}'")?:return 0.0
 
         var ret = 0.0
 
@@ -161,22 +141,6 @@ object ServerLoan {
 
         return ret
     }
-
-//    fun getBorrowingAmount(uuid: UUID):Double{
-//
-//        val rs = mysql.query("SELECT borrow_amount from server_loan_tbl where uuid='${uuid}'")?:return 0.0
-//
-//        var ret = 0.0
-//
-//        if (rs.next()){
-//            ret = rs.getDouble("borrow_amount")
-//        }
-//
-//        rs.close()
-//        mysql.close()
-//
-//        return ret
-//    }
 
     fun showBorrowMessage(p:Player,amount: Double){
 
@@ -231,6 +195,12 @@ object ServerLoan {
             return
         }
 
+        sendMsg(p,"Man10Bankシステムに問い合わせ中・・・§l§kXX")
+
+        if(borrowedSubAccount(p.uniqueId)){
+            sendMsg(p,"§c§lあなたが所有しているアカウントのいずれかで、すでに借金をしているため、このアカウントでお金を借りることはできません！")
+            return
+        }
 
         val borrowableAmount = max - borrowing
         val minPaymentAmount = floor((borrowing+amount)*frequency*revolvingFee)
@@ -512,7 +482,7 @@ object ServerLoan {
                 continue
             }
 
-            if (score> standardScore){
+            if (score> loserStandardScore){
                 giveScore(name,-(score/2),"まんじゅうリボの未払い",Bukkit.getConsoleSender())
             }else if ((score-100)>-300){
                 giveScore(name,-100,"まんじゅうリボの未払い",Bukkit.getConsoleSender())
@@ -550,6 +520,18 @@ object ServerLoan {
 
         return false
 
+    }
+
+    fun borrowedSubAccount(uuid: UUID):Boolean{
+
+        val account = ScoreDatabase.getSubAccount(uuid)
+
+        for (id in account){
+            if (getBorrowingAmount(id)>0){
+                return true
+            }
+        }
+        return false
     }
 
     private fun dateDiff(from: Date, to: Date): Int {

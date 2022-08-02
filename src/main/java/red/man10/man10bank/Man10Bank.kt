@@ -121,9 +121,9 @@ class Man10Bank : JavaPlugin(),Listener {
             Bukkit.getLogger().warning("このサーバーにはMan10ShopV2が導入されていません！")
         }
 
-        ServerLoan.medianPercentage = config.getDouble("revolving.medianPercentage")
-        ServerLoan.profitPercentage = config.getDouble("revolving.profitPercentage")
-        ServerLoan.scoreParam = config.getDouble("revolving.scoreParam")
+        ServerLoan.lendParameter = config.getDouble("revolving.lendParameter")
+        ServerLoan.borrowStandardScore = config.getInt("revolving.borrowStandardScore")
+        ServerLoan.minServerLoanAmount = config.getDouble("revolving.minServerLoan")
         ServerLoan.maxServerLoanAmount = config.getDouble("revolving.maxServerLoan")
         ServerLoan.revolvingFee = config.getDouble("revolving.revolvingFee")
         ServerLoan.lastPaymentCycle = config.getInt("revolving.lastPaymentCycle")
