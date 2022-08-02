@@ -529,6 +529,7 @@ object ServerLoan {
         val account = ScoreDatabase.getSubAccount(uuid)
 
         for (id in account){
+            if (id==uuid)continue
             if (getBorrowingAmount(id)>0){
                 return true
             }
