@@ -209,7 +209,7 @@ object Bank {
 
         val sql = MySQLManager(plugin,"Man10Bank")
 
-        val rs = sql.query("SELECT uuid FROM user_bank WHERE player='$${escapeStringForMySQL(player)}';")?:return null
+        val rs = sql.query("SELECT uuid FROM user_bank WHERE player='${escapeStringForMySQL(player)}';")?:return null
 
         if (rs.next()){
             val uuid = UUID.fromString(rs.getString("uuid"))
