@@ -318,20 +318,14 @@ object EstateData {
 
             for (i in getShulkerItem(item)){
                 estate+=Cheque.getChequeAmount(i)
+                for (j in getBundleItem(i)){
+                    estate+=Cheque.getChequeAmount(j)
+                }
             }
 
             for (i in getBundleItem(item)){
                 estate+=Cheque.getChequeAmount(i)
             }
-
-//            //しゅるかーの中身も確かめる
-//            val meta = item.itemMeta
-//            if (meta != null && meta is BlockStateMeta && meta.blockState is ShulkerBox &&  meta.hasBlockState()){
-//                for (item2 in (meta.blockState as ShulkerBox).inventory){
-//                    if (item2 ==null ||item2.type == Material.AIR)continue
-//                    estate+=Cheque.getChequeAmount(item2)
-//                }
-//            }
         }
 
         //エンダーチェスト
@@ -341,21 +335,15 @@ object EstateData {
 
             for (i in getShulkerItem(item)){
                 estate+=Cheque.getChequeAmount(i)
+                for (j in getBundleItem(i)){
+                    estate+=Cheque.getChequeAmount(j)
+                }
             }
 
             for (i in getBundleItem(item)){
                 estate+=Cheque.getChequeAmount(i)
             }
 
-
-//            //しゅるかーの中身も確かめる
-//            val meta = item.itemMeta
-//            if (meta != null && meta is BlockStateMeta && meta.blockState is ShulkerBox &&  meta.hasBlockState()){
-//                for (item2 in (meta.blockState as ShulkerBox).inventory){
-//                    if (item2 ==null ||item2.type == Material.AIR)continue
-//                    estate+=Cheque.getChequeAmount(item2)
-//                }
-//            }
         }
 
         return estate
@@ -373,21 +361,15 @@ object EstateData {
 
             for (i in getShulkerItem(item)){
                 cash+=ATMData.getMoneyAmount(i)
+
+                for (j in getBundleItem(i)){
+                    cash+=ATMData.getMoneyAmount(j)
+                }
             }
 
             for (i in getBundleItem(item)){
                 cash+=ATMData.getMoneyAmount(i)
             }
-
-
-//            //しゅるかーの中身も確かめる
-//            val meta = item.itemMeta
-//            if (meta != null && meta is BlockStateMeta && meta.blockState is ShulkerBox &&  meta.hasBlockState()){
-//                for (item2 in (meta.blockState as ShulkerBox).inventory){
-//                    if (item2 ==null ||item2.type == Material.AIR)continue
-//                    cash+=ATMData.getMoneyAmount(item2)
-//                }
-//            }
         }
 
         for (item in p.enderChest.contents){
@@ -397,21 +379,15 @@ object EstateData {
 
             for (i in getShulkerItem(item)){
                 cash+=ATMData.getMoneyAmount(i)
+
+                for (j in getBundleItem(i)){
+                    cash+=ATMData.getMoneyAmount(j)
+                }
             }
 
             for (i in getBundleItem(item)){
                 cash+=ATMData.getMoneyAmount(i)
             }
-
-//            //しゅるかーの中身も確かめる
-//            val meta = item.itemMeta
-//            if (meta != null && meta is BlockStateMeta && meta.blockState is ShulkerBox &&  meta.hasBlockState()){
-//                for (item2 in (meta.blockState as ShulkerBox).inventory){
-//                    if (item2 ==null ||item2.type == Material.AIR)continue
-//                    cash+=ATMData.getMoneyAmount(item2)
-//                }
-//            }
-
         }
 
         return cash
