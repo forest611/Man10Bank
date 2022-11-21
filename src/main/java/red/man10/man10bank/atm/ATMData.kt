@@ -41,7 +41,8 @@ object ATMData {
         return true
     }
 
-    fun getMoneyAmount(itemStack: ItemStack):Double{
+    fun getMoneyAmount(itemStack: ItemStack?):Double{
+        if (itemStack ==null ||itemStack.type == Material.AIR)return 0.0
 
         val type = getMoneyType(itemStack)
 
