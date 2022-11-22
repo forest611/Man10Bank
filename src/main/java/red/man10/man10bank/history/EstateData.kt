@@ -394,9 +394,9 @@ object EstateData {
 
     }
 
-    fun getShulkerItem(item:ItemStack):List<ItemStack>{
+    fun getShulkerItem(item:ItemStack?):List<ItemStack>{
 
-        val meta = item.itemMeta?: emptyList<ItemStack>()
+        val meta = item?.itemMeta?: emptyList<ItemStack>()
 
         if (meta is BlockStateMeta && meta.blockState is ShulkerBox && meta.hasBlockState()){
 
@@ -406,9 +406,9 @@ object EstateData {
         return emptyList()
     }
 
-    fun getBundleItem(item: ItemStack):List<ItemStack>{
+    fun getBundleItem(item: ItemStack?):List<ItemStack>{
 
-        val meta = item.itemMeta?: emptyList<ItemStack>()
+        val meta = item?.itemMeta?: emptyList<ItemStack>()
 
         if (meta is BundleMeta){
             return meta.items
