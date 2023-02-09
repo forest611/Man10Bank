@@ -4,7 +4,9 @@ import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.block.ShulkerBox
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.BlockStateMeta
+import org.bukkit.inventory.meta.BundleMeta
 import org.bukkit.scheduler.BukkitTask
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
@@ -314,13 +316,15 @@ object EstateData {
             if (item ==null ||item.type == Material.AIR)continue
             estate+=Cheque.getChequeAmount(item)
 
-            //しゅるかーの中身も確かめる
-            val meta = item.itemMeta
-            if (meta != null && meta is BlockStateMeta && meta.blockState is ShulkerBox &&  meta.hasBlockState()){
-                for (item2 in (meta.blockState as ShulkerBox).inventory){
-                    if (item2 ==null ||item2.type == Material.AIR)continue
-                    estate+=Cheque.getChequeAmount(item2)
+            for (i in getShulkerItem(item)){
+                estate+=Cheque.getChequeAmount(i)
+                for (j in getBundleItem(i)){
+                    estate+=Cheque.getChequeAmount(j)
                 }
+            }
+
+            for (i in getBundleItem(item)){
+                estate+=Cheque.getChequeAmount(i)
             }
         }
 
@@ -329,14 +333,17 @@ object EstateData {
             if (item ==null ||item.type == Material.AIR)continue
             estate+=Cheque.getChequeAmount(item)
 
-            //しゅるかーの中身も確かめる
-            val meta = item.itemMeta
-            if (meta != null && meta is BlockStateMeta && meta.blockState is ShulkerBox &&  meta.hasBlockState()){
-                for (item2 in (meta.blockState as ShulkerBox).inventory){
-                    if (item2 ==null ||item2.type == Material.AIR)continue
-                    estate+=Cheque.getChequeAmount(item2)
+            for (i in getShulkerItem(item)){
+                estate+=Cheque.getChequeAmount(i)
+                for (j in getBundleItem(i)){
+                    estate+=Cheque.getChequeAmount(j)
                 }
             }
+
+            for (i in getBundleItem(item)){
+                estate+=Cheque.getChequeAmount(i)
+            }
+
         }
 
         return estate
@@ -352,13 +359,16 @@ object EstateData {
             val money = ATMData.getMoneyAmount(item)
             cash+=money
 
-            //しゅるかーの中身も確かめる
-            val meta = item.itemMeta
-            if (meta != null && meta is BlockStateMeta && meta.blockState is ShulkerBox &&  meta.hasBlockState()){
-                for (item2 in (meta.blockState as ShulkerBox).inventory){
-                    if (item2 ==null ||item2.type == Material.AIR)continue
-                    cash+=ATMData.getMoneyAmount(item2)
+            for (i in getShulkerItem(item)){
+                cash+=ATMData.getMoneyAmount(i)
+
+                for (j in getBundleItem(i)){
+                    cash+=ATMData.getMoneyAmount(j)
                 }
+            }
+
+            for (i in getBundleItem(item)){
+                cash+=ATMData.getMoneyAmount(i)
             }
         }
 
@@ -367,20 +377,46 @@ object EstateData {
             val money = ATMData.getMoneyAmount(item)
             cash+=money
 
-            //しゅるかーの中身も確かめる
-            val meta = item.itemMeta
-            if (meta != null && meta is BlockStateMeta && meta.blockState is ShulkerBox &&  meta.hasBlockState()){
-                for (item2 in (meta.blockState as ShulkerBox).inventory){
-                    if (item2 ==null ||item2.type == Material.AIR)continue
-                    cash+=ATMData.getMoneyAmount(item2)
+            for (i in getShulkerItem(item)){
+                cash+=ATMData.getMoneyAmount(i)
+
+                for (j in getBundleItem(i)){
+                    cash+=ATMData.getMoneyAmount(j)
                 }
             }
 
+            for (i in getBundleItem(item)){
+                cash+=ATMData.getMoneyAmount(i)
+            }
         }
 
         return cash
 
     }
+
+    fun getShulkerItem(item:ItemStack?):List<ItemStack>{
+
+        val meta = item?.itemMeta?: emptyList<ItemStack>()
+
+        if (meta is BlockStateMeta && meta.blockState is ShulkerBox && meta.hasBlockState()){
+
+            val shulker = meta.blockState as ShulkerBox
+            return shulker.inventory.toList()
+        }
+        return emptyList()
+    }
+
+    fun getBundleItem(item: ItemStack?):List<ItemStack>{
+
+        val meta = item?.itemMeta?: emptyList<ItemStack>()
+
+        if (meta is BundleMeta){
+            return meta.items
+        }
+
+        return emptyList()
+    }
+
     private fun historyThread(){
 
         while (true){

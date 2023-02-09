@@ -10,6 +10,7 @@ import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
+import red.man10.man10bank.MySQLManager.Companion.escapeStringForMySQL
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.history.EstateData
 import java.text.SimpleDateFormat
@@ -208,7 +209,7 @@ object Bank {
 
         val sql = MySQLManager(plugin,"Man10Bank")
 
-        val rs = sql.query("SELECT uuid FROM user_bank WHERE player='$player';")?:return null
+        val rs = sql.query("SELECT uuid FROM user_bank WHERE player='${escapeStringForMySQL(player)}';")?:return null
 
         if (rs.next()){
             val uuid = UUID.fromString(rs.getString("uuid"))

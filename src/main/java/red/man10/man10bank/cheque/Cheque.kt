@@ -81,7 +81,9 @@ object Cheque :Listener{
             ?: return -1, PersistentDataType.INTEGER]?:return -1
     }
 
-    fun getChequeAmount(item:ItemStack):Double{
+    fun getChequeAmount(item:ItemStack?):Double{
+        if (item ==null ||item.type == Material.AIR)return 0.0
+
         return item.itemMeta.persistentDataContainer[NamespacedKey.fromString("cheque_amount")!!,
                 PersistentDataType.DOUBLE]?:return 0.0
     }

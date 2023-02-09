@@ -502,8 +502,7 @@ object ServerLoan {
 
         rs.close()
         sql.close()
-
-
+        
         Bukkit.getScheduler().runTask(plugin, Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理終了")) })
 
     }
