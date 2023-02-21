@@ -182,6 +182,7 @@ public static class Bank
             var ret = context.money_log
                 .Where(r => r.uuid == uuid)
                 .OrderBy(r => r.date)
+                .Take(10)
                 .ToArray();
             return ret;
         });
