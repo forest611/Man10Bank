@@ -17,17 +17,33 @@ public class BankController : ControllerBase
     }
 
     [HttpPost("add-balance")]
-    public bool AddBalance(string uuid, double amount)
+    public bool AddBalance([FromBody]TransactionData data)
     {
-        Bank.AddBalance(uuid,amount,"Test","Test","Test");
+        Bank.AddBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
         return false;
     }
 
     [HttpPost("take-balance")]
-    public bool TakeBalance(string uuid, double amount)
+    public bool TakeBalance([FromBody]TransactionData data)
     {
-        Bank.TakeBalance(uuid,amount,"Test","Test","Test");
+        Bank.TakeBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
         return false;
     }
     
+    [HttpPost("set-balance")]
+    public bool SetBalance([FromBody]TransactionData data)
+    {
+        Bank.SetBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
+        return false;
+    }
+    
+}
+
+public class TransactionData
+{
+    public string UUID { get; set; }
+    public double Amount { get; set; }
+    public string Plugin { get; set; }
+    public string Note { get; set; }
+    public string DisplayNote { get; set; }
 }

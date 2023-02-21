@@ -114,6 +114,7 @@ public class Bank
             if (result.balance<amount)
             {
                 Console.WriteLine("残高不足");
+                return;
             }
             
             result.balance = Math.Floor(result.balance-amount);
