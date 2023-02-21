@@ -1,3 +1,4 @@
+using Man10BankServer.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Man10BankServer.Controllers;
@@ -18,14 +19,14 @@ public class BankController : ControllerBase
     [HttpPost("add-balance")]
     public bool AddBalance(string uuid, double amount)
     {
-
+        Bank.AddBalance(uuid,amount,"Test","Test","Test");
         return false;
     }
 
     [HttpPost("take-balance")]
     public bool TakeBalance(string uuid, double amount)
     {
-        
+        Bank.TakeBalance(uuid,amount,"Test","Test","Test");
         return false;
     }
     

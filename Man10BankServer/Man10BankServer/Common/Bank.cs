@@ -8,7 +8,7 @@ public class Bank
 
     private static readonly BlockingCollection<Action<Context>> BankQueue = new();
     
-    public void StartMan10Bank()
+    public static void StartMan10Bank()
     {
         Task.Run(BlockingQueue);
     }
@@ -85,10 +85,13 @@ public class Bank
             var result = context.user_bank.FirstOrDefault(r => r.uuid == uuid);
             if (result == null)
             {
+                Console.WriteLine("口座がありません");
                 return;
             }
-            result.balance += amount;
+            result.balance = Math.Floor(result.balance+amount);
             context.SaveChanges();
+            
+            BankLog(uuid,Math.Floor(amount),true,plugin,note,displayNote);
         });
     }
 
@@ -104,10 +107,19 @@ public class Bank
             var result = context.user_bank.FirstOrDefault(r => r.uuid == uuid);
             if (result == null)
             {
+                Console.WriteLine("口座がありません");
                 return;
             }
-            result.balance -= amount;
+
+            if (result.balance<amount)
+            {
+                Console.WriteLine("残高不足");
+            }
+            
+            result.balance = Math.Floor(result.balance-amount);
             context.SaveChanges();
+            
+            BankLog(uuid,Math.Floor(amount),false,plugin,note,displayNote);
         });
     }
 
@@ -133,7 +145,7 @@ public class Bank
         });
     }
 
-    public static void BankLog(string uuid,double amount,bool isDeposit, string plugin, string note, string displayNote)
+    private static void BankLog(string uuid,double amount,bool isDeposit, string plugin, string note, string displayNote)
     {
 
         var mcid = GetMinecraftID(uuid);
@@ -153,6 +165,7 @@ public class Bank
 
         context.money_log.Add(log);
         context.SaveChanges();
+        context.Dispose();
     }
     
 
@@ -171,14 +184,11 @@ public class Bank
             try
             {
                 job?.Invoke(context);
+                // context.Dispose();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-            }
-            finally
-            {
-                context.Dispose();
             }
         }
         
