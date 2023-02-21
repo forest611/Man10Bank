@@ -1,17 +1,13 @@
-package red.man10.man10bank;
+package red.man10.man10bank
 
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.JavaPlugin
 
-public final class Man10Bank extends JavaPlugin {
-
-    @Override
-    public void onEnable() {
+class Man10Bank : JavaPlugin() {
+    override fun onEnable() {
         // Plugin startup logic
-
     }
 
-    @Override
-    public void onDisable() {
+    override fun onDisable() {
         // Plugin shutdown logic
     }
 }
