@@ -8,10 +8,17 @@ namespace Man10BankServer.Controllers;
 public class BankController : ControllerBase
 {
 
-    [HttpGet("get")]
+    //9c4161a9-0f5f-4317-835c-0bb196a7defa
+    [HttpGet("balance")]
     public double GetBalance(string uuid)
     {
         return Bank.AsyncGetBalance(uuid).Result;
+    }
+    
+    [HttpGet("log")]
+    public MoneyLog[] GetLog(string uuid)
+    {
+        return Bank.GetLog(uuid).Result;
     }
 
     [HttpPost("add")]
@@ -41,7 +48,7 @@ public class BankController : ControllerBase
         Bank.CreateBank(uuid,mcid);
         return false;
     }
-    
+
 }
 
 public class TransactionData

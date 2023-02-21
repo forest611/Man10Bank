@@ -173,6 +173,21 @@ public static class Bank
         context.SaveChanges();
         context.Dispose();
     }
+
+    public static async Task<MoneyLog[]> GetLog(string uuid)
+    {
+        var result = await Task.Run(() =>
+        {
+            using var context = new Context();
+            var ret = context.money_log
+                .Where(r => r.uuid == uuid)
+                .OrderBy(r => r.date)
+                .ToArray();
+            return ret;
+        });
+
+        return result;
+    }
     
 
     #region キュー
