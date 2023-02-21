@@ -16,10 +16,29 @@ public class UserBank
 
 }
 
+public class MoneyLog
+{
+    
+    [Key]
+    public int id { get; set; }
+    public string player { get; set; }
+    public string uuid { get; set; }
+    public string plugin_name { get; set; }
+    public double amount { get; set; }
+    public string note { get; set; }
+    public string display_note { get; set; }
+    public string server { get; set; }
+    public bool deposit { get; set; }
+    public DateTime date { get; set; }
+    
+    
+    
+}
 public class Context : DbContext
 {
     
-    public DbSet<UserBank> user_Bank { get; set; }
+    public DbSet<UserBank> user_bank { get; set; }
+    public DbSet<MoneyLog> money_log { get; set; }
     
     private static string Host { get; }
     private static string Port { get; }
