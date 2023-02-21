@@ -1,0 +1,4 @@
+name: Man10Bank
+version: '${version}'
+main: red.man10.man10bank.Man10Bank
+api-version: 1.19
