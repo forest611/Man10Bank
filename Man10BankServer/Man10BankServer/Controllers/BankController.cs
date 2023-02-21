@@ -11,9 +11,7 @@ public class BankController : ControllerBase
     [HttpGet("get-balance")]
     public double GetBalance(string uuid)
     {
-
-
-        return 0.0;
+        return Bank.AsyncGetBalance(uuid).Result;
     }
 
     [HttpPost("add-balance")]

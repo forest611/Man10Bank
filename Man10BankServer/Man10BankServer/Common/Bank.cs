@@ -13,27 +13,24 @@ public class Bank
         Task.Run(BlockingQueue);
     }
 
-    public static void GetBalance(string uuid,Action<double?> callback)
+    /// <summary>
+    /// ユーザーの所持金を取得する
+    /// 非同期のため、厳密な金額ではない可能性がある
+    /// 口座がない場合は-1を返す
+    /// </summary>
+    /// <param name="uuid"></param>
+    /// <returns></returns>
+    public static async Task<double> AsyncGetBalance(string uuid)
     {
-        BankQueue.TryAdd(context =>
+
+        var result = await Task.Run(() =>
         {
+            using var context = new Context();
             var balance = context.user_bank.FirstOrDefault(r => r.uuid == uuid)?.balance;
-            callback.Invoke(balance);
-        });
-    }
-
-    public static async Task<double?> AsyncGetBalance(string uuid)
-    {
-
-        double? result = null;
-        
-        GetBalance(uuid, balance =>
-        {
-            //ここの処理が終わるまで待機したい
-            result = balance;
+            return balance;
         });
 
-        return result;
+        return result ?? -1;
     }
 
     /// <summary>
