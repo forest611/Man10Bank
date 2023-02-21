@@ -8,30 +8,37 @@ namespace Man10BankServer.Controllers;
 public class BankController : ControllerBase
 {
 
-    [HttpGet("get-balance")]
+    [HttpGet("get")]
     public double GetBalance(string uuid)
     {
         return Bank.AsyncGetBalance(uuid).Result;
     }
 
-    [HttpPost("add-balance")]
+    [HttpPost("add")]
     public bool AddBalance([FromBody]TransactionData data)
     {
         Bank.AddBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
         return false;
     }
 
-    [HttpPost("take-balance")]
+    [HttpPost("take")]
     public bool TakeBalance([FromBody]TransactionData data)
     {
         Bank.TakeBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
         return false;
     }
     
-    [HttpPost("set-balance")]
+    [HttpPost("set")]
     public bool SetBalance([FromBody]TransactionData data)
     {
         Bank.SetBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
+        return false;
+    }
+
+    [HttpPost("create")]
+    public bool CreateBank(string uuid,string mcid)
+    {
+        Bank.CreateBank(uuid,mcid);
         return false;
     }
     

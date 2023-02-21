@@ -1,13 +1,12 @@
 using System.Collections.Concurrent;
-using Microsoft.OpenApi.Any;
 
 namespace Man10BankServer.Common;
 
-public class Bank
+public static class Bank
 {
 
     private static readonly BlockingCollection<Action<Context>> BankQueue = new();
-    
+
     public static void StartMan10Bank()
     {
         Task.Run(BlockingQueue);
@@ -38,18 +37,19 @@ public class Bank
     /// </summary>
     /// <param name="uuid"></param>
     /// <returns></returns>
-    public static string? GetMinecraftID(string uuid)
+    private static string? GetMinecraftId(string uuid)
     {
         var context = new Context();
-        var mcid = context.user_bank.FirstOrDefault(r => r.uuid == uuid)?.player;
-        return mcid;
+        var userName = context.user_bank.FirstOrDefault(r => r.uuid == uuid)?.player;
+        return userName;
     }
 
     /// <summary>
     /// 口座を作る
     /// </summary>
     /// <param name="uuid"></param>
-    public static void CreateBank(string uuid,string mcid)
+    /// <param name="userName"></param>
+    public static void CreateBank(string uuid,string userName)
     {
         BankQueue.TryAdd(context =>
         {
@@ -63,18 +63,23 @@ public class Bank
             {
                 balance = 0,
                 uuid = uuid,
-                player = mcid
+                player = userName
             };
             context.user_bank.Add(bank);
             context.SaveChanges();
+            
+            BankLog(uuid,0,true,"Man10Bank","CreateAccount","口座を作成");
         });
     }
-    
+
     /// <summary>
     /// 銀行残高を増やす
     /// </summary>
     /// <param name="uuid"></param>
     /// <param name="amount"></param>
+    /// <param name="plugin"></param>
+    /// <param name="note"></param>
+    /// <param name="displayNote"></param>
     public static void AddBalance(string uuid, double amount,string plugin,string note,string displayNote)
     {
         BankQueue.TryAdd(context =>
@@ -97,6 +102,9 @@ public class Bank
     /// </summary>
     /// <param name="uuid"></param>
     /// <param name="amount"></param>
+    /// <param name="plugin"></param>
+    /// <param name="note"></param>
+    /// <param name="displayNote"></param>
     public static void TakeBalance(string uuid, double amount,string plugin,string note,string displayNote)
     {
         BankQueue.TryAdd(context =>
@@ -146,13 +154,13 @@ public class Bank
     private static void BankLog(string uuid,double amount,bool isDeposit, string plugin, string note, string displayNote)
     {
 
-        var mcid = GetMinecraftID(uuid);
+        var userName = GetMinecraftId(uuid)??"null";
         var context = new Context();
 
         var log = new MoneyLog
         {
             uuid = uuid,
-            player = mcid,
+            player = userName,
             amount = amount,
             deposit = isDeposit,
             plugin_name = plugin,
@@ -176,6 +184,8 @@ public class Bank
     {
         var context = new Context();
         
+        Console.WriteLine("Man10Bankキュータスクを起動しました。");
+        
         while (true)
         {
             BankQueue.TryTake(out var job,-1);
@@ -189,7 +199,6 @@ public class Bank
                 Console.WriteLine(e);
             }
         }
-        
     }
     
     #endregion
