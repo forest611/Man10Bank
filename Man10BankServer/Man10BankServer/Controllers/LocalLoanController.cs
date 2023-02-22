@@ -1,3 +1,4 @@
+using Man10BankServer.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Man10BankServer.Controllers;
@@ -8,9 +9,24 @@ public class LocalLoanController : ControllerBase
 {
     
     [HttpPost("create")]
-    public bool CreateLoan()
+    public int CreateLoan([FromBody] LocalLoanData data)
     {
-        return false;
+        var result = LocalLoan.Create(data);
+        return result.Result;
+    }
+
+    [HttpPost("pay")]
+    public string Pay(int id, double amount)
+    {
+        var result = LocalLoan.Pay(id, amount);
+        return result.Result;
+    }
+
+    [HttpGet("get-info")]
+    public LocalLoanTable? GetInfo(int id)
+    {
+        var result = LocalLoan.GetInfo(id);
+        return result.Result;
     }
     
 }

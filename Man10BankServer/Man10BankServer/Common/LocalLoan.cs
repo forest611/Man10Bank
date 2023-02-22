@@ -3,7 +3,7 @@ namespace Man10BankServer.Common;
 public static class LocalLoan
 {
 
-    public static async Task<int> Create(LoanData data)
+    public static async Task<int> Create(LocalLoanData data)
     {
         var result = await Task.Run(() =>
         {
@@ -25,7 +25,7 @@ public static class LocalLoan
         return result;
     }
 
-    public static async Task<int> Pay(int id,double amount)
+    public static async Task<string> Pay(int id,double amount)
     {
         var result = await Task.Run(() =>
         {
@@ -34,7 +34,7 @@ public static class LocalLoan
 
             if (data == null)
             {
-                return -1;
+                return "DataNotFound";
             }
 
             data.amount -= amount;
@@ -43,12 +43,12 @@ public static class LocalLoan
             {
                 data.amount = 0;
                 context.SaveChanges();
-                return 1;
+                return "AllPaid";
             }
 
             context.SaveChanges();
 
-            return 0;
+            return "Paid";
         });
 
         return result;
@@ -68,7 +68,7 @@ public static class LocalLoan
     
 }
 
-public class LoanData
+public class LocalLoanData
 {
     public string BorrowUUID { get; set; }
     public string LendUUID { get; set; }
