@@ -71,7 +71,7 @@ public static class Bank
     /// </summary>
     /// <param name="uuid"></param>
     /// <returns></returns>
-    private static string? GetMinecraftId(string uuid)
+    public static string? GetMinecraftId(string uuid)
     {
         var context = new Context();
         var userName = context.user_bank.FirstOrDefault(r => r.uuid == uuid)?.player;
