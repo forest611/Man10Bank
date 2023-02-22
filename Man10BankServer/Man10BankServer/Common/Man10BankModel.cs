@@ -52,7 +52,7 @@ public class ATMLog
 /// <summary>
 /// ユーザー間借金のテーブル
 /// </summary>
-public class LoanTable
+public class LocalLoanTable
 {
     [Key]
     public int id { get; set; }
@@ -168,7 +168,7 @@ public class Context : DbContext
     public DbSet<UserBank> user_bank { get; set; }
     public DbSet<MoneyLog> money_log { get; set; }
     public DbSet<ATMLog> atm_log { get; set; }
-    public DbSet<LoanTable> loan_table { get; set; }
+    public DbSet<LocalLoanTable> loan_table { get; set; }
     public DbSet<EstateTable> estate_tbl { get; set; }
     public DbSet<EstateHistoryTable> estate_history_tbl { get; set; }
     public DbSet<ServerEstateHistory> server_estate_history { get; set; }
