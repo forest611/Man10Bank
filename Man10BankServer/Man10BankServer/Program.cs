@@ -11,6 +11,8 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+Bank.StartMan10Bank();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -26,4 +28,3 @@ app.MapControllers();
 
 app.Run();
 
-Bank.StartMan10Bank();

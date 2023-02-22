@@ -22,17 +22,17 @@ public class BankController : ControllerBase
     }
 
     [HttpPost("add")]
-    public bool AddBalance([FromBody]TransactionData data)
+    public int AddBalance([FromBody]TransactionData data)
     {
-        Bank.AddBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
-        return false;
+        var ret = Bank.AsyncAddBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
+        return ret.Result;
     }
 
     [HttpPost("take")]
-    public bool TakeBalance([FromBody]TransactionData data)
+    public int TakeBalance([FromBody]TransactionData data)
     {
-        Bank.TakeBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
-        return false;
+        var ret = Bank.AsyncTakeBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
+        return ret.Result;
     }
     
     [HttpPost("set")]
@@ -43,10 +43,9 @@ public class BankController : ControllerBase
     }
 
     [HttpPost("create")]
-    public bool CreateBank(string uuid,string mcid)
+    public void CreateBank(string uuid,string mcid)
     {
         Bank.CreateBank(uuid,mcid);
-        return false;
     }
 
 }

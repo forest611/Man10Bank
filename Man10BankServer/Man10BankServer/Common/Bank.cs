@@ -32,6 +32,40 @@ public static class Bank
         return result ?? -1;
     }
 
+    public static async Task<int> AsyncAddBalance(string uuid, double amount,string plugin,string note,string displayNote)
+    {
+        var result = await Task.Run(() =>
+        {
+            var ret = 0;
+
+            //TODO:待ち合わせ処理を実装する
+            AddBalance(uuid, amount, plugin, note, displayNote, r => {
+                ret = r;
+            });
+
+            return ret;
+        });
+
+        return result;
+    }
+    
+    public static async Task<int> AsyncTakeBalance(string uuid, double amount,string plugin,string note,string displayNote)
+    {
+        var result = await Task.Run(() =>
+        {
+            var ret = 0;
+
+            //TODO:待ち合わせ処理を実装する
+            TakeBalance(uuid, amount, plugin, note, displayNote, r => {
+                ret = r;
+            });
+
+            return ret;
+        });
+
+        return result;
+    }
+    
     /// <summary>
     /// MinecraftIDを取得する
     /// </summary>
@@ -80,7 +114,8 @@ public static class Bank
     /// <param name="plugin"></param>
     /// <param name="note"></param>
     /// <param name="displayNote"></param>
-    public static void AddBalance(string uuid, double amount,string plugin,string note,string displayNote)
+    /// <param name="callback"></param>
+    public static void AddBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<int>? callback = null)
     {
         BankQueue.TryAdd(context =>
         {
@@ -94,6 +129,8 @@ public static class Bank
             context.SaveChanges();
             
             BankLog(uuid,Math.Floor(amount),true,plugin,note,displayNote);
+            
+            callback?.Invoke(0);
         });
     }
 
@@ -105,7 +142,8 @@ public static class Bank
     /// <param name="plugin"></param>
     /// <param name="note"></param>
     /// <param name="displayNote"></param>
-    public static void TakeBalance(string uuid, double amount,string plugin,string note,string displayNote)
+    /// <param name="callback"></param>
+    public static void TakeBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<int>? callback = null)
     {
         BankQueue.TryAdd(context =>
         {
@@ -126,6 +164,8 @@ public static class Bank
             context.SaveChanges();
             
             BankLog(uuid,Math.Floor(amount),false,plugin,note,displayNote);
+            
+            callback?.Invoke(0);
         });
     }
 
