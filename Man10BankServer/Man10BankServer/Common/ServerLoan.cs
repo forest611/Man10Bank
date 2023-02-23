@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Man10BankServer.Controllers;
 
 namespace Man10BankServer.Common;
@@ -22,24 +23,115 @@ public static class ServerLoan
         return result;
     }
 
+    public static async Task<string> Borrow(string uuid, double amount)
+    {
+
+        var result = await Task.Run(() =>
+        {
+            var context = new Context();
+            var record = context.server_loan_tbl.FirstOrDefault(r => r.uuid == uuid);
+
+            //借金がこれ以上できない場合
+            if (amount + (record?.borrow_amount ?? 0.0) > CalculateLoanAmount(uuid).Result)
+            {
+                return "Failed";
+            }
+
+            var hasBorrowed = record != null;
+            string ret;
+
+
+            if (hasBorrowed)
+            {
+                ret = "Success";
+                Debug.Assert(record != null, nameof(record) + " != null");
+                record.borrow_amount += amount;
+                record.payment_amount = record.borrow_amount * DailyInterest * 2;
+                record.borrow_date = DateTime.Now;
+            }
+            else
+            {
+                ret = "FirstSuccess";
+
+                var insert = new ServerLoanTable
+                {
+                    borrow_amount = amount,
+                    borrow_date = DateTime.Now,
+                    last_pay_date = DateTime.Now,
+                    payment_amount = amount * DailyInterest * 2,
+                    uuid = uuid,
+                    player = Bank.GetMinecraftId(uuid) ?? ""
+                };
+
+                context.server_loan_tbl.Add(insert);
+                context.SaveChanges();
+            }
+
+            context.SaveChanges();
+            
+            return ret;
+        });
+
+        return result;
+
+    }
+
+    /// <summary>
+    /// 借金情報を取得する
+    /// </summary>
+    /// <param name="uuid"></param>
+    /// <returns></returns>
     public static async Task<ServerLoanData?> GetBorrowingInfo(string uuid)
     {
         var result = await Task.Run(() =>
         {
+            var context = new Context();
+            var record = context.server_loan_tbl.FirstOrDefault(r => r.uuid == uuid);
+
+            var ret = new ServerLoanData
+            {
+                OrderID = record?.id ?? -1,
+                UUID = record?.uuid ?? "",
+                BorrowAmount = record?.borrow_amount ?? 0,
+                PaymentAmount = record?.payment_amount ?? 0,
+                BorrowDate = record?.borrow_date ?? DateTime.Now,
+                FailedPayment = record?.failed_payment ?? 0,
+                LastPayDate = record?.last_pay_date ?? DateTime.Now,
+                StopInterest = record?.stop_interest ?? false
+            };
+            context.Dispose();
             
-            
-            return new ServerLoanData();
+            return ret;
         });
         
         return result;
     }
 
+    /// <summary>
+    /// 借金情報をセットする
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
     public static async Task<int> SetBorrowingInfo(ServerLoanData data)
     {
 
         var result = await Task.Run(() =>
         {
+            var context = new Context();
+            var record = new ServerLoanTable
+            {
+                player = Bank.GetMinecraftId(data.UUID) ?? "",
+                uuid = data.UUID,
+                borrow_amount = data.BorrowAmount,
+                borrow_date = data.BorrowDate,
+                last_pay_date = data.LastPayDate,
+                payment_amount = data.PaymentAmount
+            };
 
+            context.server_loan_tbl.Add(record);
+            
+            context.Dispose();
+            
             return 0;
         });
 

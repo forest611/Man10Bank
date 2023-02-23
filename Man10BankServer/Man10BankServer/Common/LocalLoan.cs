@@ -9,7 +9,7 @@ public static class LocalLoan
     {
         var result = await Task.Run(() =>
         {
-            var insertData = new LocalLoanTable
+            var record = new LocalLoanTable
             {
                 amount = data.Amount,
                 borrow_uuid = data.BorrowUUID,
@@ -19,10 +19,10 @@ public static class LocalLoan
                 payback_date = data.PayDate
             };
             var context = new Context();
-            context.loan_table.Add(insertData);
+            context.loan_table.Add(record);
             context.SaveChanges();
 
-            return insertData.id;
+            return record.id;
         });
         return result;
     }
@@ -56,13 +56,23 @@ public static class LocalLoan
         return result;
     }
 
-    public static async Task<LocalLoanTable?> GetInfo(int id)
+    public static async Task<LocalLoanData> GetInfo(int id)
     {
         var result = await Task.Run(() =>
         {
             var context = new Context();
             var data = context.loan_table.FirstOrDefault(r => r.id == id);
-            return data;
+
+            var ret = new LocalLoanData
+            {
+                BorrowUUID = data?.borrow_uuid ?? "",
+                LendUUID = data?.lend_uuid ?? "",
+                Amount = data?.amount ?? 0.0,
+                OrderID = data?.id ?? -1,
+                PayDate = data?.payback_date ?? DateTime.Now
+            };
+            context.Dispose();
+            return ret;
         });
 
         return result;

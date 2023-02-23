@@ -7,11 +7,6 @@ namespace Man10BankServer.Controllers;
 [Route("[controller]")]
 public class ServerLoanController : ControllerBase
 {
-    [HttpGet("get")]
-    public double GetLoan(string uuid)
-    {
-        return -1;
-    }
 
     [HttpGet("is-loser")]
     public bool IsLoser(string uuid)
@@ -32,9 +27,9 @@ public class ServerLoanController : ControllerBase
     }
 
     [HttpPost("try-borrow")]
-    public bool TryBorrow(string uuid, double amount)
+    public string TryBorrow(string uuid, double amount)
     {
-        return false;
+        return ServerLoan.Borrow(uuid, amount).Result;
     }
     
     [HttpPost("pay")]
@@ -47,6 +42,13 @@ public class ServerLoanController : ControllerBase
 
 public class ServerLoanData
 {
-    
+    public int OrderID { get; set; }
+    public string UUID { get; set; }
+    public DateTime BorrowDate { get; set; }
+    public DateTime LastPayDate { get; set; }
+    public double BorrowAmount { get; set; }
+    public double PaymentAmount { get; set; }
+    public int FailedPayment { get; set; }
+    public bool StopInterest { get; set; }
 }
 

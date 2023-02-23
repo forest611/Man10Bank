@@ -31,8 +31,7 @@ public class BankController : ControllerBase
     [HttpPost("take")]
     public int TakeBalance([FromBody]TransactionData data)
     {
-        var ret = Bank.AsyncTakeBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
-        return ret.Result;
+        return Bank.AsyncTakeBalance(data.UUID, data.Amount, data.Plugin, data.Note, data.DisplayNote).Result;
     }
     
     [HttpPost("set")]

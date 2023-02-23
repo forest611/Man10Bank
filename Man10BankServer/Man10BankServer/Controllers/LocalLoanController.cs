@@ -23,7 +23,7 @@ public class LocalLoanController : ControllerBase
     }
 
     [HttpGet("get-info")]
-    public LocalLoanTable? GetInfo(int id)
+    public LocalLoanData GetInfo(int id)
     {
         var result = LocalLoan.GetInfo(id);
         return result.Result;
