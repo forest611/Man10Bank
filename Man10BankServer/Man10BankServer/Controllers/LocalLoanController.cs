@@ -9,7 +9,7 @@ public class LocalLoanController : ControllerBase
 {
     
     [HttpPost("create")]
-    public int CreateLoan([FromBody] LocalLoanData data)
+    public int CreateLoan([FromBody] LocalLoanTable data)
     {
         var result = LocalLoan.Create(data);
         return result.Result;
@@ -23,7 +23,7 @@ public class LocalLoanController : ControllerBase
     }
 
     [HttpGet("get-info")]
-    public LocalLoanData GetInfo(int id)
+    public LocalLoanTable GetInfo(int id)
     {
         var result = LocalLoan.GetInfo(id);
         return result.Result;
@@ -31,12 +31,3 @@ public class LocalLoanController : ControllerBase
     
 }
 
-public class LocalLoanData
-{
-    public string BorrowUUID { get; set; }
-    public string LendUUID { get; set; }
-    public double Amount { get; set; }
-    public int OrderID { get; set; }
-    public DateTime PayDate { get; set; }
-    
-}

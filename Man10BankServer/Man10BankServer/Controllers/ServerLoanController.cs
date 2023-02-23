@@ -15,13 +15,13 @@ public class ServerLoanController : ControllerBase
     }
 
     [HttpGet("get-info")]
-    public ServerLoanData? GetInfo(string uuid)
+    public ServerLoanTable GetInfo(string uuid)
     {
         return ServerLoan.GetBorrowingInfo(uuid).Result;
     }
 
     [HttpPost("set-info")]
-    public int SetInfo([FromBody] ServerLoanData info)
+    public int SetInfo([FromBody] ServerLoanTable info)
     {
         return ServerLoan.SetBorrowingInfo(info).Result;
     }
@@ -38,17 +38,5 @@ public class ServerLoanController : ControllerBase
         return false;
     }
     
-}
-
-public class ServerLoanData
-{
-    public int OrderID { get; set; }
-    public string UUID { get; set; }
-    public DateTime BorrowDate { get; set; }
-    public DateTime LastPayDate { get; set; }
-    public double BorrowAmount { get; set; }
-    public double PaymentAmount { get; set; }
-    public int FailedPayment { get; set; }
-    public bool StopInterest { get; set; }
 }
 

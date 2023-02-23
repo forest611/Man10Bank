@@ -1,28 +1,17 @@
-using Man10BankServer.Controllers;
 
 namespace Man10BankServer.Common;
 
 public static class LocalLoan
 {
 
-    public static async Task<int> Create(LocalLoanData data)
+    public static async Task<int> Create(LocalLoanTable data)
     {
         var result = await Task.Run(() =>
         {
-            var record = new LocalLoanTable
-            {
-                amount = data.Amount,
-                borrow_uuid = data.BorrowUUID,
-                borrow_player = Bank.GetMinecraftId(data.BorrowUUID) ?? "Null",
-                lend_uuid = data.LendUUID,
-                lend_player = Bank.GetMinecraftId(data.LendUUID) ?? "Null",
-                payback_date = data.PayDate
-            };
             var context = new Context();
-            context.loan_table.Add(record);
+            context.loan_table.Add(data);
             context.SaveChanges();
-
-            return record.id;
+            return data.id;
         });
         return result;
     }
@@ -56,23 +45,15 @@ public static class LocalLoan
         return result;
     }
 
-    public static async Task<LocalLoanData> GetInfo(int id)
+    public static async Task<LocalLoanTable?> GetInfo(int id)
     {
         var result = await Task.Run(() =>
         {
             var context = new Context();
-            var data = context.loan_table.FirstOrDefault(r => r.id == id);
-
-            var ret = new LocalLoanData
-            {
-                BorrowUUID = data?.borrow_uuid ?? "",
-                LendUUID = data?.lend_uuid ?? "",
-                Amount = data?.amount ?? 0.0,
-                OrderID = data?.id ?? -1,
-                PayDate = data?.payback_date ?? DateTime.Now
-            };
+            var record = context.loan_table.FirstOrDefault(r => r.id == id);
+            
             context.Dispose();
-            return ret;
+            return record;
         });
 
         return result;
