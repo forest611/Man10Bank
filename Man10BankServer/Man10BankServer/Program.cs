@@ -12,6 +12,7 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 Bank.StartMan10Bank();
+ServerLoan.StartPaymentTask(builder.Configuration);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

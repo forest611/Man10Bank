@@ -20,15 +20,15 @@ public class ServerLoanController : ControllerBase
     }
 
     [HttpGet("get-info")]
-    public ServerLoanTable GetInfo(string uuid)
+    public ServerLoanData? GetInfo(string uuid)
     {
-        return new ServerLoanTable();
+        return ServerLoan.GetBorrowingInfo(uuid).Result;
     }
 
     [HttpPost("set-info")]
-    public bool SetInfo([FromBody] ServerLoanTable info)
+    public int SetInfo([FromBody] ServerLoanData info)
     {
-        return false;
+        return ServerLoan.SetBorrowingInfo(info).Result;
     }
 
     [HttpPost("try-borrow")]
@@ -42,6 +42,11 @@ public class ServerLoanController : ControllerBase
     {
         return false;
     }
+    
+}
+
+public class ServerLoanData
+{
     
 }
 
