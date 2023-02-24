@@ -216,6 +216,8 @@ public static class ServerLoan
             {
                 continue;
             }
+
+            _lastTaskDate = now;
             
             Console.WriteLine("リボの処理を開始");
             
