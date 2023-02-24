@@ -17,11 +17,7 @@ public static class History
             var hasData = context.server_estate_history.Any(r =>
                 r.year == year && r.month == month && r.day == day && r.hour == hour);
 
-            if (hasData)
-            {
-                context.Dispose();
-                return;
-            }
+            if (hasData) { return; }
         
             var estate = context.estate_tbl;
 
@@ -72,7 +68,7 @@ public static class History
     /// 新規資産レコード作成(口座作成時に呼ぶ)
     /// </summary>
     /// <param name="uuid"></param>
-    public static void CreateEstateRecord(string uuid)
+    private static void CreateEstateRecord(string uuid)
     {
         Context.AddDatabaseJob(context =>
         {
@@ -120,7 +116,6 @@ public static class History
             if (data.vault == lastVault && data.bank == lastBank && data.cash == lastCash && data.loan == lastLoan
                 && data.estate == lastEstate && data.shop == lastShop)
             {
-                context.Dispose();
                 return;
             }
 
