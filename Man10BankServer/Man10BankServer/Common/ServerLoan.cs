@@ -8,8 +8,10 @@ public static class ServerLoan
     private static double _dailyInterest = 0.001;
     private static int _paymentInterval = 3;
     private static double _baseParameter = 3.55;
-    private static double _standardScore = 200;
+    private static int _standardScore = 300;
     private static double _minimumAmount = 100000;
+    private static int _stopInterestScore; 
+    private static int _penaltyScore = 50; 
 
     //（無条件で借りられる額）+〔(一カ月の残高中央値*(スコア/基準スコア))×3.55］＝貸出可能金額
     public static async Task<double> CalculateLoanAmount(string uuid)
@@ -167,6 +169,12 @@ public static class ServerLoan
         _lastTaskDate = config.GetValue<DateTime>("ServerLoan:LastTaskDate");
         _dailyInterest = config.GetValue<double>("ServerLoan:DailyInterest");
         _paymentInterval = config.GetValue<int>("ServerLoan:PaymentInterval");
+
+        _baseParameter = config.GetValue<double>("ServerLoan:BaseParameter");
+        _standardScore = config.GetValue<int>("ServerLoan:StandardScore");
+        _minimumAmount = config.GetValue<Double>("ServerLoan:MinimumAmount");
+        _stopInterestScore = config.GetValue<int>("ServerLoan:StopInterestScore");
+        _penaltyScore = config.GetValue<int>("ServerLoan:PenaltyScore");
         
         Task.Run(PaymentTask);
     }
@@ -193,14 +201,25 @@ public static class ServerLoan
 
             foreach (var data in result)
             {
-                data.borrow_amount += data.borrow_amount * _dailyInterest;
 
+                var score = Utility.GetScore(data.uuid).Result;
+
+                //スコアが指定値以上なら金利追加
+                if (score>_stopInterestScore)
+                {
+                    data.borrow_amount += data.borrow_amount * _dailyInterest;
+                }
+                
+                //支払日じゃなければコンティニュ
                 if (data.last_pay_date.Day + _paymentInterval <= now.Day) continue;
 
                 var payment = data.payment_amount;
-
+                var failedFlag = false;
+                
+                //支払い処理
                 if (Bank.AsyncTakeBalance(data.uuid,payment,"Man10Bank","Man10Revolving","Man10リボの支払い").Result == "Successful")
                 {
+                     //支払い成功した場合
                     data.last_pay_date = now;
                     data.borrow_amount -= data.payment_amount;
                     if (data.borrow_amount < 0.0)
@@ -211,10 +230,19 @@ public static class ServerLoan
                 else
                 {
                     data.failed_payment++;
+                    failedFlag = true;
                 }
 
-                //TODO:スコアの処理
-                
+                if (!failedFlag) continue;
+                //基準スコア以上なら半減
+                if (score>_standardScore)
+                {
+                    var _ = Utility.TakeScore(data.uuid, Convert.ToDouble(score) / 2);
+                }
+                else
+                {
+                    var _ = Utility.TakeScore(data.uuid, _penaltyScore);
+                }
             }
 
             context.SaveChanges();
