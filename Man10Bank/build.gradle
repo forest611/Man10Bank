@@ -21,6 +21,7 @@ repositories {
 dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "com.squareup.okhttp3:mockwebserver:4.10.0"
 }
 
 def targetJavaVersion = 17
