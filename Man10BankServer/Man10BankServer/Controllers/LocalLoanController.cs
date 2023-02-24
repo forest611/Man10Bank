@@ -1,4 +1,5 @@
 using Man10BankServer.Common;
+using Man10BankServer.Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Man10BankServer.Controllers;

@@ -1,4 +1,6 @@
 
+using Man10BankServer.Model;
+
 namespace Man10BankServer.Common;
 
 public static class LocalLoan

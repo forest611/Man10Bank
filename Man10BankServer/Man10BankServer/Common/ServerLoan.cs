@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Man10BankServer.Model;
 
 namespace Man10BankServer.Common;
 

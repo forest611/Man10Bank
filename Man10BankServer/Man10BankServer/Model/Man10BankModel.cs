@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
-namespace Man10BankServer.Common;
+namespace Man10BankServer.Model;
 
 /// <summary>
 /// UserBankテーブル
