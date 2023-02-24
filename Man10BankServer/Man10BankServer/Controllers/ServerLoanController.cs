@@ -8,14 +8,20 @@ namespace Man10BankServer.Controllers;
 public class ServerLoanController : ControllerBase
 {
 
+    [HttpGet("borrowable-amount")]
+    public double BorrowableAmount(string uuid)
+    {
+        return ServerLoan.CalculateLoanAmount(uuid).Result;
+    }
+
     [HttpGet("is-loser")]
     public bool IsLoser(string uuid)
     {
-        return false;
+        return ServerLoan.IsLoser(uuid).Result;
     }
 
     [HttpGet("get-info")]
-    public ServerLoanTable GetInfo(string uuid)
+    public ServerLoanTable? GetInfo(string uuid)
     {
         return ServerLoan.GetBorrowingInfo(uuid).Result;
     }

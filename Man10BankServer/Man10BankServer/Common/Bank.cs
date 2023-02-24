@@ -99,18 +99,6 @@ public static class Bank
 
         return result;
     }
-    
-    /// <summary>
-    /// MinecraftIDを取得する
-    /// </summary>
-    /// <param name="uuid"></param>
-    /// <returns></returns>
-    public static string? GetMinecraftId(string uuid)
-    {
-        var context = new Context();
-        var userName = context.user_bank.FirstOrDefault(r => r.uuid == uuid)?.player;
-        return userName;
-    }
 
     /// <summary>
     /// 口座を作る
@@ -231,7 +219,7 @@ public static class Bank
     private static void BankLog(string uuid,double amount,bool isDeposit, string plugin, string note, string displayNote)
     {
 
-        var userName = GetMinecraftId(uuid)??"null";
+        var userName = Utility.GetMinecraftId(uuid).Result;
         var context = new Context();
 
         var log = new MoneyLog
@@ -295,5 +283,4 @@ public static class Bank
     }
     
     #endregion
-
 }

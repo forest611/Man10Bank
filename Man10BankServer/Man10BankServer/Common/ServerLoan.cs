@@ -4,19 +4,52 @@ namespace Man10BankServer.Common;
 
 public static class ServerLoan
 {
-    
-    public static DateTime LastTaskDate = DateTime.Now;
-    public static double DailyInterest = 0.001;
-    public static int PaymentInterval = 3;
+    private static DateTime _lastTaskDate = DateTime.Now;
+    private static double _dailyInterest = 0.001;
+    private static int _paymentInterval = 3;
+    private static double _baseParameter = 3.55;
+    private static double _standardScore = 200;
+    private static double _minimumAmount = 100000;
 
-    //（無条件で借りられる額）+〔(一カ月の残高中央値-スコアによる天引き)×3.55］＝貸出可能金額
+    //（無条件で借りられる額）+〔(一カ月の残高中央値*(スコア/基準スコア))×3.55］＝貸出可能金額
     public static async Task<double> CalculateLoanAmount(string uuid)
     {
-
         var result = await Task.Run(() =>
         {
+            var score = Utility.GetScore(uuid).Result;
+            var lastMonth = DateTime.Now.AddMonths(-1);
+            var context = new Context();
+            var history = context.estate_history_tbl
+                .Where(r => r.uuid == uuid && r.date > lastMonth).OrderBy(r => r.total).ToList();
+
+            context.Dispose();
             
-            return 0.0;
+            if (history.Count == 0)
+            {
+                return 0.0;
+            }
+            
+            double median;
+            
+            if (history.Count % 2 == 0)
+            {
+                var i = history[(history.Count - 1) / 2].total;
+                var j = history[history.Count / 2].total;
+
+                median = (i + j) / 2;
+            }
+            else
+            {
+                median = history[history.Count / 2].total;
+            }
+            
+            var scoreParam = score / _standardScore;
+
+            if (scoreParam>1) { scoreParam = 1; }
+
+            var borrowableAmount = median * scoreParam * _baseParameter + _minimumAmount;
+            
+            return borrowableAmount;
         });
 
         return result;
@@ -45,7 +78,7 @@ public static class ServerLoan
                 ret = "Successful";
                 Debug.Assert(record != null, nameof(record) + " != null");
                 record.borrow_amount += amount;
-                record.payment_amount = record.borrow_amount * DailyInterest * 2;
+                record.payment_amount = record.borrow_amount * _dailyInterest * 2;
                 record.borrow_date = DateTime.Now;
             }
             else
@@ -57,9 +90,9 @@ public static class ServerLoan
                     borrow_amount = amount,
                     borrow_date = DateTime.Now,
                     last_pay_date = DateTime.Now,
-                    payment_amount = amount * DailyInterest * 2,
+                    payment_amount = amount * _dailyInterest * 2,
                     uuid = uuid,
-                    player = Bank.GetMinecraftId(uuid) ?? ""
+                    player = Utility.GetMinecraftId(uuid).Result
                 };
 
                 context.server_loan_tbl.Add(insert);
@@ -117,11 +150,23 @@ public static class ServerLoan
         return result;
     }
 
+    public static async Task<bool> IsLoser(string uuid)
+    {
+        var result = await Task.Run(() =>
+        {
+
+            return false;
+        });
+
+        return result;
+    }
+    
+
     public static void StartPaymentTask(IConfiguration config)
     {
-        LastTaskDate = config.GetValue<DateTime>("ServerLoan:LastTaskDate");
-        DailyInterest = config.GetValue<double>("ServerLoan:DailyInterest");
-        PaymentInterval = config.GetValue<int>("ServerLoan:PaymentInterval");
+        _lastTaskDate = config.GetValue<DateTime>("ServerLoan:LastTaskDate");
+        _dailyInterest = config.GetValue<double>("ServerLoan:DailyInterest");
+        _paymentInterval = config.GetValue<int>("ServerLoan:PaymentInterval");
         
         Task.Run(PaymentTask);
     }
@@ -139,7 +184,7 @@ public static class ServerLoan
             
             var now = DateTime.Now;
 
-            if (now.Day==LastTaskDate.Day)
+            if (now.Day==_lastTaskDate.Day)
             {
                 continue;
             }
@@ -148,9 +193,9 @@ public static class ServerLoan
 
             foreach (var data in result)
             {
-                data.borrow_amount += data.borrow_amount * DailyInterest;
+                data.borrow_amount += data.borrow_amount * _dailyInterest;
 
-                if (data.last_pay_date.Day + PaymentInterval <= now.Day) continue;
+                if (data.last_pay_date.Day + _paymentInterval <= now.Day) continue;
 
                 var payment = data.payment_amount;
 
@@ -173,7 +218,6 @@ public static class ServerLoan
             }
 
             context.SaveChanges();
-
         }
         
     }
