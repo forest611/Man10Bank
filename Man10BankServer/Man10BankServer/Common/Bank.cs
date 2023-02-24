@@ -46,14 +46,21 @@ public static class Bank
         var result = await Task.Run(() =>
         {
             var ret = "Successful";
-            var sl = new Lock();
+            var lockObj = new object();
 
-            AddBalance(uuid, amount, plugin, note, displayNote, r => {
+            Monitor.Enter(lockObj);
+
+            AddBalance(uuid, amount, plugin, note, displayNote, r =>
+            {
+                Monitor.Enter(lockObj);
                 ret = r;
-                sl.UnLock();
+                Monitor.PulseAll(lockObj);
+                Monitor.Exit(lockObj);
             });
-            sl.SetLock();
 
+            Monitor.Wait(lockObj);
+            Monitor.Exit(lockObj);
+            
             return ret;
         });
 
@@ -74,13 +81,19 @@ public static class Bank
         var result = await Task.Run(() =>
         {
             var ret = "Successful";
-            var sl = new Lock();
+            var lockObj = new object();
+            
+            Monitor.Enter(lockObj);
+            
             TakeBalance(uuid, amount, plugin, note, displayNote, r => {
+                Monitor.Enter(lockObj);
                 ret = r;
-                sl.UnLock();
+                Monitor.PulseAll(lockObj);
+                Monitor.Exit(lockObj);
             });
 
-            sl.SetLock();
+            Monitor.Wait(lockObj);
+            Monitor.Exit(lockObj);
             return ret;
         });
 
@@ -180,7 +193,7 @@ public static class Bank
             if (result.balance<amount)
             {
                 Console.WriteLine("残高不足");
-                callback?.Invoke("LackOfBalance");
+                callback?.Invoke("NotEnoughMoney");
                 return;
             }
             
@@ -283,37 +296,4 @@ public static class Bank
     
     #endregion
 
-}
-
-public class Lock
-{
-    
-    private volatile bool _isLock;
-    private volatile bool _hasLocked;
-    private volatile object _lockObject = new();
-
-    public void SetLock()
-    {
-        lock (_lockObject)
-        {
-            if (!_hasLocked)
-            {
-                _isLock = true;
-            }
-        }
-
-        while (_isLock)
-        {
-            Thread.Sleep(1);
-        }
-    }
-
-    public void UnLock()
-    {
-        lock (_lockObject)
-        {
-            _isLock = false;
-            _hasLocked = true;
-        }
-    }
 }
