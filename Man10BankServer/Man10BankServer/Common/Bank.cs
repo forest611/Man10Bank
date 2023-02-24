@@ -32,46 +32,55 @@ public static class Bank
         return result ?? -1;
     }
 
+    /// <summary>
+    /// 残高を追加する
+    /// </summary>
+    /// <param name="uuid"></param>
+    /// <param name="amount"></param>
+    /// <param name="plugin"></param>
+    /// <param name="note"></param>
+    /// <param name="displayNote"></param>
+    /// <returns></returns>
     public static async Task<string> AsyncAddBalance(string uuid, double amount,string plugin,string note,string displayNote)
     {
         var result = await Task.Run(() =>
         {
             var ret = "Successful";
+            var sl = new Lock();
 
-            //TODO:待ち合わせ処理を実装する
+            AddBalance(uuid, amount, plugin, note, displayNote, r => {
+                ret = r;
+                sl.UnLock();
+            });
+            sl.SetLock();
 
-            var lockToken = false;
-            var spinLock = new SpinLock();
-
-            try
-            {
-                spinLock.Enter(ref lockToken);
-                AddBalance(uuid, amount, plugin, note, displayNote, r => {
-                    ret = r;
-                });
-            }
-            finally
-            {
-                if (lockToken) { spinLock.Exit(); }
-            }
-            
             return ret;
         });
 
         return result;
     }
     
+    /// <summary>
+    /// 残高を減らす
+    /// </summary>
+    /// <param name="uuid"></param>
+    /// <param name="amount"></param>
+    /// <param name="plugin"></param>
+    /// <param name="note"></param>
+    /// <param name="displayNote"></param>
+    /// <returns></returns>
     public static async Task<string> AsyncTakeBalance(string uuid, double amount,string plugin,string note,string displayNote)
     {
         var result = await Task.Run(() =>
         {
             var ret = "Successful";
-
-            //TODO:待ち合わせ処理を実装する
+            var sl = new Lock();
             TakeBalance(uuid, amount, plugin, note, displayNote, r => {
                 ret = r;
+                sl.UnLock();
             });
 
+            sl.SetLock();
             return ret;
         });
 
@@ -127,7 +136,7 @@ public static class Bank
     /// <param name="note"></param>
     /// <param name="displayNote"></param>
     /// <param name="callback"></param>
-    public static void AddBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<string>? callback = null)
+    private static void AddBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<string>? callback = null)
     {
         BankQueue.TryAdd(context =>
         {
@@ -156,7 +165,7 @@ public static class Bank
     /// <param name="note"></param>
     /// <param name="displayNote"></param>
     /// <param name="callback"></param>
-    public static void TakeBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<string>? callback = null)
+    private static void TakeBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<string>? callback = null)
     {
         BankQueue.TryAdd(context =>
         {
@@ -274,4 +283,37 @@ public static class Bank
     
     #endregion
 
+}
+
+public class Lock
+{
+    
+    private volatile bool _isLock;
+    private volatile bool _hasLocked;
+    private volatile object _lockObject = new();
+
+    public void SetLock()
+    {
+        lock (_lockObject)
+        {
+            if (!_hasLocked)
+            {
+                _isLock = true;
+            }
+        }
+
+        while (_isLock)
+        {
+            Thread.Sleep(1);
+        }
+    }
+
+    public void UnLock()
+    {
+        lock (_lockObject)
+        {
+            _isLock = false;
+            _hasLocked = true;
+        }
+    }
 }
