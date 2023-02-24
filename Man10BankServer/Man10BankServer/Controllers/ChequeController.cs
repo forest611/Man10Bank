@@ -1,3 +1,4 @@
+using Man10BankServer.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Man10BankServer.Controllers;
@@ -6,15 +7,17 @@ namespace Man10BankServer.Controllers;
 [Route("[controller]")]
 public class ChequeController : ControllerBase
 {
+    
+    
     [HttpPost("create")]
-    public bool Create(string uuid,double amount,string note)
+    public int Create(string uuid,double amount,string note,bool isOp)
     {
-        return false;
+        return Cheque.Create(uuid,amount,note,isOp).Result;
     }
 
     [HttpPost("try-use")]
-    public bool TryUse(int id)
+    public double TryUse(int id)
     {
-        return false;
+        return Cheque.Use(id).Result;
     }
 }

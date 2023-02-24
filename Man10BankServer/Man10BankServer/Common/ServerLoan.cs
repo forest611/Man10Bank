@@ -42,7 +42,7 @@ public static class ServerLoan
 
             if (hasBorrowed)
             {
-                ret = "Success";
+                ret = "Successful";
                 Debug.Assert(record != null, nameof(record) + " != null");
                 record.borrow_amount += amount;
                 record.payment_amount = record.borrow_amount * DailyInterest * 2;
@@ -50,7 +50,7 @@ public static class ServerLoan
             }
             else
             {
-                ret = "FirstSuccess";
+                ret = "FirstSuccessful";
 
                 var insert = new ServerLoanTable
                 {
