@@ -32,4 +32,10 @@ public class HistoryController : ControllerBase
     {
         History.AddUserEstateHistory(data);
     }
+
+    [HttpPost("add-vault-transaction")]
+    public void AddVaultTransaction([FromBody] VaultLog data)
+    {
+        History.AddVaultTransaction(data);
+    }
 }

@@ -4,7 +4,27 @@ namespace Man10BankServer.Common;
 
 public static class History
 {
-    public static void AddServerEstateHistory()
+
+    static History()
+    {
+        Task.Run(ServerEstateHistoryTask);
+    }
+
+    private static void ServerEstateHistoryTask()
+    {
+        Console.WriteLine("サーバー全体資産の履歴をとるタスクを開始");
+
+        while (true)
+        {
+            Thread.Sleep(1000*60);
+            AddServerEstateHistory();
+        }
+    }
+    
+    /// <summary>
+    /// 鯖全体の資産履歴をとる
+    /// </summary>
+    private static void AddServerEstateHistory()
     {
         Context.AddDatabaseJob(context =>
         {
@@ -181,5 +201,18 @@ public static class History
         return result;
     }
 
+    /// <summary>
+    /// 電子マネーのログをとる関数
+    /// </summary>
+    public static void AddVaultTransaction(VaultLog log)
+    {
+        Context.AddDatabaseJob(context =>
+        {
+            var record = new VaultLog();
+
+            context.vault_log.Add(record);
+            context.SaveChanges();
+        });
+    }
 
 }

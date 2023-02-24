@@ -163,6 +163,16 @@ public class ServerLoanTable
     public bool stop_interest { get; set; }
 }
 
+/// <summary>
+/// 電子マネーのログテーブル
+/// </summary>
+public class VaultLog
+{
+    [Key]
+    public int id { get; set; }
+    
+}
+
 public class Context : DbContext
 {
     
@@ -175,8 +185,9 @@ public class Context : DbContext
     public DbSet<ServerEstateHistory> server_estate_history { get; set; }
     public DbSet<ChequeTable> cheque_tbl { get; set; }
     public DbSet<ServerLoanTable> server_loan_tbl { get; set; }
+    public DbSet<VaultLog> vault_log { get; set; }
 
-    private static BlockingCollection<Action<Context>> _dbQueue = new();
+    private static readonly BlockingCollection<Action<Context>> DbQueue = new();
 
     private static string Host { get; }
     private static string Port { get; }
@@ -211,7 +222,7 @@ public class Context : DbContext
         Console.WriteLine("データベースキューを起動");
         while (true)
         {
-            _dbQueue.TryTake(out var job);
+            DbQueue.TryTake(out var job);
             try
             {
                 job?.Invoke(context);
@@ -228,6 +239,6 @@ public class Context : DbContext
     /// </summary>
     public static void AddDatabaseJob(Action<Context> job)
     {
-        _dbQueue.Add(job);
+        DbQueue.Add(job);
     }
 }
