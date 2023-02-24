@@ -134,20 +134,27 @@ public static class ServerLoan
     /// </summary>
     /// <param name="data"></param>
     /// <returns></returns>
-    public static async Task<int> SetBorrowingInfo(ServerLoanTable data)
+    public static async Task<string> SetBorrowingInfo(ServerLoanTable data)
     {
 
         var result = await Task.Run(() =>
         {
             var context = new Context();
-            //TODO:上書き処理を書く
+
+            string ret;
+
+            if (!context.server_loan_tbl.Any(r=>r.id==data.id))
+            {
+                context.Dispose();
+                ret = "NotFound";            
+                return ret;
+            }
             
-            context.server_loan_tbl.Add(data);
             context.server_loan_tbl.Update(data);
-            
+            ret = "Update";
             context.Dispose();
             
-            return 0;
+            return ret;
         });
 
         return result;
@@ -158,6 +165,9 @@ public static class ServerLoan
         var result = await Task.Run(() =>
         {
 
+            var context = new Context();
+
+            
             return false;
         });
 
@@ -185,6 +195,8 @@ public static class ServerLoan
     /// </summary>
     private static void PaymentTask()
     {
+        Console.WriteLine("リボのタスク起動");
+        
         var context = new Context();
         
         while (true)
@@ -197,6 +209,8 @@ public static class ServerLoan
             {
                 continue;
             }
+            
+            Console.WriteLine("リボの処理を開始");
             
             var result = context.server_loan_tbl.Where(r => r.borrow_amount > 0);
 

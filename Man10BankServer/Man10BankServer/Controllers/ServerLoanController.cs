@@ -28,7 +28,7 @@ public class ServerLoanController : ControllerBase
     }
 
     [HttpPost("set-info")]
-    public int SetInfo([FromBody] ServerLoanTable info)
+    public string SetInfo([FromBody] ServerLoanTable info)
     {
         return ServerLoan.SetBorrowingInfo(info).Result;
     }

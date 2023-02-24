@@ -220,24 +220,28 @@ public static class Bank
     private static void BankLog(string uuid,double amount,bool isDeposit, string plugin, string note, string displayNote)
     {
 
-        var userName = Utility.GetMinecraftId(uuid).Result;
-        var context = new Context();
-
-        var log = new MoneyLog
+        Context.AddDatabaseJob(context =>
         {
-            uuid = uuid,
-            player = userName,
-            amount = amount,
-            deposit = isDeposit,
-            plugin_name = plugin,
-            server = "paper",
-            note = note,
-            display_note = displayNote
-        };
+            var userName = Utility.GetMinecraftId(uuid).Result;
+            // var context = new Context();
 
-        context.money_log.Add(log);
-        context.SaveChanges();
-        context.Dispose();
+            var log = new MoneyLog
+            {
+                uuid = uuid,
+                player = userName,
+                amount = amount,
+                deposit = isDeposit,
+                plugin_name = plugin,
+                server = "paper",
+                note = note,
+                display_note = displayNote
+            };
+
+            context.money_log.Add(log);
+            context.SaveChanges();
+            // context.Dispose();
+        
+        });
     }
 
     public static async Task<MoneyLog[]> GetLog(string uuid)
@@ -264,13 +268,13 @@ public static class Bank
     /// </summary>
     private static void BlockingQueue()
     {
+        Console.WriteLine("Man10Bankキューを起動");
+
         var context = new Context();
-        
-        Console.WriteLine("Man10Bankキュータスクを起動しました。");
         
         while (true)
         {
-            BankQueue.TryTake(out var job,-1);
+            BankQueue.TryTake(out var job);
             try
             {
                 job?.Invoke(context);

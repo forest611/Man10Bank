@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
@@ -175,6 +176,7 @@ public class Context : DbContext
     public DbSet<ChequeTable> cheque_tbl { get; set; }
     public DbSet<ServerLoanTable> server_loan_tbl { get; set; }
 
+    private static BlockingCollection<Action<Context>> _dbQueue = new();
 
     private static string Host { get; }
     private static string Port { get; }
@@ -191,6 +193,8 @@ public class Context : DbContext
         Pass = "rDcrmPRLJvu@ex/E,>K";
         User = "forest";
         DatabaseName = "man10_bank";
+
+        Task.Run(RunDatabaseQueue);
     }
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -198,5 +202,32 @@ public class Context : DbContext
         var connectionString = $"server='{Host}';port='{Port}';user='{User}';password='{Pass}';Database='{DatabaseName}'";
         var serverVersion = new MySqlServerVersion(new Version(8, 0, 30));
         optionsBuilder.UseMySql(connectionString, serverVersion);
+    }
+
+
+    private static void RunDatabaseQueue()
+    {
+        var context = new Context();
+        Console.WriteLine("データベースキューを起動");
+        while (true)
+        {
+            _dbQueue.TryTake(out var job);
+            try
+            {
+                job?.Invoke(context);
+            }
+            catch (Exception _)
+            {
+                // ignored
+            }
+        }
+    }
+
+    /// <summary>
+    /// ログなどの即効性を求めないクエリを投げるためのキュー
+    /// </summary>
+    public static void AddDatabaseJob(Action<Context> job)
+    {
+        _dbQueue.Add(job);
     }
 }
