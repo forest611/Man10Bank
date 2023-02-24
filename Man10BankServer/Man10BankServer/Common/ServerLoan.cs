@@ -165,10 +165,17 @@ public static class ServerLoan
         var result = await Task.Run(() =>
         {
 
+            var score = Utility.GetScore(uuid).Result;
             var context = new Context();
+            var record = context.server_loan_tbl.FirstOrDefault(r => r.uuid == uuid);
 
+            if (record == null) { return false; }
+
+            var failed = record.failed_payment;
             
-            return false;
+            context.Dispose();
+            
+            return score < 0 && failed > 0;
         });
 
         return result;
@@ -240,6 +247,7 @@ public static class ServerLoan
                     if (data.borrow_amount < 0.0)
                     {
                         data.borrow_amount = 0;
+                        data.failed_payment = 0;
                     }
                 }
                 else
