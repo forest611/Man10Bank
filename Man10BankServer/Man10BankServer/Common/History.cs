@@ -43,7 +43,8 @@ public static class History
             };
 
             context.server_estate_history.Add(record);
-            
+
+            context.SaveChanges();
         });
         // var context = new Context();
         
@@ -87,29 +88,59 @@ public static class History
             };
 
             context.estate_tbl.Add(record);
+
+            context.SaveChanges();
         });
     }
     
-    public static void AddUserEstateHistory(string uuid)
+    /// <summary>
+    /// ユーザーの資産を記録
+    /// </summary>
+    /// <param name="data"></param>
+    public static void AddUserEstateHistory(EstateTable data)
     {
         Context.AddDatabaseJob(context =>
         {
-            var record = context.estate_tbl.FirstOrDefault(r => r.uuid == uuid);
+            var record = context.estate_tbl.FirstOrDefault(r => r.uuid == data.uuid);
 
             if (record == null)
             {
-                CreateEstateRecord(uuid);
+                CreateEstateRecord(data.uuid);
                 return;
             }
-            
-            //TODO:
-            var vault = record.vault;
-            var bank = record.bank;
-            var cash = record.cash;
-            var loan = record.loan;
-            var estate = record.estate;
-            var shop = record.shop;
-            
+
+            //古いデータ
+            var lastVault = record.vault;
+            var lastBank = record.bank;
+            var lastCash = record.cash;
+            var lastLoan = record.loan;
+            var lastEstate = record.estate;
+            var lastShop = record.shop;
+
+            if (data.vault == lastVault && data.bank == lastBank && data.cash == lastCash && data.loan == lastLoan
+                && data.estate == lastEstate && data.shop == lastShop)
+            {
+                context.Dispose();
+                return;
+            }
+
+            context.estate_tbl.Add(data);
+
+            var history = new EstateHistoryTable
+            {
+                vault = data.vault,
+                bank = data.bank,
+                cash = data.cash,
+                loan = data.loan,
+                estate = data.estate,
+                shop = data.shop,
+                uuid = data.uuid,
+                player = data.player
+            };
+
+            context.estate_history_tbl.Add(history);
+
+            context.SaveChanges();
         });
     }
 
