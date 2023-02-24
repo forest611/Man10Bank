@@ -32,28 +32,40 @@ public static class Bank
         return result ?? -1;
     }
 
-    public static async Task<int> AsyncAddBalance(string uuid, double amount,string plugin,string note,string displayNote)
+    public static async Task<string> AsyncAddBalance(string uuid, double amount,string plugin,string note,string displayNote)
     {
         var result = await Task.Run(() =>
         {
-            var ret = 0;
+            var ret = "Successful";
 
             //TODO:待ち合わせ処理を実装する
-            AddBalance(uuid, amount, plugin, note, displayNote, r => {
-                ret = r;
-            });
 
+            var lockToken = false;
+            var spinLock = new SpinLock();
+
+            try
+            {
+                spinLock.Enter(ref lockToken);
+                AddBalance(uuid, amount, plugin, note, displayNote, r => {
+                    ret = r;
+                });
+            }
+            finally
+            {
+                if (lockToken) { spinLock.Exit(); }
+            }
+            
             return ret;
         });
 
         return result;
     }
     
-    public static async Task<int> AsyncTakeBalance(string uuid, double amount,string plugin,string note,string displayNote)
+    public static async Task<string> AsyncTakeBalance(string uuid, double amount,string plugin,string note,string displayNote)
     {
         var result = await Task.Run(() =>
         {
-            var ret = 0;
+            var ret = "Successful";
 
             //TODO:待ち合わせ処理を実装する
             TakeBalance(uuid, amount, plugin, note, displayNote, r => {
@@ -115,7 +127,7 @@ public static class Bank
     /// <param name="note"></param>
     /// <param name="displayNote"></param>
     /// <param name="callback"></param>
-    public static void AddBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<int>? callback = null)
+    public static void AddBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<string>? callback = null)
     {
         BankQueue.TryAdd(context =>
         {
@@ -123,6 +135,7 @@ public static class Bank
             if (result == null)
             {
                 Console.WriteLine("口座がありません");
+                callback?.Invoke("NotFoundBank");
                 return;
             }
             result.balance = Math.Floor(result.balance+amount);
@@ -130,7 +143,7 @@ public static class Bank
             
             BankLog(uuid,Math.Floor(amount),true,plugin,note,displayNote);
             
-            callback?.Invoke(0);
+            callback?.Invoke("Successful");
         });
     }
 
@@ -143,7 +156,7 @@ public static class Bank
     /// <param name="note"></param>
     /// <param name="displayNote"></param>
     /// <param name="callback"></param>
-    public static void TakeBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<int>? callback = null)
+    public static void TakeBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<string>? callback = null)
     {
         BankQueue.TryAdd(context =>
         {
@@ -151,12 +164,14 @@ public static class Bank
             if (result == null)
             {
                 Console.WriteLine("口座がありません");
+                callback?.Invoke("NotFoundBank");
                 return;
             }
 
             if (result.balance<amount)
             {
                 Console.WriteLine("残高不足");
+                callback?.Invoke("LackOfBalance");
                 return;
             }
             
@@ -165,7 +180,7 @@ public static class Bank
             
             BankLog(uuid,Math.Floor(amount),false,plugin,note,displayNote);
             
-            callback?.Invoke(0);
+            callback?.Invoke("Successful");
         });
     }
 

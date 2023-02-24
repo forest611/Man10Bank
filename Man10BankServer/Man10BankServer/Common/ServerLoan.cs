@@ -154,7 +154,7 @@ public static class ServerLoan
 
                 var payment = data.payment_amount;
 
-                if (Bank.AsyncTakeBalance(data.uuid,payment,"Man10Bank","Man10Revolving","Man10リボの支払い").Result == 0)
+                if (Bank.AsyncTakeBalance(data.uuid,payment,"Man10Bank","Man10Revolving","Man10リボの支払い").Result == "Successful")
                 {
                     data.last_pay_date = now;
                     data.borrow_amount -= data.payment_amount;

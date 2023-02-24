@@ -22,14 +22,14 @@ public class BankController : ControllerBase
     }
 
     [HttpPost("add")]
-    public int AddBalance([FromBody]TransactionData data)
+    public string AddBalance([FromBody]TransactionData data)
     {
         var ret = Bank.AsyncAddBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
         return ret.Result;
     }
 
     [HttpPost("take")]
-    public int TakeBalance([FromBody]TransactionData data)
+    public string TakeBalance([FromBody]TransactionData data)
     {
         return Bank.AsyncTakeBalance(data.UUID, data.Amount, data.Plugin, data.Note, data.DisplayNote).Result;
     }
