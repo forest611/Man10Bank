@@ -1,4 +1,4 @@
-package red.man10.man10bank.webapi
+package red.man10.man10bank.api
 
 import java.util.Date
 

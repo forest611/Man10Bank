@@ -1,18 +1,23 @@
 package red.man10.man10bank
 
-import com.google.gson.Gson
-import okhttp3.OkHttpClient
 import org.bukkit.plugin.java.JavaPlugin
+import red.man10.man10bank.api.APIBase
 
 class Man10Bank : JavaPlugin() {
 
     companion object{
-        val client = OkHttpClient()
-        val gson = Gson()
+
+        lateinit var instance : Man10Bank
+
     }
 
     override fun onEnable() {
         // Plugin startup logic
+
+        instance = this
+
+        APIBase.setup()
+
     }
 
     override fun onDisable() {
