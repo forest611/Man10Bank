@@ -7,7 +7,7 @@ import java.util.*
 
 object LocalLoan {
 
-    private val apiRoute="/localloan/"
+    private const val apiRoute="/localloan/"
 
     fun create(data:LocalLoanTable):Int{
         val jsonStr = APIBase.gson.toJson(data)

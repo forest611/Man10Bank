@@ -8,7 +8,7 @@ import java.util.*
 
 object ServerLoan {
 
-    private val apiRoute = "/serverloan/"
+    private const val apiRoute = "/serverloan/"
 
     fun getBorrowableAmount(uuid: UUID):Double{
 
