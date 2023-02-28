@@ -170,11 +170,11 @@ public static class History
         {
             var context = new Context();
 
-            var record = context.estate_tbl.FirstOrDefault(r => r.uuid==uuid);
+            var record = context.estate_tbl.FirstOrDefault(r => r.uuid==uuid) ?? new EstateTable();
             
             context.Dispose();
             
-            return record ?? new EstateTable();
+            return record;
         });
 
         return result;
@@ -191,11 +191,11 @@ public static class History
         {
             var context = new Context();
 
-            var records = context.estate_tbl.OrderByDescending(r => r.total).Take(size);
+            var records = context.estate_tbl.OrderByDescending(r => r.total).Take(size).ToArray();
             
             context.Dispose();
             
-            return records.ToArray();
+            return records;
         });
 
         return result;
