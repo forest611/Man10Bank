@@ -38,4 +38,10 @@ public class HistoryController : ControllerBase
     {
         History.AddVaultTransaction(data);
     }
+
+    [HttpPost("add-atm-log")]
+    public void AddATMLog([FromBody] ATMLog log)
+    {
+        History.AddATMLog(log);
+    }
 }

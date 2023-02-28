@@ -208,9 +208,19 @@ public static class History
     {
         Context.AddDatabaseJob(context =>
         {
-            var record = new VaultLog();
+            context.vault_log.Add(log);
+            context.SaveChanges();
+        });
+    }
 
-            context.vault_log.Add(record);
+    /// <summary>
+    /// ATMログ
+    /// </summary>
+    public static void AddATMLog(ATMLog log)
+    {
+        Context.AddDatabaseJob(context =>
+        {
+            context.atm_log.Add(log);
             context.SaveChanges();
         });
     }

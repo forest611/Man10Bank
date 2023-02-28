@@ -80,6 +80,25 @@ object History {
         }
     }
 
+    fun addATMLog(data:ATMLog){
+
+        val jsonStr = APIBase.gson.toJson(data)
+
+        val body = jsonStr.toRequestBody(APIBase.mediaType)
+
+        val request = Request.Builder()
+            .url("${APIBase.url + apiRoute}add-atm-log")
+            .post(body)
+            .build()
+
+        try {
+            APIBase.client.newCall(request).execute()
+        }catch (e: java.lang.Exception){
+            Bukkit.getLogger().info(e.message)
+        }
+
+    }
+
 //    fun addVaultTransaction(){
 //
 //    }
@@ -116,4 +135,12 @@ object History {
         var date : Date,
     )
 
+    data class ATMLog(
+        var id :Int,
+        var player : String,
+        var uuid : String,
+        var amount : Double,
+        var deposit : Boolean,
+        var date : Date
+    )
 }

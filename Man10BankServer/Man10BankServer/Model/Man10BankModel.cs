@@ -227,9 +227,10 @@ public class Context : DbContext
             {
                 job?.Invoke(context);
             }
-            catch (Exception _)
+            catch (Exception e)
             {
                 // ignored
+                Console.WriteLine(e.Message);
             }
         }
     }
