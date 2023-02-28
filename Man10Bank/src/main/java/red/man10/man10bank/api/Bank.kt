@@ -9,7 +9,7 @@ import red.man10.man10bank.api.APIBase.gson
 import red.man10.man10bank.api.APIBase.mediaType
 import red.man10.man10bank.api.APIBase.url
 import java.lang.Exception
-import java.util.UUID
+import java.util.*
 
 object Bank {
 
@@ -33,17 +33,17 @@ object Bank {
         return balance
     }
 
-    fun getUserLog(uuid: UUID): Array<Model.MoneyLog> {
+    fun getUserLog(uuid: UUID): Array<MoneyLog> {
 
         val request = Request.Builder()
             .url("${url+ apiRoute}log?uuid=${uuid}")
             .build()
 
-        var arrayOfLog = arrayOf<Model.MoneyLog>()
+        var arrayOfLog = arrayOf<MoneyLog>()
 
         try {
             val response = client.newCall(request).execute()
-            arrayOfLog = gson.fromJson(response.body?.string(), arrayOf<Model.MoneyLog>()::class.java)
+            arrayOfLog = gson.fromJson(response.body?.string(), arrayOf<MoneyLog>()::class.java)
 //            response.close()
         }catch (e:Exception){
             Bukkit.getLogger().info(e.message)
@@ -139,11 +139,23 @@ object Bank {
     }
 
     data class TransactionData(
-        var uuid: UUID,
+        var uuid: String,
         var amount : Double,
         var plugin : String,
         var note : String,
         var displayNote : String
     )
 
+    data class MoneyLog(
+        var id : Int,
+        var player : String,
+        var uuid : String,
+        var plugin_name : String,
+        var amount : Double,
+        var note : String,
+        var display_note : String,
+        var server : String,
+        var deposit : Boolean,
+        var date : Date
+    )
 }
