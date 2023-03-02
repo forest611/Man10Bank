@@ -204,7 +204,7 @@ public static class History
     /// <summary>
     /// 電子マネーのログをとる関数
     /// </summary>
-    public static void AddVaultTransaction(VaultLog log)
+    public static void AddVaultLog(VaultLog log)
     {
         Context.AddDatabaseJob(context =>
         {

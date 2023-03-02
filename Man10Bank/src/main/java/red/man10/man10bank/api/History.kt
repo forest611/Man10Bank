@@ -9,7 +9,7 @@ object History {
 
     private const val apiRoute = "/history/"
 
-    fun getBalanceTop(size : Double):Array<EstateTable>{
+    fun getBalanceTop(size : Int):Array<EstateTable>{
 
         val request = Request.Builder()
             .url("${APIBase.url + apiRoute}get-balance-top?size=${size}")
@@ -96,12 +96,38 @@ object History {
         }catch (e: java.lang.Exception){
             Bukkit.getLogger().info(e.message)
         }
-
     }
 
-//    fun addVaultTransaction(){
-//
-//    }
+    fun addVaultLog(data:VaultLog){
+        val jsonStr = APIBase.gson.toJson(data)
+
+        val body = jsonStr.toRequestBody(APIBase.mediaType)
+
+        val request = Request.Builder()
+            .url("${APIBase.url + apiRoute}add-vault-log")
+            .post(body)
+            .build()
+
+        try {
+            APIBase.client.newCall(request).execute()
+        }catch (e: java.lang.Exception){
+            Bukkit.getLogger().info(e.message)
+        }
+    }
+
+    data class VaultLog(
+        var id : Int,
+        var from_player : String,
+        var from_uuid : String,
+        var to_player : String,
+        var to_uuid : String,
+        var amount : Double,
+        var plugin : String,
+        var note : String,
+        var display_note : String,
+        var category : String,
+        var date : Date
+    )
 
     data class EstateTable(
         var id : Int,

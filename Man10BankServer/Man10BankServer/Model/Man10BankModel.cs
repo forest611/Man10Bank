@@ -170,6 +170,16 @@ public class VaultLog
 {
     [Key]
     public int id { get; set; }
+    public string from_player { get; set; }
+    public string from_uuid { get; set; }
+    public string to_player { get; set; }
+    public string to_uuid { get; set; }
+    public double amount { get; set; }
+    public string plugin { get; set; }
+    public string note { get; set; }
+    public string display_note { get; set; }
+    public string category { get; set; }
+    public DateTime date { get; set; }
     
 }
 
