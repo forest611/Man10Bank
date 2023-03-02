@@ -13,18 +13,18 @@ import java.util.*
  */
 class VaultManager(private val plugin: JavaPlugin) {
     private fun setupEconomy(): Boolean {
-        plugin.logger.info("setupEconomy")
+        Bukkit.getLogger().info("setupEconomy")
         if (plugin.server.pluginManager.getPlugin("Vault") == null) {
-            plugin.logger.warning("Vault plugin is not installed")
+            Bukkit.getLogger().info("Vault plugin is not installed")
             return false
         }
         val rsp = plugin.server.servicesManager.getRegistration(Economy::class.java)
         if (rsp == null) {
-            plugin.logger.warning("Can't get vault service")
+            Bukkit.getLogger().info("Can't get vault service")
             return false
         }
         economy = rsp.provider
-        plugin.logger.info("Economy setup")
+        Bukkit.getLogger().info("Economy setup")
         return economy != null
     }
 

@@ -1,4 +1,12 @@
-name: Man10Bank
-version: '${version}'
+name: 'Man10Bank'
+version: '1.0'
 main: red.man10.man10bank.Man10Bank
 api-version: 1.19
+softdepend:
+  - Vault
+  - Man10CommonLibs
+commands:
+  mcheque:
+    permission: man10bank.issue_cheque
+  mchequeop:
+    permission: man10bank.issue_cheque_op

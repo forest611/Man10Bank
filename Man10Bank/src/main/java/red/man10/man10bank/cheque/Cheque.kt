@@ -21,7 +21,8 @@ import red.man10.man10bank.util.Utility.msg
 
 object Cheque : CommandExecutor{
 
-    fun create(p:Player,amount:Double,isOP:Boolean,note:String = ""){
+    @Synchronized
+    private fun create(p:Player,amount:Double,isOP:Boolean,note:String = ""){
 
         if (!Man10Bank.vault.withdraw(p.uniqueId,amount)){
             msg(p,"§c§l電子マネーがありません")
@@ -79,9 +80,11 @@ object Cheque : CommandExecutor{
 
     private fun getChequeID(item: ItemStack): Int? {
         if (!item.hasItemMeta())return null
-        return item.itemMeta.persistentDataContainer[(NamespacedKey.fromString("cheque_id") ?: return null), PersistentDataType.INTEGER]?:return null
+        return item.itemMeta.persistentDataContainer[(NamespacedKey.fromString("cheque_id") ?: return null), PersistentDataType.INTEGER]
     }
 
+
+    @Synchronized
     private fun use(p:Player,item:ItemStack){
 
         val id = getChequeID(item)?:return
@@ -94,6 +97,8 @@ object Cheque : CommandExecutor{
         }
 
         Man10Bank.vault.deposit(p.uniqueId,amount)
+
+        item.amount = 0
 
         msg(p,"§e§l${format(amount)}円の小切手を電子マネーに変えた！")
     }
@@ -110,8 +115,7 @@ object Cheque : CommandExecutor{
 
         e.isCancelled = true
 
-        //TODO:小切手の権限を確認する
-        if (!e.player.hasPermission("")){
+        if (!e.player.hasPermission(Man10Bank.PERM_USE_CHEQUE)){
             msg(e.player,"§cあなたは小切手をお金に変える権限がありません")
             return
         }
@@ -119,11 +123,37 @@ object Cheque : CommandExecutor{
         use(e.player,item)
     }
 
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
 
         if (label != "mcheque" && label!="mchequeop"){
             return false
         }
+
+        if (sender !is Player)return true
+
+        if (args.isEmpty()){//mcheque amount note
+            msg(sender,"§a§l/mcheque <金額> <メモ>")
+            return true
+        }
+
+        if (!sender.hasPermission(Man10Bank.PERM_ISSUE_CHEQUE)){
+            msg(sender,"§a§l権限がありません")
+            return true
+        }
+
+        val isOp = label=="mchequeop" && sender.hasPermission(Man10Bank.PERM_ISSUE_CHEQUEOP)
+        val amount = args[0].toDoubleOrNull()
+
+        if (amount == null){
+            msg(sender,"§a§l数字で入力してください")
+            return true
+        }
+
+        val note = if (args.size>=2) args[1] else ""
+
+        Thread{
+            create(sender,amount,isOp,note)
+        }.start()
 
         return false
     }
