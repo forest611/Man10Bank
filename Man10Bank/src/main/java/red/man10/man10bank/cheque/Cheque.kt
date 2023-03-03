@@ -16,6 +16,7 @@ import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.Cheque
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
@@ -120,7 +121,7 @@ object Cheque : CommandExecutor, Listener {
 
         e.isCancelled = true
 
-        if (!e.player.hasPermission(Man10Bank.PERM_USE_CHEQUE)){
+        if (!e.player.hasPermission(Permissions.USE_CHEQUE)){
             msg(e.player,"§cあなたは小切手をお金に変える権限がありません")
             return
         }
@@ -141,12 +142,18 @@ object Cheque : CommandExecutor, Listener {
             return true
         }
 
-        if (!sender.hasPermission(Man10Bank.PERM_ISSUE_CHEQUE)){
+        if (!sender.hasPermission(Permissions.ISSUE_CHEQUE)){
             msg(sender,"§a§l権限がありません")
             return true
         }
 
-        val isOp = label=="mchequeop" && sender.hasPermission(Man10Bank.PERM_ISSUE_CHEQUEOP)
+        val isOp = label=="mchequeop"
+
+        if (isOp && !sender.hasPermission(Permissions.ISSUE_CHEQUE_OP)){
+            msg(sender,"§a§l権限がありません")
+            return true
+        }
+
         val amount = args[0].toDoubleOrNull()
 
         if (amount == null){

@@ -3,6 +3,9 @@ package red.man10.man10bank.bank
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
+import org.bukkit.command.Command
+import org.bukkit.command.CommandExecutor
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
@@ -13,7 +16,7 @@ import red.man10.man10bank.util.Utility.msg
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-object ATM {
+object ATM :CommandExecutor{
 
     val moneyItems = ConcurrentHashMap<Double,ItemStack>()
     val moneyAmount = arrayOf(10.0,100.0,1000.0,10000.0,100000.0,1000000.0)
@@ -84,5 +87,15 @@ object ATM {
             p.inventory.addItem(moneyItems[amount]!!)
             History.addATMLog(History.ATMLog(0,p.name,p.uniqueId.toString(),amount,false, Date()))
         }
+    }
+
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
+
+        if (label != "atm")return true
+
+        
+
+
+        return true
     }
 }

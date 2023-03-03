@@ -9,6 +9,8 @@ object Command : CommandExecutor{
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (label!="banksystem")return true
 
+        if (!sender.hasPermission(Permissions.RELOAD_SYSTEM))return true
+
         if (args.isEmpty()){
 
             return true

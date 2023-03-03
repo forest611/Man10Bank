@@ -12,10 +12,6 @@ class Man10Bank : JavaPlugin() {
         lateinit var instance : Man10Bank
         lateinit var vault : VaultManager
 
-        const val PERM_USE_CHEQUE = "man10bank.use_cheque"
-        const val PERM_ISSUE_CHEQUE = "man10bank.issue_cheque"
-        const val PERM_ISSUE_CHEQUEOP = "man10bank.issue_cheque_op"
-
     }
 
     override fun onEnable() {
