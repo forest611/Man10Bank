@@ -9,7 +9,7 @@ namespace Man10BankServer.Controllers;
 public class BankController : ControllerBase
 {
 
-    [HttpGet]
+    [HttpGet("try-connect")]
     public int TryConnect()
     {
         return 0;

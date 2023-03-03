@@ -50,9 +50,13 @@ object APIBase {
         url = Man10Bank.instance.config.getString("api.url")?:"https://localhost:7031"
 
 
-        if (connectionCheck() != 0){
-            Bukkit.getLogger().info("Man10BankServerの接続に失敗したので、ホワイトリストをかけます。")
+        val code = connectionCheck()
+
+        if (code != 0){
+            Bukkit.getLogger().info("Man10BankServerの接続に失敗したので、ホワイトリストをかけます。Code:${code}")
             Man10Bank.instance.server.setWhitelist(true)
+        }else{
+            Bukkit.getLogger().info("Man10BankServerの接続を確認しました。")
         }
     }
 
