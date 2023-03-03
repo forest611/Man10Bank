@@ -23,7 +23,7 @@ import red.man10.man10bank.util.Utility.msg
 object Cheque : CommandExecutor, Listener {
 
     @Synchronized
-    private fun create(p:Player,amount:Double,isOP:Boolean,note:String = ""){
+    private fun create(p:Player,amount:Double,isOP:Boolean,note:String = "empty"){
 
         if (!Man10Bank.vault.withdraw(p.uniqueId,amount)){
             msg(p,"§c§l電子マネーがありません")
@@ -56,7 +56,7 @@ object Cheque : CommandExecutor, Listener {
         lore.add(Component.text(""))
         lore.add(Component.text("§a§l発行者: ${if (isOP)"§c§l" else "§d§l"}${p.name}"))
         lore.add(Component.text("§a§l金額: ${format(amount)}円"))
-        if (note != ""){
+        if (note != "empty"){
             lore.add(Component.text("§d§lメモ: $note"))
         }
         lore.add(Component.text(""))
@@ -149,7 +149,7 @@ object Cheque : CommandExecutor, Listener {
             return true
         }
 
-        val note = if (args.size>=2) args[1] else ""
+        val note = if (args.size>=2) args[1] else "empty"
 
         Thread{
             create(sender,amount,isOp,note)
