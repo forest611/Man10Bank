@@ -49,11 +49,11 @@ object ATM :CommandExecutor{
     fun getMoneyAmount(itemStack: ItemStack?):Double{
 
         if (itemStack ==null ||itemStack.type == Material.AIR)return 0.0
-        if (!itemStack.hasItemMeta())return -1.0
+        if (!itemStack.hasItemMeta())return 0.0
 
-        val ret = itemStack.itemMeta.persistentDataContainer[NamespacedKey.fromString(itemKey)!!, PersistentDataType.DOUBLE]?:return -1.0
+        val ret = itemStack.itemMeta.persistentDataContainer[NamespacedKey.fromString(itemKey)!!, PersistentDataType.DOUBLE]?:return 0.0
 
-        if (ret != -1.0){ return ret*itemStack.amount }
+        if (ret != 0.0){ return ret*itemStack.amount }
 
         return 0.0
     }

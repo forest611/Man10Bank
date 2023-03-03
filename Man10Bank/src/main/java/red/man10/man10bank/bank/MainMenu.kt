@@ -5,6 +5,7 @@ import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.util.MenuFramework
 import red.man10.man10bank.util.Utility.format
+import red.man10.man10bank.util.Utility.msg
 
 class MainMenu(p:Player) : MenuFramework(p,27,"§d§lMa§f§ln§a§l10§e§l[ATM](現金を扱う)") {
 
@@ -12,6 +13,17 @@ class MainMenu(p:Player) : MenuFramework(p,27,"§d§lMa§f§ln§a§l10§e§l[ATM
 
         val back = Button(Material.GRAY_STAINED_GLASS_PANE)
         fill(back)
+
+        val youtubeLink = Button(Material.WOODEN_SHOVEL)
+        youtubeLink.cmd(7)
+        youtubeLink.title("§b§l§nATMのつかいかた")
+
+        youtubeLink.setClickAction{
+            p.closeInventory()
+            msg(p,"§e§lクリックしてYouTubeを見る>>> §b§l§nhttps://youtu.be/HK6VTlNzCX4?t=89")
+        }
+
+        setButton(youtubeLink,22)
 
         val depositButton = Button(Material.CHEST)
         depositButton.setClickAction{
