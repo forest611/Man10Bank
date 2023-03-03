@@ -115,7 +115,7 @@ open class MenuFramework(val p:Player,menuSize: Int, title: String) {
         }
 
         fun fromItemStack(item:ItemStack):Button{
-            buttonItem = item
+            buttonItem = item.clone()
             val meta = buttonItem.itemMeta
             meta.persistentDataContainer.set(NamespacedKey.fromString("key")!!
                 , PersistentDataType.STRING,key)

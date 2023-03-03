@@ -23,6 +23,7 @@ object ATM :CommandExecutor{
     val moneyAmount = arrayOf(10.0,100.0,1000.0,10000.0,100000.0,1000000.0,100_000_000.0)
     private val itemKey = "money"
 
+    //再起動するたびにNBTが変わる問題
     fun load(){
         for (amount in moneyAmount){
             moneyItems[amount] = instance.config.getItemStack("money.${amount}")?: ItemStack(Material.STONE)
@@ -49,7 +50,9 @@ object ATM :CommandExecutor{
     fun getMoneyAmount(itemStack: ItemStack?):Double{
 
         if (itemStack ==null ||itemStack.type == Material.AIR)return 0.0
-        if (!itemStack.hasItemMeta())return 0.0
+//        if (!itemStack.hasItemMeta())return 0.0
+
+        if (!moneyItems.values.any { it.isSimilar(itemStack) })return 0.0
 
         val ret = itemStack.itemMeta.persistentDataContainer[NamespacedKey.fromString(itemKey)!!, PersistentDataType.DOUBLE]?:return 0.0
 
@@ -73,9 +76,7 @@ object ATM :CommandExecutor{
 
     }
 
-    fun withdraw(p: Player, itemStack: ItemStack){
-
-        val amount = getMoneyAmount(itemStack)
+    fun withdraw(p: Player, amount : Double){
 
         if (!moneyAmount.contains(amount))return
 
@@ -85,7 +86,7 @@ object ATM :CommandExecutor{
         }
 
         if (vault.withdraw(p.uniqueId,amount)){
-            p.inventory.addItem(moneyItems[amount]!!)
+            p.inventory.addItem(moneyItems[amount]!!.clone())
             //TODO:ログ投げる処理を軽くする
             History.addATMLog(History.ATMLog(0,p.name,p.uniqueId.toString(),amount,false, Date()))
         }else{

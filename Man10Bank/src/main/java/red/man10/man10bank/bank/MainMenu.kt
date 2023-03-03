@@ -20,7 +20,7 @@ class MainMenu(p:Player) : MenuFramework(p,27,"§d§lMa§f§ln§a§l10§e§l[ATM
 
         youtubeLink.setClickAction{
             p.closeInventory()
-            msg(p,"§e§lクリックしてYouTubeを見る>>> §b§l§nhttps://youtu.be/HK6VTlNzCX4?t=89")
+            msg(p,"§e§lクリックしてYouTubeをみる>>> §b§l§nhttps://youtu.be/HK6VTlNzCX4?t=89")
         }
 
         setButton(youtubeLink,22)

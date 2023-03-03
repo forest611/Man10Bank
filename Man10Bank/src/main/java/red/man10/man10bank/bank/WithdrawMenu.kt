@@ -6,7 +6,7 @@ import red.man10.man10bank.util.MenuFramework
 
 class WithdrawMenu(p:Player) : MenuFramework(p,27,"§d§lMa§f§ln§a§l10§e§l[ATM]§9現金をクリックして引き出す"){
 
-    val slot = arrayOf(10,11,12,13,14,15,16,17)
+    private val slot = arrayOf(10,11,12,13,14,15,16,17)
 
     init {
 
@@ -18,7 +18,7 @@ class WithdrawMenu(p:Player) : MenuFramework(p,27,"§d§lMa§f§ln§a§l10§e§l
             val m = Button(moneyItem.type)
             m.fromItemStack(moneyItem)
             m.setClickAction{
-                ATM.withdraw((it.whoClicked as Player),it.currentItem!!)
+                ATM.withdraw((it.whoClicked as Player),ATM.moneyAmount[i])
             }
             setButton(m,slot[i])
 
