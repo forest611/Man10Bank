@@ -25,6 +25,11 @@ object Cheque : CommandExecutor, Listener {
     @Synchronized
     private fun create(p:Player,amount:Double,isOP:Boolean,note:String = "empty"){
 
+        if (amount<1){
+            msg(p,"§c§l1円未満の小切手は作れません")
+            return
+        }
+
         if (!Man10Bank.vault.withdraw(p.uniqueId,amount)){
             msg(p,"§c§l電子マネーがありません")
             return
