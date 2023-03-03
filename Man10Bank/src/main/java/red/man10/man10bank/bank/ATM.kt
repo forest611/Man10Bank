@@ -9,10 +9,9 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import org.eclipse.sisu.launch.Main
 import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.vault
-import red.man10.man10bank.api.History
+import red.man10.man10bank.api.APIHistory
 import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.Utility.msg
 import java.util.*
@@ -71,7 +70,7 @@ object ATM :CommandExecutor{
             vault.deposit(p.uniqueId,amount)
 
             BlockingQueue.addTask {
-                History.addATMLog(History.ATMLog(0,p.name,p.uniqueId.toString(),amount,true, Date()))
+                APIHistory.addATMLog(APIHistory.ATMLog(0,p.name,p.uniqueId.toString(),amount,true, Date()))
             }
         }
 
@@ -90,7 +89,7 @@ object ATM :CommandExecutor{
         if (vault.withdraw(p.uniqueId,amount)){
             p.inventory.addItem(moneyItems[amount]!!.clone())
             //TODO:ログ投げる処理を軽くする
-            History.addATMLog(History.ATMLog(0,p.name,p.uniqueId.toString(),amount,false, Date()))
+            APIHistory.addATMLog(APIHistory.ATMLog(0,p.name,p.uniqueId.toString(),amount,false, Date()))
         }else{
             msg(p,"§c§l電子マネーが足りません！")
         }

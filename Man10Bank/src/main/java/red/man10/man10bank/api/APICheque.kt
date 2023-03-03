@@ -1,11 +1,9 @@
 package red.man10.man10bank.api
 
-import okhttp3.Request
-import org.bukkit.Bukkit
 import red.man10.man10bank.api.APIBase.getRequest
 import java.util.UUID
 
-object Cheque {
+object APICheque {
 
     private const val apiRoute = "/cheque/"
 

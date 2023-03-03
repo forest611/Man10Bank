@@ -11,4 +11,7 @@ object Permissions {
     //システム
     const val RELOAD_SYSTEM = "man10bank.system.reload"
 
+    //銀行
+    const val BANK_OP_COMMAND = "man10bank.bank.op"
+    const val BANK_USER_COMMAND = "man10bank.bank.user"
 }

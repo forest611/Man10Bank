@@ -1,18 +1,13 @@
 package red.man10.man10bank.api
 
-import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.bukkit.Bukkit
 import org.bukkit.entity.Player
-import red.man10.man10bank.api.APIBase.client
 import red.man10.man10bank.api.APIBase.getRequest
 import red.man10.man10bank.api.APIBase.gson
 import red.man10.man10bank.api.APIBase.mediaType
-import red.man10.man10bank.api.APIBase.url
-import java.lang.Exception
 import java.util.*
 
-object Bank {
+object APIBank {
 
     private const val apiRoute = "/bank/"
 

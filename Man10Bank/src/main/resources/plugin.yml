@@ -7,6 +7,26 @@ softdepend:
   - Man10CommonLibs
 commands:
   mcheque:
+    description: '小切手を発行するコマンド'
   mchequeop:
+    description: '小切手を発行するコマンド(OP)'
   banksystem:
+    description: 'システムコマンド(OP)'
   atm:
+    description: 'ATM'
+  bal:
+    description: 'balコマンド'
+  balance:
+    description: 'balコマンド'
+  money:
+    description: 'balコマンド'
+  bank:
+    description: 'balコマンド'
+  d:
+    description: '電子マネー->銀行'
+  w:
+    description: '銀行->電子マネー'
+  deposit:
+    description: '電子マネー->銀行'
+  withdraw:
+    description: '銀行->電子マネー'

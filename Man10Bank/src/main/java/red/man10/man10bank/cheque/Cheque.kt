@@ -17,7 +17,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Permissions
-import red.man10.man10bank.api.Cheque
+import red.man10.man10bank.api.APICheque
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
 
@@ -36,7 +36,7 @@ object Cheque : CommandExecutor, Listener {
             return
         }
 
-        val id = Cheque.create(p.uniqueId,amount,note,isOP)
+        val id = APICheque.create(p.uniqueId,amount,note,isOP)
 
         //失敗
         if (id==-1){
@@ -95,7 +95,7 @@ object Cheque : CommandExecutor, Listener {
 
         val id = getChequeID(item)?:return
 
-        val amount = Cheque.use(id)
+        val amount = APICheque.use(id)
         //失敗
         if (amount < 0){
             msg(p,"§c§lこの小切手は使えません")
