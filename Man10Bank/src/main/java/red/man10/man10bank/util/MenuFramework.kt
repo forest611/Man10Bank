@@ -30,18 +30,18 @@ open class MenuFramework(val p:Player,menuSize: Int, title: String) {
     }
 
     companion object{
-        private val menuMap = HashMap<Player, MenuFramework>()
+        private val menuMap = HashMap<UUID, MenuFramework>()
 
         fun set(p:Player,menu: MenuFramework){
-            menuMap[p] = menu
+            menuMap[p.uniqueId] = menu
         }
 
         fun get(p:Player): MenuFramework?{
-            return menuMap[p]
+            return menuMap[p.uniqueId]
         }
 
         fun delete(p:Player){
-            menuMap.remove(p)
+            menuMap.remove(p.uniqueId)
         }
     }
 
