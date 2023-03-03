@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import org.bukkit.Bukkit
 import red.man10.man10bank.Man10Bank
 import java.lang.Exception
@@ -22,8 +23,51 @@ object APIBase {
     lateinit var client : OkHttpClient
     val gson = Gson()
 
-    //TODO:APIの追加を楽にする
 
+    fun postRequest(url: String,body: RequestBody? = null){
+        val request = if (body!=null){
+            Request.Builder()
+                .url(APIBase.url+url)
+                .post(body)
+                .build()
+        } else{
+            Request.Builder()
+                .url(APIBase.url+url)
+                .build()
+        }
+
+        try {
+            client.newCall(request).execute()
+        }catch (e:Exception){
+            Bukkit.getLogger().info(e.message)
+        }
+    }
+
+    fun getRequest(url:String, body: RequestBody? = null): String? {
+
+        val request = if (body!=null){
+            Request.Builder()
+                .url(APIBase.url+url)
+                .post(body)
+                .build()
+        } else{
+            Request.Builder()
+                .url(APIBase.url+url)
+                .build()
+        }
+
+        var result : String? = null
+
+        try {
+            val response = client.newCall(request).execute()
+            result = response.body?.string()
+            response.close()
+        }catch (e:Exception){
+            Bukkit.getLogger().info(e.message)
+        }
+
+        return result
+    }
 
     fun setup(){
 

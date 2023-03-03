@@ -3,6 +3,8 @@ package red.man10.man10bank.api
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.bukkit.Bukkit
+import red.man10.man10bank.api.APIBase.getRequest
+import red.man10.man10bank.api.APIBase.gson
 import java.util.*
 
 object LocalLoan {
@@ -11,59 +13,18 @@ object LocalLoan {
 
     fun create(data:LocalLoanTable):Int{
         val jsonStr = APIBase.gson.toJson(data)
-
         val body = jsonStr.toRequestBody(APIBase.mediaType)
-
-        val request = Request.Builder()
-            .url("${APIBase.url + apiRoute}create")
-            .post(body)
-            .build()
-
-        var result = -1
-
-        try {
-            val response = APIBase.client.newCall(request).execute()
-            result = response.body?.string()?.toIntOrNull()?:-1
-        }catch (e: Exception){
-            Bukkit.getLogger().info(e.message)
-        }
-
-        return result
+        val result = getRequest("${apiRoute}create",body)
+        return result?.toIntOrNull()?:-1
     }
 
     fun pay(id:Int,amount:Double):String{
-
-        val request = Request.Builder()
-            .url("${APIBase.url + apiRoute}pay?id=${id}&amount=${amount}")
-            .build()
-
-        var result = ""
-
-        try {
-            val response = APIBase.client.newCall(request).execute()
-            result = response.body?.string()?:"Null"
-        }catch (e: Exception){
-            Bukkit.getLogger().info(e.message)
-        }
-
-        return result
+        return getRequest("${apiRoute}pay?id=${id}&amount=${amount}")?:"Null"
     }
 
     fun getInfo(id:Int):LocalLoanTable?{
-        val request = Request.Builder()
-            .url("${APIBase.url + apiRoute}get-info?uuid=${id}")
-            .build()
-
-        var ret : LocalLoanTable? = null
-
-        try {
-            val response = APIBase.client.newCall(request).execute()
-            ret = APIBase.gson.fromJson(response.body?.string()?:"", LocalLoanTable::class.java)
-        }catch (e: Exception){
-            Bukkit.getLogger().info(e.message)
-        }
-
-        return ret
+        val result = getRequest("${apiRoute}get-info?uuid=${id}")?:return null
+        return gson.fromJson(result,LocalLoanTable::class.java)
     }
 
 

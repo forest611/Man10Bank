@@ -2,7 +2,11 @@ package red.man10.man10bank.api
 
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.apache.commons.lang3.ObjectUtils.Null
 import org.bukkit.Bukkit
+import red.man10.man10bank.api.APIBase.getRequest
+import red.man10.man10bank.api.APIBase.gson
+import red.man10.man10bank.api.APIBase.postRequest
 import java.util.*
 
 object History {
@@ -10,109 +14,36 @@ object History {
     private const val apiRoute = "/history/"
 
     fun getBalanceTop(size : Int):Array<EstateTable>{
-
-        val request = Request.Builder()
-            .url("${APIBase.url + apiRoute}get-balance-top?size=${size}")
-            .build()
-
-        var ret = arrayOf<EstateTable>()
-
-        try {
-            val response = APIBase.client.newCall(request).execute()
-            ret = APIBase.gson.fromJson(response.body?.string()?:"", arrayOf<EstateTable>()::class.java)
-        }catch (e: Exception){
-            Bukkit.getLogger().info(e.message)
-        }
-
-        return ret
+        val result = getRequest("${apiRoute}get-balance-top?size=${size}")?:""
+        return gson.fromJson(result,arrayOf<EstateTable>()::class.java)
     }
 
     fun getUserEstate(uuid: UUID):EstateTable?{
-        val request = Request.Builder()
-            .url("${APIBase.url + apiRoute}get-user-estate?uuid=${uuid}")
-            .build()
-
-        var ret : EstateTable? = null
-
-        try {
-            val response = APIBase.client.newCall(request).execute()
-            ret = APIBase.gson.fromJson(response.body?.string()?:"", EstateTable::class.java)
-        }catch (e: Exception){
-            Bukkit.getLogger().info(e.message)
-        }
-
-        return ret
+        val result = getRequest("${apiRoute}get-user-estate?uuid=${uuid}")?:return null
+        return gson.fromJson(result, EstateTable::class.java)
     }
 
     fun getServerEstate():ServerEstate?{
-
-        val request = Request.Builder()
-            .url("${APIBase.url + apiRoute}get-user-estate")
-            .build()
-
-        var ret : ServerEstate? = null
-
-        try {
-            val response = APIBase.client.newCall(request).execute()
-            ret = APIBase.gson.fromJson(response.body?.string()?:"", ServerEstate::class.java)
-        }catch (e: Exception){
-            Bukkit.getLogger().info(e.message)
-        }
-
-        return ret
+        val result = getRequest(apiRoute+"get-user-estate")?:return null
+        return gson.fromJson(result, ServerEstate::class.java)
     }
 
     fun addUserEstate(data : EstateTable){
-
-        val jsonStr = APIBase.gson.toJson(data)
-
+        val jsonStr = gson.toJson(data)
         val body = jsonStr.toRequestBody(APIBase.mediaType)
-
-        val request = Request.Builder()
-            .url("${APIBase.url + apiRoute}add-user-estate")
-            .post(body)
-            .build()
-
-        try {
-            APIBase.client.newCall(request).execute()
-        }catch (e: java.lang.Exception){
-            Bukkit.getLogger().info(e.message)
-        }
+        postRequest(apiRoute+"add-user-estate",body)
     }
 
     fun addATMLog(data:ATMLog){
-
-        val jsonStr = APIBase.gson.toJson(data)
-
+        val jsonStr = gson.toJson(data)
         val body = jsonStr.toRequestBody(APIBase.mediaType)
-
-        val request = Request.Builder()
-            .url("${APIBase.url + apiRoute}add-atm-log")
-            .post(body)
-            .build()
-
-        try {
-            APIBase.client.newCall(request).execute()
-        }catch (e: java.lang.Exception){
-            Bukkit.getLogger().info(e.message)
-        }
+        postRequest("${apiRoute}add-atm-log",body)
     }
 
     fun addVaultLog(data:VaultLog){
-        val jsonStr = APIBase.gson.toJson(data)
-
+        val jsonStr = gson.toJson(data)
         val body = jsonStr.toRequestBody(APIBase.mediaType)
-
-        val request = Request.Builder()
-            .url("${APIBase.url + apiRoute}add-vault-log")
-            .post(body)
-            .build()
-
-        try {
-            APIBase.client.newCall(request).execute()
-        }catch (e: java.lang.Exception){
-            Bukkit.getLogger().info(e.message)
-        }
+        postRequest("${apiRoute}add-vault-log",body)
     }
 
     data class VaultLog(

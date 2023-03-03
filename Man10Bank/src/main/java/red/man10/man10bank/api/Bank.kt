@@ -5,6 +5,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import red.man10.man10bank.api.APIBase.client
+import red.man10.man10bank.api.APIBase.getRequest
 import red.man10.man10bank.api.APIBase.gson
 import red.man10.man10bank.api.APIBase.mediaType
 import red.man10.man10bank.api.APIBase.url
@@ -15,127 +16,38 @@ object Bank {
 
     private const val apiRoute = "/bank/"
 
-    fun getBalance(uuid: UUID) : Double{
-
-        val request = Request.Builder()
-            .url("${url+ apiRoute}balance?uuid=${uuid}")
-            .build()
-
-        var balance : Double = -1.0
-
-        try {
-            val response = client.newCall(request).execute()
-            balance = response.body?.string()?.toDoubleOrNull()?:-1.0
-        }catch (e:Exception){
-            Bukkit.getLogger().info(e.message)
-        }
-
-        return balance
+    fun getBalance(uuid: UUID): Double {
+        return getRequest(apiRoute + "balance?uuid=${uuid}")?.toDoubleOrNull() ?: -1.0
     }
 
     fun getUserLog(uuid: UUID): Array<MoneyLog> {
-
-        val request = Request.Builder()
-            .url("${url+ apiRoute}log?uuid=${uuid}")
-            .build()
-
-        var arrayOfLog = arrayOf<MoneyLog>()
-
-        try {
-            val response = client.newCall(request).execute()
-            arrayOfLog = gson.fromJson(response.body?.string(), arrayOf<MoneyLog>()::class.java)
-//            response.close()
-        }catch (e:Exception){
-            Bukkit.getLogger().info(e.message)
-        }
-
-        return arrayOfLog
+        val result = getRequest(apiRoute+"log?uuid=${uuid}")
+        return gson.fromJson(result, arrayOf<MoneyLog>()::class.java)
     }
 
-    fun addBank(data : TransactionData): String {
+    fun addBank(data: TransactionData): String {
 
         val jsonStr = gson.toJson(data)
-
         val body = jsonStr.toRequestBody(mediaType)
-
-        val request = Request.Builder()
-            .url("${url+ apiRoute}add")
-            .post(body)
-            .build()
-
-        var result = ""
-
-        try {
-            val response = client.newCall(request).execute()
-            result = response.body?.string()?:"Null"
-        }catch (e:Exception){
-            Bukkit.getLogger().info(e.message)
-        }
-
-        return result
+        return getRequest(apiRoute + "add", body) ?: "Null"
     }
 
     fun takeBank(data: TransactionData): String {
 
         val jsonStr = gson.toJson(data)
-
         val body = jsonStr.toRequestBody(mediaType)
-
-        val request = Request.Builder()
-            .url("${url+ apiRoute}take")
-            .post(body)
-            .build()
-
-        var result = ""
-
-        try {
-            val response = client.newCall(request).execute()
-            result = response.body?.string()?:"Null"
-        }catch (e:Exception){
-            Bukkit.getLogger().info(e.message)
-        }
-
-        return result
+        return getRequest(apiRoute + "take", body) ?: "Null"
     }
 
     fun setBank(data:TransactionData): String {
 
         val jsonStr = gson.toJson(data)
-
         val body = jsonStr.toRequestBody(mediaType)
-        val request = Request.Builder()
-            .url("${url+ apiRoute}set")
-            .post(body)
-            .build()
-
-        var result = ""
-
-        try {
-            val response = client.newCall(request).execute()
-            result = response.body?.string()?:"Null"
-        }catch (e:Exception){
-            Bukkit.getLogger().info(e.message)
-        }
-
-        return result
+        return getRequest(apiRoute+"set",body)?:"Null"
     }
 
     fun createBank(p:Player): String {
-
-        val request = Request.Builder()
-            .url("${url+ apiRoute}create?uuid=${p.uniqueId}&mcid=${p.name}")
-            .build()
-
-        var result = ""
-
-        try {
-            val response = client.newCall(request).execute()
-            result = response.body?.string()?:"Null"
-        }catch (e:Exception){
-            Bukkit.getLogger().info(e.message)
-        }
-
-        return result
+        return getRequest("${apiRoute}create?uuid=${p.uniqueId}&mcid=${p.name}")?:"Null"
     }
 
     data class TransactionData(
