@@ -199,11 +199,12 @@ public class Context : DbContext
 
     private static readonly BlockingCollection<Action<Context>> DbQueue = new();
 
-    private static string Host { get; }
-    private static string Port { get; }
-    private static string Pass { get; }
-    private static string User { get; }
-    private static string DatabaseName { get; }
+    private static string Host { get; set; }
+    private static string Port { get; set; }
+    private static string Pass { get; set; }
+    private static string User { get; set; }
+    private static string DatabaseName { get; set; }
+
     /// <summary>
     /// DBの接続設定を読み込む
     /// </summary>
@@ -216,6 +217,15 @@ public class Context : DbContext
         DatabaseName = "man10_bank";
 
         Task.Run(RunDatabaseQueue);
+    }
+
+    public static void SetDatabase(IConfiguration config)
+    {
+        Host = config["MySQL:Host"] ?? "";
+        Port = config["MySQL:Port"] ?? "";
+        Pass = config["MySQL:Pass"] ?? "";
+        User = config["MySQL:User"] ?? "";
+        DatabaseName = config["MySQL:DatabaseName"] ?? "";
     }
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -232,9 +242,9 @@ public class Context : DbContext
         Console.WriteLine("データベースキューを起動");
         while (true)
         {
-            DbQueue.TryTake(out var job);
             try
             {
+                DbQueue.TryTake(out var job);
                 job?.Invoke(context);
             }
             catch (Exception e)

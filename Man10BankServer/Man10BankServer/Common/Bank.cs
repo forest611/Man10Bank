@@ -8,7 +8,7 @@ public static class Bank
 
     private static readonly BlockingCollection<Action<Context>> BankQueue = new();
 
-    public static void StartMan10Bank()
+    static Bank()
     {
         Task.Run(BlockingQueue);
     }

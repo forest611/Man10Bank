@@ -1,4 +1,5 @@
 using Man10BankServer.Common;
+using Man10BankServer.Model;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,8 +12,8 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-Bank.StartMan10Bank();
 ServerLoan.StartPaymentTask(builder.Configuration);
+Context.SetDatabase(builder.Configuration);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
