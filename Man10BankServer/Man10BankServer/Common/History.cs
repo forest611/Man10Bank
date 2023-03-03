@@ -216,8 +216,9 @@ public static class History
     /// <summary>
     /// ATMログ
     /// </summary>
-    public static void AddATMLog(ATMLog log)
+    public static void AddAtmLog(ATMLog log)
     {
+        //TODO:ログ取れてない問題なおす
         Context.AddDatabaseJob(context =>
         {
             context.atm_log.Add(log);

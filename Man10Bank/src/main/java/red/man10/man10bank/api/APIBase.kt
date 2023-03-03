@@ -22,6 +22,9 @@ object APIBase {
     lateinit var client : OkHttpClient
     val gson = Gson()
 
+    //TODO:APIの追加を楽にする
+
+
     fun setup(){
 
         val trustAllCerts = arrayOf<TrustManager>(

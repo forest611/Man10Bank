@@ -31,7 +31,7 @@ object ATM :CommandExecutor{
         Bukkit.getLogger().info("現金を読み込みました")
     }
 
-    fun setCashItem(itemStack: ItemStack,amount:Double){
+    private fun setCashItem(itemStack: ItemStack, amount:Double){
 
         if (!moneyAmount.contains(amount))return
 

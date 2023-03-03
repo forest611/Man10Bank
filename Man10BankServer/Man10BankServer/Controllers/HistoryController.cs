@@ -42,6 +42,6 @@ public class HistoryController : ControllerBase
     [HttpPost("add-atm-log")]
     public void AddATMLog([FromBody] ATMLog log)
     {
-        History.AddATMLog(log);
+        History.AddAtmLog(log);
     }
 }
