@@ -5,6 +5,7 @@ import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.OfflinePlayer
 import org.bukkit.plugin.java.JavaPlugin
+import red.man10.man10bank.util.Utility
 import java.util.*
 
 
@@ -37,15 +38,6 @@ class VaultManager(private val plugin: JavaPlugin) {
     }
 
     /////////////////////////////////////
-    //      残高確認
-    /////////////////////////////////////
-    fun showBalance(uuid: UUID?) {
-        val p: OfflinePlayer? = Bukkit.getOfflinePlayer(uuid!!).player
-        val money = getBalance(uuid)
-        p!!.player!!.sendMessage(ChatColor.YELLOW.toString() + "あなたの所持金は$" + money)
-    }
-
-    /////////////////////////////////////
     //      引き出し
     /////////////////////////////////////
     fun withdraw(uuid: UUID, money: Double): Boolean {
@@ -53,7 +45,7 @@ class VaultManager(private val plugin: JavaPlugin) {
         val resp = economy!!.withdrawPlayer(p.name, money)
         if (resp.transactionSuccess()) {
             if (p.isOnline) {
-                p.player!!.sendMessage(ChatColor.YELLOW.toString() + "$" + money + "支払いました")
+                Utility.msg(p.player!!,"§e§l電子マネーを${Utility.format(money)}円支払いました")
             }
             return true
         }
@@ -68,7 +60,7 @@ class VaultManager(private val plugin: JavaPlugin) {
         val resp = economy!!.depositPlayer(p.name, money)
         if (resp.transactionSuccess()) {
             if (p.isOnline) {
-                p.player!!.sendMessage(ChatColor.YELLOW.toString() + "$" + money + "受取りました")
+                Utility.msg(p.player!!,"§e§l電子マネーを${Utility.format(money)}円受け取りました")
             }
             return true
         }

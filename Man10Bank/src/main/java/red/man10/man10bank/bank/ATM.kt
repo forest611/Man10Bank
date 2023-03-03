@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
+import org.eclipse.sisu.launch.Main
 import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.History
@@ -19,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap
 object ATM :CommandExecutor{
 
     val moneyItems = ConcurrentHashMap<Double,ItemStack>()
-    val moneyAmount = arrayOf(10.0,100.0,1000.0,10000.0,100000.0,1000000.0)
+    val moneyAmount = arrayOf(10.0,100.0,1000.0,10000.0,100000.0,1000000.0,100_000_000.0)
     private val itemKey = "money"
 
     fun load(){
@@ -85,7 +86,10 @@ object ATM :CommandExecutor{
 
         if (vault.withdraw(p.uniqueId,amount)){
             p.inventory.addItem(moneyItems[amount]!!)
+            //TODO:ログ投げる処理を軽くする
             History.addATMLog(History.ATMLog(0,p.name,p.uniqueId.toString(),amount,false, Date()))
+        }else{
+            msg(p,"§c§l電子マネーが足りません！")
         }
     }
 
@@ -93,7 +97,30 @@ object ATM :CommandExecutor{
 
         if (label != "atm")return true
 
-        
+        if (sender !is Player)return true
+
+        if (args.isNullOrEmpty()){
+            MainMenu(sender).open()
+            return true
+        }
+
+        if (!sender.hasPermission(""))return true
+
+        if (args[0] == "h"){
+            msg(sender,"/atm register <金額> : 通貨を登録")
+        }
+
+        if (args[0] == "register"){//atm register (amount)
+
+            val item = sender.inventory.itemInMainHand.clone().asOne()
+            val amount = args[1].toDoubleOrNull()?:return true
+
+            setCashItem(item,amount)
+
+            msg(sender,"${amount}円通貨の登録")
+
+            return true
+        }
 
 
         return true

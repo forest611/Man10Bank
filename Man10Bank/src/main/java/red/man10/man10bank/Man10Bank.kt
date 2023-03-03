@@ -4,6 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.api.APIBase
 import red.man10.man10bank.bank.ATM
 import red.man10.man10bank.cheque.Cheque
+import red.man10.man10bank.util.MenuFramework
 
 class Man10Bank : JavaPlugin() {
 
@@ -28,7 +29,10 @@ class Man10Bank : JavaPlugin() {
         getCommand("mcheque")!!.setExecutor(Cheque)
         getCommand("mchequeop")!!.setExecutor(Cheque)
 
+        getCommand("atm")!!.setExecutor(ATM)
+
         server.pluginManager.registerEvents(Cheque,this)
+        server.pluginManager.registerEvents(MenuFramework.MenuListener,this)
 
     }
 
