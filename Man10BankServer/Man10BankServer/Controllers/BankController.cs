@@ -9,6 +9,12 @@ namespace Man10BankServer.Controllers;
 public class BankController : ControllerBase
 {
 
+    [HttpGet]
+    public int TryConnect()
+    {
+        return 0;
+    }
+    
     //9c4161a9-0f5f-4317-835c-0bb196a7defa
     [HttpGet("balance")]
     public double GetBalance(string uuid)
