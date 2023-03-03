@@ -4,6 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.api.APIBase
 import red.man10.man10bank.bank.ATM
 import red.man10.man10bank.cheque.Cheque
+import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.MenuFramework
 
 class Man10Bank : JavaPlugin() {
@@ -25,6 +26,7 @@ class Man10Bank : JavaPlugin() {
 
         APIBase.setup()
         ATM.load()
+        BlockingQueue.start()
 
         getCommand("mcheque")!!.setExecutor(Cheque)
         getCommand("mchequeop")!!.setExecutor(Cheque)
@@ -38,5 +40,6 @@ class Man10Bank : JavaPlugin() {
 
     override fun onDisable() {
         // Plugin shutdown logic
+        BlockingQueue.stop()
     }
 }

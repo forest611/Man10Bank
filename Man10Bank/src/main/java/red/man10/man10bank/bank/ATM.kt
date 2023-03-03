@@ -13,6 +13,7 @@ import org.eclipse.sisu.launch.Main
 import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.History
+import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.Utility.msg
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -69,11 +70,12 @@ object ATM :CommandExecutor{
             itemStack.amount = 0
             vault.deposit(p.uniqueId,amount)
 
-            History.addATMLog(History.ATMLog(0,p.name,p.uniqueId.toString(),amount,true, Date()))
+            BlockingQueue.addTask {
+                History.addATMLog(History.ATMLog(0,p.name,p.uniqueId.toString(),amount,true, Date()))
+            }
         }
 
         return amount
-
     }
 
     fun withdraw(p: Player, amount : Double){
