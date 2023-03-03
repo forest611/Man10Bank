@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemFlag
@@ -19,7 +20,7 @@ import red.man10.man10bank.api.Cheque
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
 
-object Cheque : CommandExecutor{
+object Cheque : CommandExecutor, Listener {
 
     @Synchronized
     private fun create(p:Player,amount:Double,isOP:Boolean,note:String = ""){
@@ -69,7 +70,6 @@ object Cheque : CommandExecutor{
         meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE)
 
         meta.persistentDataContainer.set(NamespacedKey.fromString("cheque_id")!!, PersistentDataType.INTEGER,id)
-//        meta.persistentDataContainer.set(NamespacedKey.fromString("cheque_amount")!!, PersistentDataType.DOUBLE,amount)
 
         chequeItem.itemMeta = meta
 

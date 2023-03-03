@@ -7,6 +7,5 @@ softdepend:
   - Man10CommonLibs
 commands:
   mcheque:
-    permission: man10bank.issue_cheque
   mchequeop:
-    permission: man10bank.issue_cheque_op
+  banksystem:

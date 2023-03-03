@@ -32,6 +32,8 @@ class Man10Bank : JavaPlugin() {
         getCommand("mcheque")!!.setExecutor(Cheque)
         getCommand("mchequeop")!!.setExecutor(Cheque)
 
+        server.pluginManager.registerEvents(Cheque,this)
+
     }
 
     override fun onDisable() {
