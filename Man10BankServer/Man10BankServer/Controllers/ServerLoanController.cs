@@ -27,19 +27,19 @@ public class ServerLoanController : ControllerBase
         return ServerLoan.GetBorrowingInfo(uuid).Result;
     }
 
-    [HttpPost("set-info")]
+    [HttpGet("set-info")]
     public string SetInfo([FromBody] ServerLoanTable info)
     {
         return ServerLoan.SetBorrowingInfo(info).Result;
     }
 
-    [HttpPost("try-borrow")]
+    [HttpGet("try-borrow")]
     public string TryBorrow(string uuid, double amount)
     {
         return ServerLoan.Borrow(uuid, amount).Result;
     }
     
-    [HttpPost("pay")]
+    [HttpGet("pay")]
     public bool Pay(string uuid, double amount)
     {
         return false;

@@ -47,7 +47,7 @@ public static class LocalLoan
         return result;
     }
 
-    public static async Task<LocalLoanTable?> GetInfo(int id)
+    public static async Task<LocalLoanTable> GetInfo(int id)
     {
         var result = await Task.Run(() =>
         {
@@ -55,7 +55,7 @@ public static class LocalLoan
             var record = context.loan_table.FirstOrDefault(r => r.id == id);
             
             context.Dispose();
-            return record;
+            return record ?? new LocalLoanTable();
         });
 
         return result;

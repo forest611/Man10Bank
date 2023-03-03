@@ -9,14 +9,14 @@ namespace Man10BankServer.Controllers;
 public class LocalLoanController : ControllerBase
 {
     
-    [HttpPost("create")]
+    [HttpGet("create")]
     public int CreateLoan([FromBody] LocalLoanTable data)
     {
         var result = LocalLoan.Create(data);
         return result.Result;
     }
 
-    [HttpPost("pay")]
+    [HttpGet("pay")]
     public string Pay(int id, double amount)
     {
         var result = LocalLoan.Pay(id, amount);

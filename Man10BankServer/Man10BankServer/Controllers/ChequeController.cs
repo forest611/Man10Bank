@@ -9,13 +9,13 @@ public class ChequeController : ControllerBase
 {
     
     
-    [HttpPost("create")]
+    [HttpGet("create")]
     public int Create(string uuid,double amount,string note,bool isOp)
     {
         return Cheque.Create(uuid,amount,note,isOp).Result;
     }
 
-    [HttpPost("try-use")]
+    [HttpGet("try-use")]
     public double TryUse(int id)
     {
         return Cheque.Use(id).Result;
