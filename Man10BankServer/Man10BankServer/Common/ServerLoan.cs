@@ -99,16 +99,52 @@ public static class ServerLoan
                 };
 
                 context.server_loan_tbl.Add(insert);
-                context.SaveChanges();
+                // context.SaveChanges();
             }
 
+            if (ret=="Successful")
+            {
+                _ = Bank.AsyncAddBalance(uuid, amount,"Man10Bank","BorrowFromMan10Revolving","リボの借金");
+            }     
+
             context.SaveChanges();
-            
+            context.Dispose();
             return ret;
         });
 
         return result;
+    }
 
+    public static async Task<bool> Pay(string uuid, double amount)
+    {
+        var result = await Task.Run(() =>
+        {
+            var context = new Context();
+            var data = context.server_loan_tbl.FirstOrDefault(r=>r.uuid == uuid);
+
+            if (data==null)
+            {
+                return false;
+            }
+            
+            //支払い処理
+            if (Bank.AsyncTakeBalance(data.uuid, amount, "Man10Bank", "Man10Revolving", "Man10リボの支払い").Result 
+                != "Successful") return false;
+            //支払い成功した場合
+            // data.last_pay_date = now;
+            data.borrow_amount -= data.payment_amount;
+            if (data.borrow_amount < 0.0)
+            {
+                data.borrow_amount = 0;
+                data.failed_payment = 0;
+            }
+
+            context.SaveChanges();
+            context.Dispose();
+            return true;
+        });
+
+        return result;
     }
 
     /// <summary>
@@ -160,6 +196,28 @@ public static class ServerLoan
         return result;
     }
 
+    public static async Task<DateTime?> NextPayDate(string uuid)
+    {
+        var result = await Task.Run<DateTime?>(() =>
+        {
+            var context = new Context();
+            var record = context.server_loan_tbl.FirstOrDefault(r => r.uuid == uuid);
+
+            if (record==null)
+            {
+                return null;
+            }
+
+            var ret = record.last_pay_date.AddDays(_paymentInterval);
+            
+            context.Dispose();
+            
+            return ret;
+        });
+
+        return result;
+    }
+
     public static async Task<bool> IsLoser(string uuid)
     {
         var result = await Task.Run(() =>
@@ -180,7 +238,6 @@ public static class ServerLoan
 
         return result;
     }
-    
 
     public static void StartPaymentTask(IConfiguration config)
     {

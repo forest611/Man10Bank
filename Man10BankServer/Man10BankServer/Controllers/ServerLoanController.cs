@@ -42,7 +42,13 @@ public class ServerLoanController : ControllerBase
     [HttpGet("pay")]
     public bool Pay(string uuid, double amount)
     {
-        return false;
+        return ServerLoan.Pay(uuid,amount).Result;
+    }
+
+    [HttpGet("next-pay")]
+    public DateTime? NextPay(string uuid)
+    {
+        return ServerLoan.NextPayDate(uuid).Result;
     }
     
 }
