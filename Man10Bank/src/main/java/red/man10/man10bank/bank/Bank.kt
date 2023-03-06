@@ -16,15 +16,27 @@ import org.bukkit.event.player.PlayerQuitEvent
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APIBank
+import red.man10.man10bank.api.APIHistory
+import red.man10.man10bank.api.APIServerLoan
 import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
 import red.man10.man10bank.util.Utility.prefix
+import java.text.SimpleDateFormat
 import java.util.*
 
 object Bank : CommandExecutor, Listener{
 
     val labels = arrayOf("bal","balance","bank","money")
+
+    fun addBank(p:Player,amount:Double){
+
+    }
+
+    fun takeBank(p:Player,amount:Double){
+
+    }
+
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
 
@@ -38,6 +50,11 @@ object Bank : CommandExecutor, Listener{
         }
 
         when(args[0]){
+
+            "help" ->{
+                showCommand(sender)
+                return true
+            }
 
             "log" ->{
 
@@ -89,20 +106,17 @@ object Bank : CommandExecutor, Listener{
     }
 
     private fun showBalance(p:Player, sender: CommandSender){
-//        val loan = ServerLoan.getBorrowingAmount(p)
-//        val payment = ServerLoan.getPaymentAmount(p)
-//        val nextDate = ServerLoan.getNextPayTime(p)
-//        val score = ScoreDatabase.getScore(p.uniqueId)
-//        val cash: Double = EstateData.getCash(p)
-//        val estate: Double = EstateData.getEstate(p)
+
+        val serverLoanData = APIServerLoan.getInfo(p.uniqueId)
 
         val bankAmount = APIBank.getBalance(p.uniqueId)
-        val loan = 0.0
-        val payment = 0.0
-        val nextDate : Date? = Date()
+        val loan = serverLoanData?.borrow_amount?:0.0
+        val payment =serverLoanData?.payment_amount?:0.0
+        val failed = serverLoanData?.failed_payment?:0
+        val nextDate : Date? = APIServerLoan.nextPayDate(p.uniqueId)
         val score = 0
-        val cash = 0.0
-        val estate = 0.0
+        val cash = vault.getBalance(p.uniqueId)
+        val estate = APIHistory.getUserEstate(p.uniqueId)?.estete?:0.0
 
 
         msg(sender,"§e§l==========${p.name}のお金==========")
@@ -117,10 +131,10 @@ object Bank : CommandExecutor, Listener{
         if (loan!=0.0 && nextDate!=null){
             msg(sender," §b§lまんじゅうリボ:  §c§l${format(loan)}円")
             msg(sender," §b§l支払額:  §c§l${format(payment)}円")
-//            msg(sender," §b§l次の支払日: §c§l${SimpleDateFormat("yyyy-MM-dd").format(nextDate.first)}")
-//            if (nextDate.second>0){
-//                msg(sender," §c§lMan10リボの支払いに失敗しました(失敗回数:${nextDate.second})。支払いに失敗するとスコアの減少やJailがあります")
-//            }
+            msg(sender," §b§l次の支払日: §c§l${SimpleDateFormat("yyyy-MM-dd").format(nextDate)}")
+            if (failed>0){
+                msg(sender," §c§lMan10リボの支払いに失敗しました(失敗回数:${failed}回)。支払いに失敗するとスコアの減少や労働所送りにされることがあります")
+            }
         }
 
         sender.sendMessage(text("$prefix §a§l§n[ここをクリックでコマンドをみる]").clickEvent(ClickEvent.runCommand("/bank help")))

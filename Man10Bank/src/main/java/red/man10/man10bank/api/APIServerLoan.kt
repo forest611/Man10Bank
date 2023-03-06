@@ -3,6 +3,7 @@ package red.man10.man10bank.api
 import okhttp3.RequestBody.Companion.toRequestBody
 import red.man10.man10bank.api.APIBase.getRequest
 import red.man10.man10bank.api.APIBase.gson
+import java.text.SimpleDateFormat
 import java.util.*
 
 object APIServerLoan {
@@ -19,6 +20,16 @@ object APIServerLoan {
         return result?.toBooleanStrictOrNull()?:false
     }
 
+    fun nextPayDate(uuid:UUID): Date? {
+        val result = getRequest("${apiRoute}next-pay?uuid=${uuid}")?:return null
+        val time = result.toLongOrNull()?:return null
+        if (time == -1L)return null
+
+        val date = Date()
+        date.time = time
+        return date
+    }
+
     fun getInfo(uuid: UUID): ServerLoanTable? {
         val result = getRequest("${apiRoute}get-info?uuid=${uuid}")?:return null
         return gson.fromJson(result,ServerLoanTable::class.java)
@@ -30,10 +41,15 @@ object APIServerLoan {
         return getRequest("${apiRoute}set-info", body) ?: "Null"
     }
 
+    //お金を借りる
     fun borrow(uuid: UUID,amount:Double):String{
         return getRequest("${apiRoute}try-borrow?uuid=${uuid}&amount=${amount}")?:"Null"
     }
 
+    /**
+     * リボを支払う
+     * 支払い成功したらtrueを返す
+     */
     fun pay(uuid: UUID,amount: Double): Boolean {
         val result = getRequest("${apiRoute}pay?uuid=${uuid}&amount=${amount}")
         return result?.toBooleanStrictOrNull()?:false

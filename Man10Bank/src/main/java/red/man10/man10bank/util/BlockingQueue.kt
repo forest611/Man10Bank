@@ -23,6 +23,9 @@ object BlockingQueue {
         thread.interrupt()
     }
 
+    /**
+     * スレッドはなるべくこれを使う
+     */
     fun addTask(task:()->Unit){
         queue.add(task)
     }
