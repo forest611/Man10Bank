@@ -46,9 +46,9 @@ public class ServerLoanController : ControllerBase
     }
 
     [HttpGet("next-pay")]
-    public DateTime? NextPay(string uuid)
+    public long NextPay(string uuid)
     {
-        return ServerLoan.NextPayDate(uuid).Result;
+        return ServerLoan.NextPayDate(uuid).Result?.Ticks ?? -1;
     }
     
 }
