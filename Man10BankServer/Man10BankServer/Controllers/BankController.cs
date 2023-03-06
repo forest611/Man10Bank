@@ -8,11 +8,16 @@ namespace Man10BankServer.Controllers;
 [Route("[controller]")]
 public class BankController : ControllerBase
 {
-
     [HttpGet("try-connect")]
     public int TryConnect()
     {
         return 0;
+    }
+
+    [HttpGet("mcid")]
+    public string? GetMinecraftId(string uuid)
+    {
+        return Utility.GetMinecraftId(uuid).Result;
     }
     
     //9c4161a9-0f5f-4317-835c-0bb196a7defa

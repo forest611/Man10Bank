@@ -4,6 +4,7 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import red.man10.man10bank.Man10Bank.Companion.bankOpen
 import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.APIBank
@@ -17,6 +18,11 @@ object DealCommand : CommandExecutor{
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
 
         if (sender !is Player)return true
+
+        if (!bankOpen){
+            msg(sender,"§c§l現在銀行は営業停止しております")
+            return true
+        }
 
         if (label == "d" || label == "deposit"){
 

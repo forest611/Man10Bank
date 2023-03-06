@@ -13,12 +13,14 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APIHistory
 import red.man10.man10bank.api.APIServerLoan
 import red.man10.man10bank.util.BlockingQueue
+import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
 import red.man10.man10bank.util.Utility.prefix
@@ -51,9 +53,45 @@ object Bank : CommandExecutor, Listener{
 
             }
 
-            "add" ->{
+            /////////運営用コマンド/////////
+
+            "give" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
+                if (args.size< 3){
+                    msg(sender,"§a§l/${label} give <player> <金額>")
+                    return true
+                }
+
+                val amount = Utility.parse(args[2])
+                val mcid = args[1]
+
+                if (amount==null){
+                    msg(sender,"§c§l数字で入力してください！")
+                    return true
+                }
+
+                if (amount < 1){
+                    msg(sender,"§c§l1円以上を入力してください！")
+                    return true
+                }
+
+                BlockingQueue.addTask {
+                    val ret = APIBank.addBank(APIBank.TransactionData(
+                        sender.uniqueId.toString(),
+                        amount,
+                        Man10Bank.instance.name,
+                        "GivenFromServer",
+                        "サーバーから発行"
+                    ))
+
+                    if (ret != "Successful"){
+                        msg(sender,"§c入金エラーが発生しました")
+                        vault.deposit(sender.uniqueId,amount)
+                        return@addTask
+                    }
+                    msg(sender,"§e入金できました！")
+                }
 
             }
 
@@ -71,12 +109,14 @@ object Bank : CommandExecutor, Listener{
 
             "on" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
-
+                Man10Bank.open()
+                msg(sender,"銀行を開店しました")
             }
 
             "off" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
-
+                Man10Bank.close()
+                msg(sender,"銀行を閉店しました")
             }
 
             "reload" ->{
@@ -84,12 +124,6 @@ object Bank : CommandExecutor, Listener{
 
 
             }
-
-
-
-
-
-
         }
 
 

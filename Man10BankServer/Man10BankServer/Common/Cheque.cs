@@ -17,7 +17,7 @@ public static class Cheque
     {
         var result = await Task.Run(() =>
         {
-            var context = new Context();
+            var context = new BankContext();
             var record = new ChequeTable
             {
                 amount = amount,
@@ -50,7 +50,7 @@ public static class Cheque
         var result = await Task.Run(() =>
         {
 
-            var context = new Context();
+            var context = new BankContext();
             var record = context.cheque_tbl.FirstOrDefault(r => r.id == id);
 
             if (record==null || record.used)

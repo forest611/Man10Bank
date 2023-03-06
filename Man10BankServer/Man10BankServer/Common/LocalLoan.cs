@@ -10,7 +10,7 @@ public static class LocalLoan
     {
         var result = await Task.Run(() =>
         {
-            var context = new Context();
+            var context = new BankContext();
             context.loan_table.Add(data);
             context.SaveChanges();
             return data.id;
@@ -22,7 +22,7 @@ public static class LocalLoan
     {
         var result = await Task.Run(() =>
         {
-            var context = new Context();
+            var context = new BankContext();
             var data = context.loan_table.FirstOrDefault(r => r.id == id);
 
             if (data == null)
@@ -51,7 +51,7 @@ public static class LocalLoan
     {
         var result = await Task.Run(() =>
         {
-            var context = new Context();
+            var context = new BankContext();
             var record = context.loan_table.FirstOrDefault(r => r.id == id);
             
             context.Dispose();

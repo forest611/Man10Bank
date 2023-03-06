@@ -16,6 +16,19 @@ class Man10Bank : JavaPlugin() {
         lateinit var instance : Man10Bank
         lateinit var vault : VaultManager
 
+        var bankOpen = true
+
+        fun open(){
+            bankOpen = true
+            instance.config.set("enable",true)
+            instance.saveConfig()
+        }
+
+        fun close(){
+            bankOpen = false
+            instance.config.set("enable",false)
+            instance.saveConfig()
+        }
     }
 
     override fun onEnable() {
@@ -23,6 +36,7 @@ class Man10Bank : JavaPlugin() {
 
         saveDefaultConfig()
 
+        bankOpen = config.getBoolean("enable")
         instance = this
         vault = VaultManager(this)
 

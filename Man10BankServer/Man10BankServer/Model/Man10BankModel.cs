@@ -183,7 +183,7 @@ public class VaultLog
     
 }
 
-public class Context : DbContext
+public class BankContext : DbContext
 {
     
     public DbSet<UserBank> user_bank { get; set; }
@@ -197,7 +197,7 @@ public class Context : DbContext
     public DbSet<ServerLoanTable> server_loan_tbl { get; set; }
     public DbSet<VaultLog> vault_log { get; set; }
 
-    private static readonly BlockingCollection<Action<Context>> DbQueue = new();
+    private static readonly BlockingCollection<Action<BankContext>> DbQueue = new();
 
     private static string Host { get; set; }
     private static string Port { get; set; }
@@ -208,7 +208,7 @@ public class Context : DbContext
     /// <summary>
     /// DBの接続設定を読み込む
     /// </summary>
-    static Context()
+    static BankContext()
     {
         Host = "localhost";
         Port = "3306";
@@ -238,7 +238,7 @@ public class Context : DbContext
 
     private static void RunDatabaseQueue()
     {
-        var context = new Context();
+        var context = new BankContext();
         Console.WriteLine("データベースキューを起動");
         while (true)
         {
@@ -258,7 +258,7 @@ public class Context : DbContext
     /// <summary>
     /// ログなどの即効性を求めないクエリを投げるためのキュー
     /// </summary>
-    public static void AddDatabaseJob(Action<Context> job)
+    public static void AddDatabaseJob(Action<BankContext> job)
     {
         DbQueue.Add(job);
     }

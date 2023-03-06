@@ -13,7 +13,7 @@ public static class Utility
     {
         var result = await Task.Run(() =>
         {
-            var context = new Context();
+            var context = new BankContext();
             var userName = context.user_bank.FirstOrDefault(r => r.uuid == uuid)?.player;
             context.Dispose();
             return userName ?? "";
@@ -21,8 +21,7 @@ public static class Utility
         
         return result;
     }
-
-
+    
     public static async Task<int> GetScore(string uuid)
     {
         var result = await Task.Run(() =>

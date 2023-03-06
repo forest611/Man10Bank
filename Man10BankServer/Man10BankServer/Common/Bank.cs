@@ -6,7 +6,7 @@ namespace Man10BankServer.Common;
 public static class Bank
 {
 
-    private static readonly BlockingCollection<Action<Context>> BankQueue = new();
+    private static readonly BlockingCollection<Action<BankContext>> BankQueue = new();
 
     static Bank()
     {
@@ -25,7 +25,7 @@ public static class Bank
 
         var result = await Task.Run(() =>
         {
-            using var context = new Context();
+            using var context = new BankContext();
             var balance = context.user_bank.FirstOrDefault(r => r.uuid == uuid)?.balance;
             return balance;
         });
@@ -220,7 +220,7 @@ public static class Bank
     private static void BankLog(string uuid,double amount,bool isDeposit, string plugin, string note, string displayNote)
     {
 
-        Context.AddDatabaseJob(context =>
+        BankContext.AddDatabaseJob(context =>
         {
             var userName = Utility.GetMinecraftId(uuid).Result;
             // var context = new Context();
@@ -248,7 +248,7 @@ public static class Bank
     {
         var result = await Task.Run(() =>
         {
-            using var context = new Context();
+            using var context = new BankContext();
             var ret = context.money_log
                 .Where(r => r.uuid == uuid)
                 .OrderBy(r => r.date)
@@ -270,7 +270,7 @@ public static class Bank
     {
         Console.WriteLine("Man10Bankキューを起動");
 
-        var context = new Context();
+        var context = new BankContext();
         
         while (true)
         {

@@ -26,7 +26,7 @@ public static class History
     /// </summary>
     private static void AddServerEstateHistory()
     {
-        Context.AddDatabaseJob(context =>
+        BankContext.AddDatabaseJob(context =>
         {
             var year = DateTime.Now.Year;
             var month = DateTime.Now.Month;
@@ -75,7 +75,7 @@ public static class History
     {
         var result = await Task.Run(() =>
         {
-            var context = new Context();
+            var context = new BankContext();
             var record = context.server_estate_history.OrderBy(r => r.date).FirstOrDefault() ?? new ServerEstateHistory();
             context.Dispose();
             return record;
@@ -90,7 +90,7 @@ public static class History
     /// <param name="uuid"></param>
     private static void CreateEstateRecord(string uuid)
     {
-        Context.AddDatabaseJob(context =>
+        BankContext.AddDatabaseJob(context =>
         {
             if (context.estate_tbl.Any(r => r.uuid==uuid))
             {
@@ -115,7 +115,7 @@ public static class History
     /// <param name="data"></param>
     public static void AddUserEstateHistory(EstateTable data)
     {
-        Context.AddDatabaseJob(context =>
+        BankContext.AddDatabaseJob(context =>
         {
             var record = context.estate_tbl.FirstOrDefault(r => r.uuid == data.uuid);
 
@@ -168,7 +168,7 @@ public static class History
     {
         var result = await Task.Run(() =>
         {
-            var context = new Context();
+            var context = new BankContext();
 
             var record = context.estate_tbl.FirstOrDefault(r => r.uuid==uuid) ?? new EstateTable();
             
@@ -189,7 +189,7 @@ public static class History
     {
         var result = await Task.Run(() =>
         {
-            var context = new Context();
+            var context = new BankContext();
 
             var records = context.estate_tbl.OrderByDescending(r => r.total).Take(size).ToArray();
             
@@ -206,7 +206,7 @@ public static class History
     /// </summary>
     public static void AddVaultLog(VaultLog log)
     {
-        Context.AddDatabaseJob(context =>
+        BankContext.AddDatabaseJob(context =>
         {
             context.vault_log.Add(log);
             context.SaveChanges();
@@ -219,7 +219,7 @@ public static class History
     public static void AddAtmLog(ATMLog log)
     {
         //TODO:ログ取れてない問題なおす
-        Context.AddDatabaseJob(context =>
+        BankContext.AddDatabaseJob(context =>
         {
             context.atm_log.Add(log);
             context.SaveChanges();

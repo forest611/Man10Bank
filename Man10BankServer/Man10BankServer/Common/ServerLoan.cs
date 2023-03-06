@@ -21,7 +21,7 @@ public static class ServerLoan
         {
             var score = Utility.GetScore(uuid).Result;
             var lastMonth = DateTime.Now.AddMonths(-1);
-            var context = new Context();
+            var context = new BankContext();
             var history = context.estate_history_tbl
                 .Where(r => r.uuid == uuid && r.date > lastMonth).OrderBy(r => r.total).ToList();
 
@@ -63,7 +63,7 @@ public static class ServerLoan
 
         var result = await Task.Run(() =>
         {
-            var context = new Context();
+            var context = new BankContext();
             var record = context.server_loan_tbl.FirstOrDefault(r => r.uuid == uuid);
 
             //借金がこれ以上できない場合
@@ -119,7 +119,7 @@ public static class ServerLoan
     {
         var result = await Task.Run(() =>
         {
-            var context = new Context();
+            var context = new BankContext();
             var data = context.server_loan_tbl.FirstOrDefault(r=>r.uuid == uuid);
 
             if (data==null)
@@ -156,7 +156,7 @@ public static class ServerLoan
     {
         var result = await Task.Run(() =>
         {
-            var context = new Context();
+            var context = new BankContext();
             var record = context.server_loan_tbl.FirstOrDefault(r => r.uuid == uuid);
             context.Dispose();
             return record;
@@ -175,7 +175,7 @@ public static class ServerLoan
 
         var result = await Task.Run(() =>
         {
-            var context = new Context();
+            var context = new BankContext();
 
             string ret;
 
@@ -200,7 +200,7 @@ public static class ServerLoan
     {
         var result = await Task.Run<DateTime?>(() =>
         {
-            var context = new Context();
+            var context = new BankContext();
             var record = context.server_loan_tbl.FirstOrDefault(r => r.uuid == uuid);
 
             if (record==null)
@@ -224,7 +224,7 @@ public static class ServerLoan
         {
 
             var score = Utility.GetScore(uuid).Result;
-            var context = new Context();
+            var context = new BankContext();
             var record = context.server_loan_tbl.FirstOrDefault(r => r.uuid == uuid);
 
             if (record == null) { return false; }
@@ -261,7 +261,7 @@ public static class ServerLoan
     {
         Console.WriteLine("リボのタスク起動");
         
-        var context = new Context();
+        var context = new BankContext();
         
         while (true)
         {
