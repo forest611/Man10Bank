@@ -26,17 +26,29 @@ public static class Utility
     {
         var result = await Task.Run(() =>
         {
-            var score = 0;
-
+            var context = new PlayerContext();
+            var score = context.player_data.FirstOrDefault(r=>r.uuid==uuid)?.score??0;
+            context.Dispose();
             return score;
         });
         return result;
     }
 
-    public static async Task<bool> TakeScore(string uuid, double amount)
+    public static async Task<bool> TakeScore(string uuid, int amount)
     {
         var result = await Task.Run(() =>
         {
+            var context = new PlayerContext();
+            var data = context.player_data.FirstOrDefault(r => r.uuid == uuid);
+            if (data == null)
+            {
+                context.Dispose();
+                return false;
+            }
+
+            data.score += amount;
+            context.SaveChanges();
+            context.Dispose();
             
             return true;            
         });
