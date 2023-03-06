@@ -30,7 +30,7 @@ public class BankController : ControllerBase
     [HttpGet("balance")]
     public double GetBalance(string uuid)
     {
-        return Bank.AsyncGetBalance(uuid).Result;
+        return Bank.SyncGetBalance(uuid).Result;
     }
     
     [HttpGet("log")]
@@ -42,14 +42,14 @@ public class BankController : ControllerBase
     [HttpGet("add")]
     public string AddBalance([FromBody]TransactionData data)
     {
-        var ret = Bank.AsyncAddBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
+        var ret = Bank.SyncAddBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
         return ret.Result;
     }
 
     [HttpGet("take")]
     public string TakeBalance([FromBody]TransactionData data)
     {
-        return Bank.AsyncTakeBalance(data.UUID, data.Amount, data.Plugin, data.Note, data.DisplayNote).Result;
+        return Bank.SyncTakeBalance(data.UUID, data.Amount, data.Plugin, data.Note, data.DisplayNote).Result;
     }
     
     [HttpGet("set")]

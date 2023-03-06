@@ -20,7 +20,7 @@ public static class Bank
     /// </summary>
     /// <param name="uuid"></param>
     /// <returns></returns>
-    public static async Task<double> AsyncGetBalance(string uuid)
+    public static async Task<double> SyncGetBalance(string uuid)
     {
 
         var result = await Task.Run(() =>
@@ -42,7 +42,7 @@ public static class Bank
     /// <param name="note"></param>
     /// <param name="displayNote"></param>
     /// <returns></returns>
-    public static async Task<string> AsyncAddBalance(string uuid, double amount,string plugin,string note,string displayNote)
+    public static async Task<string> SyncAddBalance(string uuid, double amount,string plugin,string note,string displayNote)
     {
         var result = await Task.Run(() =>
         {
@@ -77,7 +77,7 @@ public static class Bank
     /// <param name="note"></param>
     /// <param name="displayNote"></param>
     /// <returns></returns>
-    public static async Task<string> AsyncTakeBalance(string uuid, double amount,string plugin,string note,string displayNote)
+    public static async Task<string> SyncTakeBalance(string uuid, double amount,string plugin,string note,string displayNote)
     {
         var result = await Task.Run(() =>
         {

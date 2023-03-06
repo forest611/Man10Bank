@@ -104,7 +104,7 @@ public static class ServerLoan
 
             if (ret=="Successful")
             {
-                _ = Bank.AsyncAddBalance(uuid, amount,"Man10Bank","BorrowFromMan10Revolving","リボの借金");
+                _ = Bank.SyncAddBalance(uuid, amount,"Man10Bank","BorrowFromMan10Revolving","リボの借金");
             }     
 
             context.SaveChanges();
@@ -128,7 +128,7 @@ public static class ServerLoan
             }
             
             //支払い処理
-            if (Bank.AsyncTakeBalance(data.uuid, amount, "Man10Bank", "Man10Revolving", "Man10リボの支払い").Result 
+            if (Bank.SyncTakeBalance(data.uuid, amount, "Man10Bank", "Man10Revolving", "Man10リボの支払い").Result 
                 != "Successful") return false;
             //支払い成功した場合
             // data.last_pay_date = now;
@@ -298,7 +298,7 @@ public static class ServerLoan
                 var failedFlag = false;
                 
                 //支払い処理
-                if (Bank.AsyncTakeBalance(data.uuid,payment,"Man10Bank","Man10Revolving","Man10リボの支払い").Result == "Successful")
+                if (Bank.SyncTakeBalance(data.uuid,payment,"Man10Bank","Man10Revolving","Man10リボの支払い").Result == "Successful")
                 {
                      //支払い成功した場合
                     data.last_pay_date = now;
