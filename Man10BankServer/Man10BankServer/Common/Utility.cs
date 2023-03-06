@@ -13,14 +13,33 @@ public static class Utility
     {
         var result = await Task.Run(() =>
         {
-            var context = new BankContext();
-            var userName = context.user_bank.FirstOrDefault(r => r.uuid == uuid)?.player;
+            var context = new PlayerContext();
+            var userName = context.player_data.FirstOrDefault(r => r.uuid == uuid)?.mcid;
             context.Dispose();
             return userName ?? "";
         });
         
         return result;
     }
+
+    /// <summary>
+    /// UUIDを取得する
+    /// </summary>
+    /// <param name="uuid"></param>
+    /// <returns></returns>
+    public static async Task<string> GetUUID(string mcid)
+    {
+        var result = await Task.Run(() =>
+        {
+            var context = new PlayerContext();
+            var userName = context.player_data.FirstOrDefault(r => r.mcid == mcid)?.uuid;
+            context.Dispose();
+            return userName ?? "";
+        });
+        
+        return result;
+    }
+
     
     public static async Task<int> GetScore(string uuid)
     {

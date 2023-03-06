@@ -8,6 +8,7 @@ public class PlayerData
     [Key]
     public int id { get; set; }
     public string uuid { get; set; }
+    public string mcid { get; set; }
     public DateTime freeze_until { get; set; }
     public DateTime mute_until { get; set; }
     public DateTime jail_unitl { get; set; }

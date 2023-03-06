@@ -14,10 +14,10 @@ public class BankController : ControllerBase
         return 0;
     }
 
-    [HttpGet("mcid")]
-    public string GetMinecraftId(string uuid)
+    [HttpGet("uuid")]
+    public string GetMinecraftId(string mcid)
     {
-        return Utility.GetMinecraftId(uuid).Result;
+        return Utility.GetUUID(mcid).Result;
     }
 
     [HttpGet("score")]
