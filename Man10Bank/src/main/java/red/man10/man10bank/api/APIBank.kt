@@ -11,6 +11,14 @@ object APIBank {
 
     private const val apiRoute = "/bank/"
 
+    fun getScore(uuid: UUID):Int{
+        return getRequest(apiRoute + "score?uuid=${uuid}")?.toIntOrNull() ?: 0
+    }
+
+    fun getUUID(mcid:String): UUID? {
+        return UUID.fromString(getRequest(apiRoute+"mcid?uuid=${mcid}"))
+    }
+
     fun getBalance(uuid: UUID): Double {
         return getRequest(apiRoute + "balance?uuid=${uuid}")?.toDoubleOrNull() ?: -1.0
     }

@@ -21,7 +21,7 @@ object Command : CommandExecutor{
             "reload"->{
 
                 Thread{
-                    APIBase.setup()
+
 
                 }.start()
             }

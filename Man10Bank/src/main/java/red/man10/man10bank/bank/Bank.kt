@@ -17,6 +17,7 @@ import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APIBank
+import red.man10.man10bank.api.APIBase
 import red.man10.man10bank.api.APIHistory
 import red.man10.man10bank.api.APIServerLoan
 import red.man10.man10bank.util.BlockingQueue
@@ -64,7 +65,12 @@ object Bank : CommandExecutor, Listener{
                 }
 
                 val amount = Utility.parse(args[2])
-                val mcid = args[1]
+                val uuid = APIBank.getUUID(args[1])
+
+                if (uuid == null){
+                    msg(sender,"ユーザーが見つかりませんでした")
+                    return true
+                }
 
                 if (amount==null){
                     msg(sender,"§c§l数字で入力してください！")
@@ -92,19 +98,94 @@ object Bank : CommandExecutor, Listener{
                     }
                     msg(sender,"§e入金できました！")
                 }
-
             }
 
             "take" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
+                if (args.size< 3){
+                    msg(sender,"§a§l/${label} take <player> <金額>")
+                    return true
+                }
 
+                val amount = Utility.parse(args[2])
+                val uuid = APIBank.getUUID(args[1])
+
+                if (uuid == null){
+                    msg(sender,"ユーザーが見つかりませんでした")
+                    return true
+                }
+
+                if (amount==null){
+                    msg(sender,"§c§l数字で入力してください！")
+                    return true
+                }
+
+                if (amount < 1){
+                    msg(sender,"§c§l1円以上を入力してください！")
+                    return true
+                }
+
+                BlockingQueue.addTask {
+                    val ret = APIBank.takeBank(APIBank.TransactionData(
+                        sender.uniqueId.toString(),
+                        amount,
+                        Man10Bank.instance.name,
+                        "TakenByCommand",
+                        "サーバーから徴収"
+                    ))
+
+                    if (ret != "Successful"){
+                        msg(sender,"§c出金エラーが発生しました")
+                        vault.deposit(sender.uniqueId,amount)
+                        return@addTask
+                    }
+                    msg(sender,"§e出金できました！")
+                }
             }
 
             "set" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
+                if (args.size< 3){
+                    msg(sender,"§a§l/${label} set <player> <金額>")
+                    return true
+                }
 
+                val amount = Utility.parse(args[2])
+                val uuid = APIBank.getUUID(args[1])
+
+                if (uuid == null){
+                    msg(sender,"ユーザーが見つかりませんでした")
+                    return true
+                }
+
+                if (amount==null){
+                    msg(sender,"§c§l数字で入力してください！")
+                    return true
+                }
+
+                if (amount < 1){
+                    msg(sender,"§c§l1円以上を入力してください！")
+                    return true
+                }
+
+                BlockingQueue.addTask {
+                    val ret = APIBank.setBank(APIBank.TransactionData(
+                        sender.uniqueId.toString(),
+                        amount,
+                        Man10Bank.instance.name,
+                        "SetByCommand",
+                        "サーバーによる設定"
+                    ))
+
+                    if (ret != "Successful"){
+                        msg(sender,"§cエラーが発生しました")
+                        vault.deposit(sender.uniqueId,amount)
+                        return@addTask
+                    }
+                    msg(sender,"§e設定できました！")
+                }
             }
 
             "on" ->{
@@ -122,7 +203,12 @@ object Bank : CommandExecutor, Listener{
             "reload" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
-
+                Thread{
+                    APIBase.setup()
+                    BlockingQueue.stop()
+                    BlockingQueue.start()
+                    msg(sender,"リロードしました")
+                }.start()
             }
         }
 
@@ -139,7 +225,7 @@ object Bank : CommandExecutor, Listener{
         val payment =serverLoanData?.payment_amount?:0.0
         val failed = serverLoanData?.failed_payment?:0
         val nextDate : Date? = APIServerLoan.nextPayDate(p.uniqueId)
-        val score = 0
+        val score = APIBank.getScore(p.uniqueId)
         val cash = vault.getBalance(p.uniqueId)
         val estate = APIHistory.getUserEstate(p.uniqueId)?.estete?:0.0
 
