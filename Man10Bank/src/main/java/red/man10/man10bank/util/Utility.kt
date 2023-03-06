@@ -20,9 +20,13 @@ object Utility{
         return String.format("%,.${digit}f", amount)
     }
 
-    fun ZenkakuToHankaku(number: String): Double {
+    fun ZenkakuToHankaku(number: String): Double? {
         val normalize = Normalizer.normalize(number, Normalizer.Form.NFKC)
-        return normalize.toDoubleOrNull() ?: return -1.0
+        return normalize.toDoubleOrNull()
+    }
+
+    fun parse(str:String) : Double? {
+        return ZenkakuToHankaku(str.replace(",",""))
     }
 
 }
