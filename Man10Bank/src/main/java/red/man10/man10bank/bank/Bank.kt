@@ -29,15 +29,6 @@ object Bank : CommandExecutor, Listener{
 
     val labels = arrayOf("bal","balance","bank","money")
 
-    fun addBank(p:Player,amount:Double){
-
-    }
-
-    fun takeBank(p:Player,amount:Double){
-
-    }
-
-
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
 
         if (sender !is Player)return true
