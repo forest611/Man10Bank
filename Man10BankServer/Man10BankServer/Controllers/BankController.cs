@@ -11,6 +11,20 @@ public class BankController : ControllerBase
     [HttpGet("try-connect")]
     public int TryConnect()
     {
+        Console.WriteLine("クライアントからの接続を確認しました");
+
+        var connectionCheck = Bank.SyncCheckConnect().Result;
+
+        if (connectionCheck)
+        {
+            Console.WriteLine("MySQLの接続を確認");
+        }
+        else
+        {
+            Console.WriteLine("MySQLの接続に失敗");
+            return 1;
+        }
+        
         return 0;
     }
 

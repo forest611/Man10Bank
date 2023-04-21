@@ -14,6 +14,23 @@ public static class Bank
     }
 
     /// <summary>
+    /// 接続確認処理
+    /// </summary>
+    /// <returns></returns>
+    public static async Task<bool> SyncCheckConnect()
+    {
+        var result = await Task.Run(() =>
+        {
+            using var context = new BankContext();
+            var ret = context.Database.CanConnect();
+
+            return ret;
+        });
+
+        return result;
+    }
+
+    /// <summary>
     /// ユーザーの所持金を取得する
     /// 非同期のため、厳密な金額ではない可能性がある
     /// 口座がない場合は-1を返す
