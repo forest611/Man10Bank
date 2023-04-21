@@ -100,10 +100,13 @@ object APIBase {
         val code = connectionCheck()
 
         if (code != 0){
-            Bukkit.getLogger().info("Man10BankServerの接続に失敗したので、ホワイトリストをかけます。Code:${code}")
             Man10Bank.instance.server.setWhitelist(true)
+            Thread{
+                Thread.sleep(1000)
+                Bukkit.getLogger().warning("Man10BankServerの接続に失敗したので、ホワイトリストをかけます Code:${code}")
+            }.start()
         }else{
-            Bukkit.getLogger().info("Man10BankServerの接続を確認しました。")
+            Bukkit.getLogger().info("Man10BankServerの接続を確認しました")
         }
     }
 

@@ -5,7 +5,7 @@ import java.util.concurrent.LinkedBlockingQueue
 
 object BlockingQueue {
 
-    private lateinit var thread: Thread
+    private var thread: Thread= Thread{ blockingQueue() }
     private val queue = LinkedBlockingQueue<()->Unit>()
 
     fun start(){
