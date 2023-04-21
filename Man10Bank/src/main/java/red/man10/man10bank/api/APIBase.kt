@@ -7,7 +7,6 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.bukkit.Bukkit
 import red.man10.man10bank.Man10Bank
-import java.lang.Exception
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
@@ -20,10 +19,10 @@ object APIBase {
 
     var url = "https://localhost:7031"
     val mediaType = "application/json; charset=utf-8".toMediaType()
-    lateinit var client : OkHttpClient
+    private lateinit var client : OkHttpClient
     val gson = Gson()
 
-
+    //      POST
     fun postRequest(url: String,body: RequestBody? = null){
         val request = if (body!=null){
             Request.Builder()
@@ -43,6 +42,7 @@ object APIBase {
         }
     }
 
+    //      GET
     fun getRequest(url:String, body: RequestBody? = null): String? {
 
         val request = if (body!=null){
@@ -69,6 +69,7 @@ object APIBase {
         return result
     }
 
+    //      接続
     fun setup(){
 
         val trustAllCerts = arrayOf<TrustManager>(
@@ -96,7 +97,6 @@ object APIBase {
 
         url = Man10Bank.instance.config.getString("api.url")?:"https://localhost:7031"
 
-
         val code = connectionCheck()
 
         if (code != 0){
@@ -107,6 +107,7 @@ object APIBase {
         }
     }
 
+    //      接続を試す
     private fun connectionCheck(): Int {
 
         val request = Request.Builder()
