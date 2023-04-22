@@ -38,7 +38,7 @@ object BlockingQueue {
 
     private fun blockingQueue(){
 
-        Bukkit.getLogger().info("ブロッキングキューを起動")
+        Bukkit.getLogger().info("ブロッキングキューを起動(ThreadID:${thread.id})")
 
         while (true){
 

@@ -36,7 +36,15 @@ class BankAPI(private val plugin: JavaPlugin) {
         return Result.valueOf(ret) == Result.Successful
     }
 
+    @Deprecated("displayNoteが設定できない", ReplaceWith("DisplayNoteつき"),DeprecationLevel.WARNING)
+    fun deposit(uuid: UUID,amount: Double,note: String):Boolean{
+        return deposit(uuid,amount, note,note)
+    }
 
+    @Deprecated("displayNoteが設定できない", ReplaceWith("DisplayNoteつき"),DeprecationLevel.WARNING)
+    fun withdraw(uuid:UUID,amount:Double,note:String):Boolean{
+        return withdraw(uuid,amount, note,note)
+    }
     enum class Result{
         Successful,
         NotEnoughMoney,
