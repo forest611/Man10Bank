@@ -69,8 +69,8 @@ object APIBase {
         return result
     }
 
-    //      接続
-    fun setup(){
+    //      接続  接続に成功したらtrueを返す
+    fun setup() : Boolean{
 
         val trustAllCerts = arrayOf<TrustManager>(
             object : X509TrustManager {
@@ -105,9 +105,11 @@ object APIBase {
                 Thread.sleep(1000)
                 Bukkit.getLogger().warning("Man10BankServerの接続に失敗したので、ホワイトリストをかけます Code:${code}")
             }.start()
+            return false
         }else{
             Bukkit.getLogger().info("Man10BankServerの接続を確認しました")
         }
+        return true
     }
 
     //      接続を試す
