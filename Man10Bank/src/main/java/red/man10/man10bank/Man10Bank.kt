@@ -4,6 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.api.APIBase
 import red.man10.man10bank.bank.ATM
 import red.man10.man10bank.bank.Bank
+import red.man10.man10bank.bank.BankEvent
 import red.man10.man10bank.bank.DealCommand
 import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.util.BlockingQueue
@@ -16,9 +17,9 @@ class Man10Bank : JavaPlugin() {
         lateinit var instance : Man10Bank
         lateinit var vault : VaultManager
 
-        var bankOpen = true
+        private var bankOpen = true
 
-        var canConnectServer = false
+        private var canConnectServer = false
 
         fun open(){
             bankOpen = true
@@ -30,6 +31,22 @@ class Man10Bank : JavaPlugin() {
             bankOpen = false
             instance.config.set("enable",false)
             instance.saveConfig()
+        }
+
+        fun isEnableSystem():Boolean{
+            return bankOpen && canConnectServer
+        }
+        //      システム起動
+        fun systemSetup(){
+            canConnectServer = APIBase.setup()
+            ATM.load()
+            BlockingQueue.start()
+
+        }
+
+        //      システム終了
+        fun systemClose(){
+            BlockingQueue.stop()
         }
     }
 
@@ -53,7 +70,7 @@ class Man10Bank : JavaPlugin() {
         //イベントの登録
         server.pluginManager.registerEvents(Cheque,this)
         server.pluginManager.registerEvents(MenuFramework.MenuListener,this)
-        server.pluginManager.registerEvents(Bank,this)
+        server.pluginManager.registerEvents(BankEvent,this)
 
         systemSetup()
     }
@@ -61,22 +78,5 @@ class Man10Bank : JavaPlugin() {
     override fun onDisable() {
         // Plugin shutdown logic
         systemClose()
-    }
-
-    //      システム起動
-    fun systemSetup(){
-        canConnectServer = APIBase.setup()
-        ATM.load()
-        BlockingQueue.start()
-
-    }
-
-    //      システム終了
-    fun systemClose(){
-        BlockingQueue.stop()
-    }
-
-    fun isEnableSystem():Boolean{
-        return bankOpen && canConnectServer
     }
 }

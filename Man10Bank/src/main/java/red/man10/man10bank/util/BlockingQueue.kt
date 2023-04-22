@@ -8,6 +8,9 @@ object BlockingQueue {
     private var thread: Thread= Thread{ blockingQueue() }
     private val queue = LinkedBlockingQueue<()->Unit>()
 
+    /**
+     * ブロッキングキューの起動をします
+     */
     fun start(){
 
         if (thread.isAlive){
@@ -19,12 +22,15 @@ object BlockingQueue {
         thread.start()
     }
 
+    /**
+     * ブロッキングキューのスレッドを中断させます。　
+     */
     fun stop(){
         thread.interrupt()
     }
 
     /**
-     * スレッドはなるべくこれを使う
+     * 複数のスレッドでの同時動作を避けるために、スレッドはなるべくこれを使う
      */
     fun addTask(task:()->Unit){
         queue.add(task)
@@ -46,8 +52,5 @@ object BlockingQueue {
                 continue
             }
         }
-
     }
-
-
 }

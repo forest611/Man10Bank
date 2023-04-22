@@ -18,12 +18,12 @@ import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APICheque
+import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
 
 object Cheque : CommandExecutor, Listener {
 
-    @Synchronized
     private fun create(p:Player,amount:Double,isOP:Boolean,note:String = "empty"){
 
         if (amount<1){
@@ -84,13 +84,6 @@ object Cheque : CommandExecutor, Listener {
         msg(p,"§a§l小切手を作成しました§e(金額:${format(amount)}円)")
     }
 
-    private fun getChequeID(item: ItemStack): Int? {
-        if (!item.hasItemMeta())return null
-        return item.itemMeta.persistentDataContainer[(NamespacedKey.fromString("cheque_id") ?: return null), PersistentDataType.INTEGER]
-    }
-
-
-    @Synchronized
     private fun use(p:Player,item:ItemStack){
 
         val id = getChequeID(item)?:return
@@ -107,6 +100,11 @@ object Cheque : CommandExecutor, Listener {
         item.amount = 0
 
         msg(p,"§e§l${format(amount)}円の小切手を電子マネーに変えた！")
+    }
+
+    private fun getChequeID(item: ItemStack): Int? {
+        if (!item.hasItemMeta())return null
+        return item.itemMeta.persistentDataContainer[(NamespacedKey.fromString("cheque_id") ?: return null), PersistentDataType.INTEGER]
     }
 
     @EventHandler
@@ -126,7 +124,10 @@ object Cheque : CommandExecutor, Listener {
             return
         }
 
-        use(e.player,item)
+        BlockingQueue.addTask {
+            use(e.player,item)
+        }
+
     }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
@@ -163,9 +164,9 @@ object Cheque : CommandExecutor, Listener {
 
         val note = if (args.size>=2) args[1] else "empty"
 
-        Thread{
+        BlockingQueue.addTask {
             create(sender,amount,isOp,note)
-        }.start()
+        }
 
         return false
     }

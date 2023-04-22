@@ -4,6 +4,7 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.bankOpen
 import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.vault
@@ -12,6 +13,10 @@ import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.msg
 
+/**
+ * Vaultと銀行のお金をやり取りするコマンドを追加するクラス
+ * /deposit /withdrawなど
+ */
 object DealCommand : CommandExecutor{
 
     val labels = arrayOf("d","deposit","w","withdraw")
@@ -19,8 +24,8 @@ object DealCommand : CommandExecutor{
 
         if (sender !is Player)return true
 
-        if (!bankOpen){
-            msg(sender,"§c§l現在銀行は営業停止しております")
+        if (!Man10Bank.isEnableSystem()){
+            msg(sender,"§c§l現在銀行はメンテナンス中です")
             return true
         }
 

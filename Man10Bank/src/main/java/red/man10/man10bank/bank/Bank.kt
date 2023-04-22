@@ -28,7 +28,10 @@ import red.man10.man10bank.util.Utility.prefix
 import java.text.SimpleDateFormat
 import java.util.*
 
-object Bank : CommandExecutor, Listener{
+/**
+ *  銀行の残高を閲覧したりするコマンド
+ */
+object Bank : CommandExecutor{
 
     val labels = arrayOf("bal","balance","bank","money")
 
@@ -38,6 +41,7 @@ object Bank : CommandExecutor, Listener{
 
         if (!labels.contains(label)){ return true }
 
+        //所持金確認コマンド
         if (args.isEmpty()){
             BlockingQueue.addTask { showBalance(sender,sender) }
             return true
@@ -191,23 +195,29 @@ object Bank : CommandExecutor, Listener{
             "on" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
                 Man10Bank.open()
-                msg(sender,"銀行を開店しました")
+                msg(sender,"銀行をオープンしました")
             }
 
             "off" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
                 Man10Bank.close()
-                msg(sender,"銀行を閉店しました")
+                msg(sender,"銀行をクローズしました")
             }
 
             "reload" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
                 Thread{
-                    APIBase.setup()
-                    BlockingQueue.stop()
-                    BlockingQueue.start()
-                    msg(sender,"リロードしました")
+                    Man10Bank.close()
+                    msg(sender,"§c§l銀行のクローズ完了")
+
+                    msg(sender,"§c§lシステム終了・・・")
+                    Man10Bank.systemClose()
+                    msg(sender,"§c§lシステム起動・・・")
+                    Man10Bank.systemSetup()
+                    msg(sender,"§c§lシステムリロード完了")
+                    Man10Bank.open()
+                    msg(sender,"§c§l銀行の再開")
                 }.start()
             }
         }
@@ -269,27 +279,4 @@ object Bank : CommandExecutor, Listener{
         sender.sendMessage(log)
     }
 
-    @EventHandler
-    fun login(e: PlayerJoinEvent){
-        val p = e.player
-
-//        Bank.loginProcess(p)
-
-        Thread{
-            Thread.sleep(3000)
-            showBalance(p,p)
-        }.start()
-    }
-
-    @EventHandler (priority = EventPriority.LOWEST)
-    fun logout(e: PlayerQuitEvent){
-//        Thread{EstateData.saveCurrentEstate(e.player)}.start()
-    }
-
-    @EventHandler
-    fun closeEnderChest(e: InventoryCloseEvent){
-        if (e.inventory.type != InventoryType.ENDER_CHEST)return
-        val p = e.player as Player
-//        Thread{}.start()
-    }
 }
