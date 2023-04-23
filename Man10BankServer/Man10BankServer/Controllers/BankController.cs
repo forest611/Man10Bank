@@ -29,7 +29,7 @@ public class BankController : ControllerBase
     }
 
     [HttpGet("uuid")]
-    public string GetMinecraftId(string mcid)
+    public string GetUUID(string mcid)
     {
         return Utility.GetUUID(mcid).Result;
     }
