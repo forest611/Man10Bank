@@ -18,14 +18,34 @@ public class TestServerLoanController
     [Fact]
     public void TestGetBorrowableAmount()
     {
-
         var controller = GetController();
 
         var ret = controller.BorrowableAmount(UUID);
 
+        _testOutputHelper.WriteLine($"借入可能額:{ret}");
+        
         Assert.True(ret>=0);
     }
 
+    [Fact]
+    public void TestGetInfo()
+    {
+        var controller = GetController();
+        var info = controller.GetInfo(UUID);
+        if (info == null)
+        {
+            _testOutputHelper.WriteLine("情報取得に失敗");
+            Assert.True(false);
+        }
+        
+        _testOutputHelper.WriteLine($"借入額:{info!.borrow_amount}");
+        _testOutputHelper.WriteLine($"支払額:{info.payment_amount}");
+        _testOutputHelper.WriteLine($"借入日:{info.borrow_date:yyyy/MM/dd HH:mm:ss}");
+        _testOutputHelper.WriteLine($"最終支払日:{info.last_pay_date:yyyy/MM/dd HH:mm:ss}");
+        
+        Assert.True(true);
+    }
+    
     [Fact]
     public void TestBorrowAndPay()
     {
@@ -41,6 +61,46 @@ public class TestServerLoanController
             Assert.True(false);
         }
         
+        var ret = controller.Pay(UUID, amount);
+
+        if (!ret)
+        {
+            _testOutputHelper.WriteLine("返済失敗");
+            Assert.True(false);
+        }
+
+        var last = controller.GetInfo(UUID)?.borrow_amount ?? null;
+        
+        Assert.Equal(0.0,last);
+    }
+
+    [Fact]
+    public void TestBorrow()
+    {
+        var controller = GetController();
+
+        const double amount = 100000;
+
+        var result = controller.TryBorrow(UUID, amount);
+
+        _testOutputHelper.WriteLine(result);
+        
+        if (result == "Failed")
+        {
+            _testOutputHelper.WriteLine("借入可能額が少ない");
+            Assert.True(false);
+        }
+        
+        Assert.True(true);
+    }
+    
+    [Fact]
+    public void TestPay()
+    {
+        var controller = GetController();
+
+        const double amount = 10000;
+
         var ret = controller.Pay(UUID, amount);
         
         Assert.True(ret);
