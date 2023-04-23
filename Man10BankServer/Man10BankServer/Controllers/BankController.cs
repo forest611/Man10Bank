@@ -35,7 +35,7 @@ public class BankController : ControllerBase
     }
 
     [HttpGet("score")]
-    public int GetScore(string uuid)
+    public int? GetScore(string uuid)
     {
         return Utility.GetScore(uuid).Result;
     }

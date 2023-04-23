@@ -41,12 +41,12 @@ public static class Utility
     }
 
     
-    public static async Task<int> GetScore(string uuid)
+    public static async Task<int?> GetScore(string uuid)
     {
         var result = await Task.Run(() =>
         {
             var context = new PlayerContext();
-            var score = context.player_data.FirstOrDefault(r=>r.uuid==uuid)?.score??0;
+            var score = context.player_data.FirstOrDefault(r=>r.uuid==uuid)?.score??null;
             context.Dispose();
             return score;
         });

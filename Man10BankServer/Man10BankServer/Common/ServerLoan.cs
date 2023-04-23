@@ -19,7 +19,8 @@ public static class ServerLoan
     {
         var result = await Task.Run(() =>
         {
-            var score = Utility.GetScore(uuid).Result;
+            var score = Utility.GetScore(uuid).Result ?? 0.0;
+
             var lastMonth = DateTime.Now.AddMonths(-1);
             var context = new BankContext();
             var history = context.estate_history_tbl
