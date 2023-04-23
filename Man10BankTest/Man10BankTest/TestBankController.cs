@@ -4,6 +4,9 @@ using Xunit.Abstractions;
 
 namespace Man10BankTest;
 
+/// <summary>
+/// BankControllerのテストコード
+/// </summary>
 public class TestBankController
 {
     private readonly ITestOutputHelper _testOutputHelper;
