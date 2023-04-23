@@ -133,12 +133,18 @@ public static class History
             var lastEstate = record.estate;
             var lastShop = record.shop;
 
-            if (data.vault == lastVault && data.bank == lastBank && data.cash == lastCash && data.loan == lastLoan
-                && data.estate == lastEstate && data.shop == lastShop)
-            {
-                return;
-            }
+            var dataHasNotChanged = data.vault == lastVault &&
+                                     data.bank == lastBank &&
+                                     data.cash == lastCash &&
+                                     data.loan == lastLoan &&
+                                     data.estate == lastEstate &&
+                                     data.shop == lastShop;
 
+            if (dataHasNotChanged)
+            {
+                return; 
+            }
+            
             context.estate_tbl.Add(data);
 
             var history = new EstateHistoryTable
