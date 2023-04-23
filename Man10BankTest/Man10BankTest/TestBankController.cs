@@ -9,7 +9,7 @@ public class TestBankController
     private readonly ITestOutputHelper _testOutputHelper;
 
     public static string UUID = "9c4161a9-0f5f-4317-835c-0bb196a7defa";
-    public static string MCID = "forest611";
+    private static string MCID = "forest611";
 
     public TestBankController(ITestOutputHelper testOutputHelper)
     {
