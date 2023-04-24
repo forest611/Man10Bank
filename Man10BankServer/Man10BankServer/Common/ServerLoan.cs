@@ -11,6 +11,7 @@ public static class ServerLoan
     private static double _baseParameter = 3.55;
     private static int _standardScore = 300;
     private static double _minimumAmount = 100000;
+    private static double _maximumAmount = 10000000;
     private static int _stopInterestScore; 
     private static int _penaltyScore = 50; 
 
@@ -52,8 +53,8 @@ public static class ServerLoan
             if (scoreParam>1) { scoreParam = 1; }
 
             var borrowableAmount = median * scoreParam * _baseParameter + _minimumAmount;
-            
-            return borrowableAmount;
+
+            return borrowableAmount>_maximumAmount ? _maximumAmount : borrowableAmount;
         });
 
         return result;
@@ -243,12 +244,13 @@ public static class ServerLoan
     public static void StartPaymentTask(IConfiguration config)
     {
         _lastTaskDate = config.GetValue<DateTime>("ServerLoan:LastTaskDate");
+
         _dailyInterest = config.GetValue<double>("ServerLoan:DailyInterest");
         _paymentInterval = config.GetValue<int>("ServerLoan:PaymentInterval");
-
         _baseParameter = config.GetValue<double>("ServerLoan:BaseParameter");
         _standardScore = config.GetValue<int>("ServerLoan:StandardScore");
-        _minimumAmount = config.GetValue<Double>("ServerLoan:MinimumAmount");
+        _minimumAmount = config.GetValue<double>("ServerLoan:MinimumAmount");
+        _maximumAmount = config.GetValue<double>("ServerLoan:MaximumAmount");
         _stopInterestScore = config.GetValue<int>("ServerLoan:StopInterestScore");
         _penaltyScore = config.GetValue<int>("ServerLoan:PenaltyScore");
         
