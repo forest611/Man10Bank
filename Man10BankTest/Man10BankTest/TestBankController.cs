@@ -142,14 +142,15 @@ public class TestBankController
     public void TestAsyncAddBank()
     {
         var controller = GetController();
-        var numbers = new[] { 1, 2, 3 };
+        var numbers = new[] { 1, 2, 3, 4, 5, 6 };
         var totalExe = 0;
         const double amount = 1000.0;
         const double first = 0.0;
+        const int loop = 100;
         
         SetBalance(controller,first);
         
-        var data = new TransactionData()
+        var data = new TransactionData
         {
             UUID = UUID,
             Amount = amount,
@@ -157,19 +158,23 @@ public class TestBankController
             Note = "AddBalance",
             DisplayNote = "AddBalance"
         };
-        Parallel.ForEach(numbers,(number,state) =>
+        Parallel.ForEach(numbers,(_,_) =>
         {
             Interlocked.Increment(ref totalExe);
 
             var pController = GetController();
 
-            pController.AddBalance(data);
+            for (var i = 0; i<loop; i++)
+            {
+                pController.AddBalance(data);
+            }
         });
         _testOutputHelper.WriteLine($"Count:{totalExe}");
+        _testOutputHelper.WriteLine($"AddAmount:{amount*loop*totalExe}");
 
         var ret = controller.GetBalance(UUID);
 
-        Assert.Equal(amount*totalExe,ret);
+        Assert.Equal(amount*loop*totalExe,ret);
     }
 
     [Fact]
@@ -180,11 +185,12 @@ public class TestBankController
         var numbers = new[] { 1, 2, 3, 4, 5, 6};
         var totalExe = 0;
         const double amount = 1000.0;
-        const double first = 0.0;
+        const double first = 10000000.0;
+        const int loop = 100;
         
         SetBalance(controller,first);
         
-        var data = new TransactionData()
+        var data = new TransactionData
         {
             UUID = UUID,
             Amount = amount,
@@ -192,20 +198,24 @@ public class TestBankController
             Note = "AddBalance",
             DisplayNote = "AddBalance"
         };
-        Parallel.ForEach(numbers,(number,state) =>
+        Parallel.ForEach(numbers,(_,_) =>
         {
             Interlocked.Increment(ref totalExe);
 
             var pController = GetController();
 
-            pController.TakeBalance(data);
+            for (var i = 0; i < loop; i++)
+            {
+                pController.TakeBalance(data);
+            }
         });
 
         _testOutputHelper.WriteLine($"Count:{totalExe}");
+        _testOutputHelper.WriteLine($"TakeAmount:{amount*loop*totalExe}");
         
         var ret = controller.GetBalance(UUID);
 
-        Assert.Equal(amount*totalExe,ret);
+        Assert.Equal(first-(amount*loop*totalExe),ret);
     }
 
     
