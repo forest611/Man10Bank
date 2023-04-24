@@ -179,7 +179,7 @@ public class TestBankController
 
             var pController = GetController();
 
-            pController.AddBalance(data);
+            pController.TakeBalance(data);
         });
 
         _testOutputHelper.WriteLine($"Count:{totalExe}");
