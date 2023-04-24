@@ -6,14 +6,17 @@ namespace Man10BankServer.Common;
 public static class ServerLoan
 {
     private static DateTime _lastTaskDate = DateTime.Now;
-    private static double _dailyInterest = 0.001;
-    private static int _paymentInterval = 3;
     private static double _baseParameter = 3.55;
     private static int _standardScore = 300;
-    private static double _minimumAmount = 100000;
-    private static double _maximumAmount = 10000000;
     private static int _stopInterestScore; 
-    private static int _penaltyScore = 50; 
+    private static int _penaltyScore = 50;
+    
+    public static double DailyInterest { get; private set; } = 0.001;
+    public static int PaymentInterval { get; private set; } = 3;
+
+    public static double MinimumAmount { get; private set; } = 100000;
+
+    public static double MaximumAmount { get; private set; } = 10000000;
 
     //（無条件で借りられる額）+〔(一カ月の残高中央値*(スコア/基準スコア))×3.55］＝貸出可能金額
     public static async Task<double> CalculateLoanAmount(string uuid)
@@ -52,9 +55,9 @@ public static class ServerLoan
 
             if (scoreParam>1) { scoreParam = 1; }
 
-            var borrowableAmount = median * scoreParam * _baseParameter + _minimumAmount;
+            var borrowableAmount = median * scoreParam * _baseParameter + MinimumAmount;
 
-            return borrowableAmount>_maximumAmount ? _maximumAmount : borrowableAmount;
+            return borrowableAmount>MaximumAmount ? MaximumAmount : borrowableAmount;
         });
 
         return result;
@@ -83,7 +86,7 @@ public static class ServerLoan
                 ret = "Successful";
                 Debug.Assert(record != null, nameof(record) + " != null");
                 record.borrow_amount += amount;
-                record.payment_amount = record.borrow_amount * _dailyInterest * 2;
+                record.payment_amount = record.borrow_amount * DailyInterest * 2;
                 record.borrow_date = DateTime.Now;
             }
             else
@@ -95,7 +98,7 @@ public static class ServerLoan
                     borrow_amount = amount,
                     borrow_date = DateTime.Now,
                     last_pay_date = DateTime.Now,
-                    payment_amount = amount * _dailyInterest * 2,
+                    payment_amount = amount * DailyInterest * 2,
                     uuid = uuid,
                     player = Utility.GetMinecraftId(uuid).Result
                 };
@@ -210,7 +213,7 @@ public static class ServerLoan
                 return null;
             }
 
-            var ret = record.last_pay_date.AddDays(_paymentInterval);
+            var ret = record.last_pay_date.AddDays(PaymentInterval);
             
             context.Dispose();
             
@@ -245,12 +248,12 @@ public static class ServerLoan
     {
         _lastTaskDate = config.GetValue<DateTime>("ServerLoan:LastTaskDate");
 
-        _dailyInterest = config.GetValue<double>("ServerLoan:DailyInterest");
-        _paymentInterval = config.GetValue<int>("ServerLoan:PaymentInterval");
+        DailyInterest = config.GetValue<double>("ServerLoan:DailyInterest");
+        PaymentInterval = config.GetValue<int>("ServerLoan:PaymentInterval");
         _baseParameter = config.GetValue<double>("ServerLoan:BaseParameter");
         _standardScore = config.GetValue<int>("ServerLoan:StandardScore");
-        _minimumAmount = config.GetValue<double>("ServerLoan:MinimumAmount");
-        _maximumAmount = config.GetValue<double>("ServerLoan:MaximumAmount");
+        MinimumAmount = config.GetValue<double>("ServerLoan:MinimumAmount");
+        MaximumAmount = config.GetValue<double>("ServerLoan:MaximumAmount");
         _stopInterestScore = config.GetValue<int>("ServerLoan:StopInterestScore");
         _penaltyScore = config.GetValue<int>("ServerLoan:PenaltyScore");
         
@@ -291,11 +294,11 @@ public static class ServerLoan
                 //スコアが指定値以上なら金利追加
                 if (score>_stopInterestScore)
                 {
-                    data.borrow_amount += data.borrow_amount * _dailyInterest;
+                    data.borrow_amount += data.borrow_amount * DailyInterest;
                 }
                 
                 //支払日じゃなければコンティニュ
-                if (data.last_pay_date.Day + _paymentInterval <= now.Day) continue;
+                if (data.last_pay_date.Day + PaymentInterval <= now.Day) continue;
 
                 var payment = data.payment_amount;
                 var failedFlag = false;

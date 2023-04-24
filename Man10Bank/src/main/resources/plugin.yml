@@ -10,8 +10,6 @@ commands:
     description: '小切手を発行するコマンド'
   mchequeop:
     description: '小切手を発行するコマンド(OP)'
-  banksystem:
-    description: 'システムコマンド(OP)'
   atm:
     description: 'ATM'
   bal:
@@ -30,3 +28,5 @@ commands:
     description: '電子マネー->銀行'
   withdraw:
     description: '銀行->電子マネー'
+  mrevo:
+    description: 'リボのコマンド'

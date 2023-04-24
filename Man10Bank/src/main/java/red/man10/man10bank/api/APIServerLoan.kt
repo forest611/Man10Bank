@@ -55,6 +55,14 @@ object APIServerLoan {
         return result?.toBooleanStrictOrNull()?:false
     }
 
+    /**
+     * リボの設定値の取得
+     */
+    fun property():ServerLoanProperty{
+        val result = getRequest("${apiRoute}property")
+        return gson.fromJson(result,ServerLoanProperty::class.java)
+    }
+
     data class ServerLoanTable(
         var id : Int,
         var player : String,
@@ -66,6 +74,13 @@ object APIServerLoan {
         var failed_payment : Int,
         var stop_interest : Boolean
 
+    )
+
+    data class ServerLoanProperty(
+        var DailyInterest:Double,
+        var PaymentInterval:Int,
+        var MinimumAmount:Double,
+        var MaximumAmount:Double
     )
 
 }

@@ -50,6 +50,19 @@ public class ServerLoanController : ControllerBase
     {
         return ServerLoan.NextPayDate(uuid).Result?.Ticks ?? -1;
     }
-    
+
+    [HttpGet("property")]
+    public ServerLoanProperty Property()
+    {
+        return new ServerLoanProperty();
+    }
+}
+
+public class ServerLoanProperty
+{
+    public double DailyInterest => ServerLoan.DailyInterest;
+    public int PaymentInterval => ServerLoan.PaymentInterval;
+    public double MinimumAmount => ServerLoan.MinimumAmount;
+    public double MaximumAmount => ServerLoan.MaximumAmount;
 }
 
