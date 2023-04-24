@@ -19,6 +19,9 @@ public class TestBankController
         _testOutputHelper = testOutputHelper;
     }
 
+    /// <summary>
+    /// 接続テスト
+    /// </summary>
     [Fact]
     public void TestTryConnect()
     {
@@ -29,6 +32,9 @@ public class TestBankController
         Assert.Equal(0,ret);
     }
 
+    /// <summary>
+    /// UUIDの取得テスト
+    /// </summary>
     [Fact]
     public void TestGetUUID()
     {
@@ -40,6 +46,9 @@ public class TestBankController
         Assert.Equal(UUID,ret);
     }
 
+    /// <summary>
+    /// スコアの取得テスト
+    /// </summary>
     [Fact]
     public void TestGetScore()
     {
@@ -50,6 +59,9 @@ public class TestBankController
         Assert.NotNull(ret);
     }
     
+    /// <summary>
+    /// 所持金取得のテスト
+    /// </summary>
     [Fact]
     public void TestGetBalance()
     {
@@ -60,6 +72,9 @@ public class TestBankController
         Assert.True(ret>=0);
     }
 
+    /// <summary>
+    /// 所持金追加テスト
+    /// </summary>
     [Fact]
     public void TestAddBalance()
     {
@@ -68,6 +83,7 @@ public class TestBankController
         const int count = 100;
         const double first = 0.0;
         
+        //所持金のリセットをする
         SetBalance(controller,first);
 
         var data = new TransactionData()
@@ -89,6 +105,9 @@ public class TestBankController
         Assert.Equal(amount*count,ret);
     }
 
+    /// <summary>
+    /// 所持金の取り出しテスト
+    /// </summary>
     [Fact]
     public void TestTakeBalance()
     {
