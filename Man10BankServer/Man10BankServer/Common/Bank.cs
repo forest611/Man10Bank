@@ -142,7 +142,7 @@ public static class Bank
             context.user_bank.Add(bank);
             context.SaveChanges();
             
-            BankLog(uuid,0,true,"Man10Bank","CreateAccount","口座を作成");
+            PushBankLog(uuid,0,true,"Man10Bank","CreateAccount","口座を作成");
         });
     }
 
@@ -169,7 +169,7 @@ public static class Bank
             result.balance = Math.Floor(result.balance+amount);
             context.SaveChanges();
             
-            BankLog(uuid,Math.Floor(amount),true,plugin,note,displayNote);
+            PushBankLog(uuid,Math.Floor(amount),true,plugin,note,displayNote);
             
             callback?.Invoke("Successful");
         });
@@ -206,7 +206,7 @@ public static class Bank
             result.balance = Math.Floor(result.balance-amount);
             context.SaveChanges();
             
-            BankLog(uuid,Math.Floor(amount),false,plugin,note,displayNote);
+            PushBankLog(uuid,Math.Floor(amount),false,plugin,note,displayNote);
             
             callback?.Invoke("Successful");
         });
@@ -234,13 +234,21 @@ public static class Bank
         });
     }
 
-    private static void BankLog(string uuid,double amount,bool isDeposit, string plugin, string note, string displayNote)
+    /// <summary>
+    /// 口座残高の変更があったらログに追記する
+    /// </summary>
+    /// <param name="uuid"></param>
+    /// <param name="amount"></param>
+    /// <param name="isDeposit"></param>
+    /// <param name="plugin"></param>
+    /// <param name="note"></param>
+    /// <param name="displayNote"></param>
+    private static void PushBankLog(string uuid,double amount,bool isDeposit, string plugin, string note, string displayNote)
     {
 
         BankContext.AddDatabaseJob(context =>
         {
             var userName = Utility.GetMinecraftId(uuid).Result;
-            // var context = new Context();
 
             var log = new MoneyLog
             {
@@ -256,8 +264,6 @@ public static class Bank
 
             context.money_log.Add(log);
             context.SaveChanges();
-            // context.Dispose();
-        
         });
     }
 
