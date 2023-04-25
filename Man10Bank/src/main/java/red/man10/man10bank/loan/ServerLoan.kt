@@ -1,14 +1,20 @@
 package red.man10.man10bank.loan
 
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickEvent
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import red.man10.man10bank.Config
+import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APIServerLoan
 import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
+import red.man10.man10bank.util.Utility.prefix
+import java.lang.Math.floor
 
 object ServerLoan : CommandExecutor{
 
@@ -18,7 +24,7 @@ object ServerLoan : CommandExecutor{
     private fun checkAmount(p:Player){
         val maxLoan = APIServerLoan.getBorrowableAmount(p.uniqueId)
 
-        msg(p,"\"§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(serverProperty.MaximumAmount)}円)\"")
+        msg(p,"§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(serverProperty.MaximumAmount)}円)")
     }
     private fun setPayment(p:Player,amount: Double){
         val data = APIServerLoan.getInfo(p.uniqueId)
@@ -35,6 +41,47 @@ object ServerLoan : CommandExecutor{
             return
         }
         msg(p,"§e§l変更失敗。時間をおいてやり直してください")
+    }
+
+    private fun showBorrowMessage(p:Player,amount:Double){
+        if (amount <= 0.0){
+            msg(p,"1円以上を入力してください")
+            return
+        }
+
+        val max = APIServerLoan.getBorrowableAmount(p.uniqueId)
+        val borrowing = APIServerLoan.getInfo(p.uniqueId)?.borrow_amount?:0.0
+
+        val borrowableAmount = max - borrowing
+
+        if (borrowableAmount<0.0){
+            msg(p,"§cあなたはもうお金を借りることができません！")
+            return
+        }
+
+        if (borrowableAmount<amount){
+            msg(p,"§cあなたが借りることができる金額は${format(borrowableAmount)}円までです")
+            p.sendMessage(
+                Component.text("${prefix}§e§l§n[${format(borrowableAmount)}円借りる]").
+            clickEvent(ClickEvent.runCommand("/mrevo borrow $borrowableAmount")))
+            return
+        }
+
+        val button = Component.text("${prefix}§c§l§n[借りる] ")
+            .clickEvent(ClickEvent.runCommand("/mrevo confirm ${floor(amount)}"))
+
+        val minPaymentAmount = (borrowing + amount )* serverProperty.PaymentInterval * serverProperty.DailyInterest
+
+        msg(p,"§b§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
+        msg(p,"§e§kXX§b§lMan10リボ§e§kXX")
+        msg(p,"§b貸し出される金額:${format(amount)}")
+        msg(p,"§b現在の利用額:${format(borrowing)}")
+        msg(p,"§c利息の計算方法:§l<利用額>x<金利>x<最後に支払ってからの日数>")
+        msg(p,"§c※支払額から利息を引いた額が返済に充てられます")
+        msg(p,"§b${serverProperty.PaymentInterval}日ごとに最低${format(minPaymentAmount)}円支払う必要があります")
+        p.sendMessage(button)
+        msg(p,"§b§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
+
     }
 
     private fun borrow(p: Player, amount:Double){
@@ -58,6 +105,10 @@ object ServerLoan : CommandExecutor{
         }
 
         msg(p,"§a§l支払い成功！")
+    }
+
+    private fun payAll(p:Player){
+        pay(p,APIServerLoan.getInfo(p.uniqueId)?.borrow_amount?:0.0)
     }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
@@ -126,31 +177,19 @@ object ServerLoan : CommandExecutor{
                 val amount = args[1].toDoubleOrNull()?:return true
 
                 BlockingQueue.addTask {
-
+                    showBorrowMessage(sender,amount)
                 }
-
-//                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-//                    ServerLoan.showBorrowMessage(sender,amount)
-//                })
-
             }
 
             "confirm" ->{
-
-//                if (!ServerLoan.commandList.contains(sender))return false
-
                 if (!isEnable){
                     msg(sender,"現在新規貸し出しはできません。返済は可能です。")
                     return true
                 }
 
-//                ServerLoan.commandList.remove(sender)
-
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                BlockingQueue.addTask {
-                    borrow(sender,amount)
-                }
+                BlockingQueue.addTask { borrow(sender,amount) }
             }
 
             "payment" ->{
@@ -165,8 +204,22 @@ object ServerLoan : CommandExecutor{
 
             }
 
+            "pay" ->{
+                if (args.size != 2)return true
+
+                val amount = args[1].toDoubleOrNull()?:return true
+
+                BlockingQueue.addTask {
+                    pay(sender,amount)
+                }
+            }
+
             "payall" ->{
-//                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { ServerLoan.paymentAll(sender) })
+                if (args.size != 2)return true
+
+                BlockingQueue.addTask {
+                    payAll(sender)
+                }
             }
 
 //            "addtime" ->{//mrevo addtime <player/all> <hour>
@@ -188,23 +241,21 @@ object ServerLoan : CommandExecutor{
 //                })
 //            }
 
-//            "on" ->{
-//
-//                if (!sender.hasPermission(OP))return true
-//
-//                ServerLoan.isEnable = true
-//                plugin.config.set("revolving.enable",true)
-//                plugin.saveConfig()
-//            }
-//
-//            "off" ->{
-//                if (!sender.hasPermission(OP))return true
-//
-//                ServerLoan.isEnable = false
-//                plugin.config.set("revolving.enable",false)
-//                plugin.saveConfig()
-//
-//            }
+            "on" ->{
+                if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
+
+                isEnable = true
+
+                Man10Bank.instance.config.set(Config.SERVER_LOAN_ENABLE,true)
+                Man10Bank.instance.saveConfig()
+            }
+
+            "off" ->{
+                if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
+
+                Man10Bank.instance.config.set(Config.SERVER_LOAN_ENABLE,false)
+                Man10Bank.instance.saveConfig()
+            }
 
 
         }
