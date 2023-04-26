@@ -24,13 +24,13 @@ class Man10Bank : JavaPlugin() {
 
         fun open(){
             bankOpen = true
-            instance.config.set("enable",true)
+            instance.config.set(Config.BANK_ENABLE,true)
             instance.saveConfig()
         }
 
         fun close(){
             bankOpen = false
-            instance.config.set("enable",false)
+            instance.config.set(Config.BANK_ENABLE,false)
             instance.saveConfig()
         }
 
@@ -39,6 +39,7 @@ class Man10Bank : JavaPlugin() {
         }
         //      システム起動
         fun systemSetup(){
+            loadConfig()
             canConnectServer = APIBase.setup()
             ATM.load()
             BlockingQueue.start()
@@ -49,15 +50,22 @@ class Man10Bank : JavaPlugin() {
         fun systemClose(){
             BlockingQueue.stop()
         }
+
+        //      Configの読み込み
+        private fun loadConfig(){
+
+            instance.saveDefaultConfig()
+            instance.reloadConfig()
+
+            bankOpen = instance.config.getBoolean(Config.BANK_ENABLE)
+            ServerLoan.isEnable = instance.config.getBoolean(Config.SERVER_LOAN_ENABLE)
+        }
     }
 
     override fun onEnable() {
         // Plugin startup logic
 
-        saveDefaultConfig()
-
         //変数の登録
-        bankOpen = config.getBoolean("enable")
         instance = this
         vault = VaultManager(this)
 
@@ -81,4 +89,5 @@ class Man10Bank : JavaPlugin() {
         // Plugin shutdown logic
         systemClose()
     }
+
 }
