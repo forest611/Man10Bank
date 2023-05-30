@@ -7,6 +7,7 @@ import red.man10.man10bank.bank.Bank
 import red.man10.man10bank.bank.BankEvent
 import red.man10.man10bank.bank.DealCommand
 import red.man10.man10bank.cheque.Cheque
+import red.man10.man10bank.loan.LocalLoan
 import red.man10.man10bank.loan.ServerLoan
 import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.MenuFramework
@@ -74,6 +75,7 @@ class Man10Bank : JavaPlugin() {
         getCommand("mcheque")!!.setExecutor(Cheque)
         getCommand("mchequeop")!!.setExecutor(Cheque)
         getCommand("atm")!!.setExecutor(ATM)
+        getCommand("mlend")!!.setExecutor(LocalLoan)
         Bank.labels.forEach { getCommand(it)!!.setExecutor(Bank) }
         DealCommand.labels.forEach { getCommand(it)!!.setExecutor(DealCommand) }
 

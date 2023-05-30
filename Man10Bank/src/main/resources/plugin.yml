@@ -30,3 +30,5 @@ commands:
     description: '銀行->電子マネー'
   mrevo:
     description: 'リボのコマンド'
+  mlend:
+    description: '個人間借金'

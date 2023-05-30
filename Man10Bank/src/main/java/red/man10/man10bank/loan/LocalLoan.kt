@@ -33,8 +33,15 @@ object LocalLoan: Listener,CommandExecutor{
      */
     private fun create(lender:Player, borrower:Player, amount:Double, interest:Double, due:Int){
 
+        if (!vault.withdraw(lender.uniqueId,amount)){
+            msg(borrower,"提案者の所持金が足りませんでした。")
+            msg(lender,"所持金が足りないためお金を貸すことができません！")
+            return
+        }
+
         val paybackDate = calcDue(due)
-        val payment = calcAmount(amount,interest,due)
+        //返済額=貸出額+(貸出額x利子x日数)
+        val payment = amount + (amount * interest * due)
 
         val ret = APILocalLoan.create(
             APILocalLoan.LocalLoanTable(
@@ -48,12 +55,27 @@ object LocalLoan: Listener,CommandExecutor{
             payment
         ))
 
+        //サーバーへの問い合わせ失敗や発行失敗
         if (ret<=0){
             msg(lender,"手形の発行に失敗。銀行への問い合わせができませんでした")
+            msg(borrower,"手形の発行に失敗。銀行への問い合わせができませんでした")
             return
         }
 
+        val note = getNote(ret)
 
+        if (note == null){
+            msg(lender,"手形の発行に失敗。銀行への問い合わせができませんでした")
+            msg(borrower,"手形の発行に失敗。銀行への問い合わせができませんでした")
+            return
+        }
+
+        lender.inventory.addItem(note)
+
+        vault.deposit(borrower.uniqueId,amount)
+
+        msg(lender,"手形の発行に成功")
+        msg(borrower,"手形の発行に成功")
     }
 
     /**
@@ -81,10 +103,6 @@ object LocalLoan: Listener,CommandExecutor{
         note.itemMeta = meta
 
         return note
-    }
-
-    private fun calcAmount(amount: Double,interest: Double,due: Int):Double{
-        return amount + (amount * interest * due)
     }
 
     private fun calcDue(day:Int,borrow:Date = Date()):Date{
@@ -211,11 +229,6 @@ object LocalLoan: Listener,CommandExecutor{
             }
 
             BlockingQueue.addTask {
-
-                if (vault.withdraw(sender.uniqueId,data.amount)){
-                    //TODO
-                }
-
                 create(lendP,sender,data.amount,data.interest,data.due)
             }
 
@@ -275,7 +288,7 @@ object LocalLoan: Listener,CommandExecutor{
         msg(borrower,"§e§kXX§b§l借金の提案§e§kXX")
         msg(borrower,"§e貸し出す人:${sender.name}")
         msg(borrower,"§e貸し出される金額:${format(amount)}")
-        msg(borrower,"§e返す金額:${format(calcAmount(amount, interest, due))}")
+        msg(borrower,"§e返す金額:${format(amount + (amount * interest * due))}")
         msg(borrower,"§e返す日:$${sdf.format(calcDue(due))}")
         borrower.sendMessage(allowOrDeny)
         msg(borrower,"§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
