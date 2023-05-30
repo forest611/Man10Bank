@@ -18,6 +18,12 @@ public static class LocalLoan
         return result;
     }
 
+    /// <summary>
+    /// 借金の返済(手形の情報書き換えのみ)
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="amount"></param>
+    /// <returns></returns>
     public static async Task<string> Pay(int id,double amount)
     {
         var result = await Task.Run(() =>
