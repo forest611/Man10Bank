@@ -48,7 +48,7 @@ public class ServerLoanController : ControllerBase
     [HttpGet("next-pay")]
     public long NextPay(string uuid)
     {
-        return ServerLoan.NextPayDate(uuid).Result?.Ticks ?? -1;
+        return ServerLoan.GetNextPayDate(uuid).Result?.Ticks ?? -1;
     }
 
     [HttpGet("property")]

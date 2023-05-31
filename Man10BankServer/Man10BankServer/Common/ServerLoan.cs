@@ -201,7 +201,7 @@ public static class ServerLoan
         return result;
     }
 
-    public static async Task<DateTime?> NextPayDate(string uuid)
+    public static async Task<DateTime?> GetNextPayDate(string uuid)
     {
         var result = await Task.Run<DateTime?>(() =>
         {
