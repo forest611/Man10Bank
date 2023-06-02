@@ -43,8 +43,8 @@ class Man10Bank : JavaPlugin() {
             loadConfig()
             canConnectServer = APIBase.setup()
             ATM.load()
+            ServerLoan.setup()
             BlockingQueue.start()
-
         }
 
         //      システム終了
@@ -70,6 +70,9 @@ class Man10Bank : JavaPlugin() {
         instance = this
         vault = VaultManager(this)
 
+        //システムセットアップ
+        systemSetup()
+
         //コマンドの登録
         getCommand("mrevo")!!.setExecutor(ServerLoan)
         getCommand("mcheque")!!.setExecutor(Cheque)
@@ -84,7 +87,6 @@ class Man10Bank : JavaPlugin() {
         server.pluginManager.registerEvents(MenuFramework.MenuListener,this)
         server.pluginManager.registerEvents(BankEvent,this)
 
-        systemSetup()
     }
 
     override fun onDisable() {

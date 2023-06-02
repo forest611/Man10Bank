@@ -107,7 +107,10 @@ object APIBase {
             }.start()
             return false
         }else{
-            Bukkit.getLogger().info("Man10BankServerの接続を確認しました")
+            Thread{
+                Thread.sleep(1000)
+                Bukkit.getLogger().info("Man10BankServerの接続を確認しました")
+            }.start()
         }
         return true
     }
