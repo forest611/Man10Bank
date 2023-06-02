@@ -2,7 +2,6 @@ package red.man10.man10bank.loan
 
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
-import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
@@ -27,16 +26,16 @@ object ServerLoan : CommandExecutor{
     fun setup(){
         serverLoanProperty = APIServerLoan.property()
         loggerInfo("リボの設定値を読み込みました")
-        loggerInfo("支払い期間:${serverLoanProperty.PaymentInterval}")
-        loggerInfo("一日あたりの利息:${serverLoanProperty.DailyInterest}")
-        loggerInfo("最小貸出可能額:${serverLoanProperty.MinimumAmount}")
-        loggerInfo("最大貸出可能額:${serverLoanProperty.MaximumAmount}")
+        loggerInfo("支払い期間:${serverLoanProperty.paymentInterval}")
+        loggerInfo("一日あたりの利息:${serverLoanProperty.dailyInterest}")
+        loggerInfo("最小貸出可能額:${serverLoanProperty.minimumAmount}")
+        loggerInfo("最大貸出可能額:${serverLoanProperty.maximumAmount}")
     }
 
     private fun checkAmount(p:Player){
         val maxLoan = APIServerLoan.getBorrowableAmount(p.uniqueId)
 
-        msg(p,"§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(serverLoanProperty.MaximumAmount)}円)")
+        msg(p,"§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(serverLoanProperty.maximumAmount)}円)")
     }
     private fun setPayment(p:Player,amount: Double){
         val data = APIServerLoan.getInfo(p.uniqueId)
@@ -82,7 +81,7 @@ object ServerLoan : CommandExecutor{
         val button = Component.text("${prefix}§c§l§n[借りる] ")
             .clickEvent(ClickEvent.runCommand("/mrevo confirm ${floor(amount)}"))
 
-        val minPaymentAmount = (borrowing + amount )* serverLoanProperty.PaymentInterval * serverLoanProperty.DailyInterest
+        val minPaymentAmount = (borrowing + amount )* serverLoanProperty.paymentInterval * serverLoanProperty.dailyInterest
 
         msg(p,"§b§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
         msg(p,"§e§kXX§b§lMan10リボ§e§kXX")
@@ -90,7 +89,7 @@ object ServerLoan : CommandExecutor{
         msg(p,"§b現在の利用額:${format(borrowing)}")
         msg(p,"§c利息の計算方法:§l<利用額>x<金利>x<最後に支払ってからの日数>")
         msg(p,"§c※支払額から利息を引いた額が返済に充てられます")
-        msg(p,"§b${serverLoanProperty.PaymentInterval}日ごとに最低${format(minPaymentAmount)}円支払う必要があります")
+        msg(p,"§b${serverLoanProperty.paymentInterval}日ごとに最低${format(minPaymentAmount)}円支払う必要があります")
         p.sendMessage(button)
         msg(p,"§b§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
 
