@@ -19,7 +19,7 @@ object BankEvent : Listener{
 
         Thread{
             Thread.sleep(3000)
-//            Bank.showBalance(p, p)
+            Bank.showBalance(p, p)
         }.start()
     }
 

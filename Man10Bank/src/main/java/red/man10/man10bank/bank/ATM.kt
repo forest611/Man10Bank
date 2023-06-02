@@ -15,6 +15,7 @@ import red.man10.man10bank.api.APIHistory
 import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.Utility.loggerInfo
 import red.man10.man10bank.util.Utility.msg
+import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -71,7 +72,7 @@ object ATM :CommandExecutor{
             vault.deposit(p.uniqueId,amount)
 
             BlockingQueue.addTask {
-                APIHistory.addATMLog(APIHistory.ATMLog(0,p.name,p.uniqueId.toString(),amount,true, Date()))
+                APIHistory.addATMLog(APIHistory.ATMLog(0,p.name,p.uniqueId.toString(),amount,true, LocalDateTime.now()))
             }
         }
 
@@ -90,7 +91,7 @@ object ATM :CommandExecutor{
         if (vault.withdraw(p.uniqueId,amount)){
             p.inventory.addItem(moneyItems[amount]!!.clone())
             //TODO:ログ投げる処理を軽くする
-            APIHistory.addATMLog(APIHistory.ATMLog(0,p.name,p.uniqueId.toString(),amount,false, Date()))
+            APIHistory.addATMLog(APIHistory.ATMLog(0,p.name,p.uniqueId.toString(),amount,false, LocalDateTime.now()))
         }else{
             msg(p,"§c§l電子マネーが足りません！")
         }

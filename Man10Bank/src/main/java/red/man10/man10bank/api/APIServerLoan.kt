@@ -1,10 +1,9 @@
 package red.man10.man10bank.api
 
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.bukkit.Bukkit
 import red.man10.man10bank.api.APIBase.getRequest
 import red.man10.man10bank.api.APIBase.gson
-import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.util.*
 
 object APIServerLoan {
@@ -68,8 +67,8 @@ object APIServerLoan {
         var id : Int,
         var player : String,
         var uuid : String,
-        var borrow_date : Date,
-        var last_pay_date : Date,
+        var borrow_date : LocalDateTime,
+        var last_pay_date : LocalDateTime,
         var borrow_amount : Double,
         var payment_amount : Double,
         var failed_payment : Int,
@@ -78,10 +77,10 @@ object APIServerLoan {
     )
 
     data class ServerLoanProperty(
-        var DailyInterest:Double,
-        var PaymentInterval:Int,
-        var MinimumAmount:Double,
-        var MaximumAmount:Double
+        var dailyInterest:Double,
+        var paymentInterval:Int,
+        var minimumAmount:Double,
+        var maximumAmount:Double
     )
 
 }

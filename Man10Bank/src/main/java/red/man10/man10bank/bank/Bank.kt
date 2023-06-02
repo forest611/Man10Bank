@@ -226,7 +226,7 @@ object Bank : CommandExecutor{
         return true
     }
 
-    private fun showBalance(p:Player, sender: CommandSender){
+    fun showBalance(p:Player, sender: CommandSender){
 
         val serverLoanData = APIServerLoan.getInfo(p.uniqueId)
 

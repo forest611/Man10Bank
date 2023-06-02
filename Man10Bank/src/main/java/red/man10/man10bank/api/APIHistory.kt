@@ -4,6 +4,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import red.man10.man10bank.api.APIBase.getRequest
 import red.man10.man10bank.api.APIBase.gson
 import red.man10.man10bank.api.APIBase.postRequest
+import java.time.LocalDateTime
 import java.util.*
 
 object APIHistory {
@@ -54,14 +55,14 @@ object APIHistory {
         var note : String,
         var display_note : String,
         var category : String,
-        var date : Date
+        var date : LocalDateTime
     )
 
     data class EstateTable(
         var id : Int,
         var player : String,
         var uuid : String,
-        var date : Date,
+        var date : LocalDateTime,
         var vault : Double,
         var bank : Double,
         var cash : Double,
@@ -86,7 +87,7 @@ object APIHistory {
         var month : Int,
         var day : Int,
         var hour : Int,
-        var date : Date,
+        var date : LocalDateTime,
     )
 
     data class ATMLog(
@@ -95,6 +96,6 @@ object APIHistory {
         var uuid : String,
         var amount : Double,
         var deposit : Boolean,
-        var date : Date
+        var date : LocalDateTime
     )
 }
