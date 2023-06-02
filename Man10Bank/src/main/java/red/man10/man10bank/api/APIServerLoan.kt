@@ -20,14 +20,9 @@ object APIServerLoan {
         return result?.toBooleanStrictOrNull()?:false
     }
 
-    fun nextPayDate(uuid:UUID): Date? {
+    fun nextPayDate(uuid:UUID): LocalDateTime? {
         val result = getRequest("${apiRoute}next-pay?uuid=${uuid}")?:return null
-        val time = result.toLongOrNull()?:return null
-        if (time == -1L)return null
-
-        val date = Date()
-        date.time = time
-        return date
+        return gson.fromJson(result,LocalDateTime::class.java)
     }
 
     fun getInfo(uuid: UUID): ServerLoanTable? {

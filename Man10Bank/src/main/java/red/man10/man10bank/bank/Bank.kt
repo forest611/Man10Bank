@@ -2,6 +2,7 @@ package red.man10.man10bank.bank
 
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent
+import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
@@ -26,6 +27,8 @@ import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
 import red.man10.man10bank.util.Utility.prefix
 import java.text.SimpleDateFormat
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 /**
@@ -234,10 +237,12 @@ object Bank : CommandExecutor{
         val loan = serverLoanData?.borrow_amount?:0.0
         val payment =serverLoanData?.payment_amount?:0.0
         val failed = serverLoanData?.failed_payment?:0
-        val nextDate : Date? = APIServerLoan.nextPayDate(p.uniqueId)
+        val nextDate = APIServerLoan.nextPayDate(p.uniqueId)
         val score = APIBank.getScore(p.uniqueId)
         val cash = vault.getBalance(p.uniqueId)
         val estate = APIHistory.getUserEstate(p.uniqueId)?.estete?:0.0
+
+        Bukkit.getLogger().info(nextDate?.year.toString())
 
 
         msg(sender,"§e§l==========${p.name}のお金==========")
@@ -252,7 +257,7 @@ object Bank : CommandExecutor{
         if (loan!=0.0 && nextDate!=null){
             msg(sender," §b§lまんじゅうリボ:  §c§l${format(loan)}円")
             msg(sender," §b§l支払額:  §c§l${format(payment)}円")
-            msg(sender," §b§l次の支払日: §c§l${SimpleDateFormat("yyyy-MM-dd").format(nextDate)}")
+            msg(sender," §b§l次の支払日: §c§l${nextDate.format(DateTimeFormatter.ISO_LOCAL_DATE)}")
             if (failed>0){
                 msg(sender," §c§lMan10リボの支払いに失敗しました(失敗回数:${failed}回)。支払いに失敗するとスコアの減少や労働所送りにされることがあります")
             }

@@ -138,10 +138,10 @@ object APIBase {
 
     //  C#DateTime->KotlinLocalDateTime
     class LocalDateTimeDeserializer : JsonDeserializer<LocalDateTime> {
-        private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+        private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
         override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): LocalDateTime {
-            val dateString = json?.asString
+            val dateString = json?.asString?.replace("T"," ")
             return LocalDateTime.parse(dateString, formatter)
         }
     }
