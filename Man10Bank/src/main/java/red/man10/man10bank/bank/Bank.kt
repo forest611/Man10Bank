@@ -68,8 +68,8 @@ object Bank : CommandExecutor{
                     return true
                 }
 
-                val amount = Utility.parse(args[2])
                 val uuid = APIBank.getUUID(args[1])
+                val amount = Utility.parse(args[2])
 
                 if (uuid == null){
                     msg(sender,"ユーザーが見つかりませんでした")

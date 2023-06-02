@@ -16,7 +16,13 @@ object APIBank {
     }
 
     fun getUUID(mcid:String): UUID? {
-        return UUID.fromString(getRequest(apiRoute+"mcid?uuid=${mcid}"))
+        val uuid : UUID
+        try {
+            uuid = UUID.fromString(getRequest(apiRoute+"mcid?uuid=${mcid}"))
+        }catch (e:Exception){
+            return null
+        }
+        return uuid
     }
 
     fun getBalance(uuid: UUID): Double {

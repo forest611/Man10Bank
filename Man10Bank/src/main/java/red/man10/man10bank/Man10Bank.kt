@@ -42,6 +42,7 @@ class Man10Bank : JavaPlugin() {
         fun systemSetup(){
             loadConfig()
             canConnectServer = APIBase.setup()
+            if (!canConnectServer)return
             ATM.load()
             ServerLoan.setup()
             BlockingQueue.start()

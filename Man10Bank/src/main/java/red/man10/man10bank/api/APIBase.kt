@@ -25,6 +25,9 @@ object APIBase {
 
     //      POST
     fun postRequest(url: String,body: RequestBody? = null){
+
+        loggerInfo("PostRequest:${url}")
+
         val request = if (body!=null){
             Request.Builder()
                 .url(APIBase.url+url)
@@ -45,6 +48,8 @@ object APIBase {
 
     //      GET
     fun getRequest(url:String, body: RequestBody? = null): String? {
+
+        loggerInfo("GetRequest:${url}")
 
         val request = if (body!=null){
             Request.Builder()
@@ -102,43 +107,18 @@ object APIBase {
 
         if (code != 0){
             Man10Bank.instance.server.setWhitelist(true)
-            Thread{
-                Thread.sleep(1000)
-                Bukkit.getLogger().warning("Man10BankServerの接続に失敗したので、ホワイトリストをかけます Code:${code}")
-            }.start()
+            Bukkit.getLogger().warning("Man10BankServerの接続に失敗したので、ホワイトリストをかけます Code:${code}")
+            Bukkit.getLogger().warning("接続できる状態にした後にPaperMCの再起動をしてください")
             return false
         }else{
-            Thread{
-                Thread.sleep(1000)
-                loggerInfo("Man10BankServerの接続を確認しました")
-            }.start()
+            loggerInfo("Man10BankServerの接続を確認しました")
         }
         return true
     }
 
     //      接続を試す
     private fun connectionCheck(): Int {
-
-        val request = Request.Builder()
-            .url("${url}/bank/try-connect")
-            .build()
-
-        var result = -1
-
-        try {
-            val response = client.newCall(request).execute()
-            result = response.body?.string()?.toIntOrNull()?:-1
-
-            if (response.code!=200){
-                result = -1
-            }
-
-        }catch (e: Exception){
-            loggerInfo(e.message)
-        }
-
-        return result
-
+        return getRequest("/bank/try-connect")?.toIntOrNull() ?: -1
     }
 
 }
