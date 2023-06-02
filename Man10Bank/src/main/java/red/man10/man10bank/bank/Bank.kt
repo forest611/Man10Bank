@@ -3,6 +3,7 @@ package red.man10.man10bank.bank
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent
 import org.bukkit.Bukkit
+import org.bukkit.block.Block
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
@@ -62,6 +63,19 @@ object Bank : CommandExecutor{
             }
 
             /////////運営用コマンド/////////
+
+            "user" ->{
+                if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
+
+                val p = Bukkit.getPlayer(args[1])
+
+                if (p==null){
+                    msg(sender,"プレイヤーがオフラインです")
+                    return true
+                }
+
+                BlockingQueue.addTask { showBalance(p,sender) }
+            }
 
             "give" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
