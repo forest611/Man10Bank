@@ -32,21 +32,21 @@ public class PlayerContext : DbContext
     /// </summary>
     static PlayerContext()
     {
-        Host = "localhost";
-        Port = "3306";
-        Pass = "rDcrmPRLJvu@ex/E,>K";
-        User = "forest";
-        DatabaseName = "man10_system";
+        Host = "";
+        Port = "";
+        Pass = "";
+        User = "";
+        DatabaseName = "";
 
     }
 
     public static void SetDatabase(IConfiguration config)
     {
-        Host = config["MySQL:Host"] ?? "";
-        Port = config["MySQL:Port"] ?? "";
-        Pass = config["MySQL:Pass"] ?? "";
-        User = config["MySQL:User"] ?? "";
-        DatabaseName = config["MySQL:DatabaseName"] ?? "";
+        Host = config["SystemDB:Host"] ?? "";
+        Port = config["SystemDB:Port"] ?? "";
+        Pass = config["SystemDB:Pass"] ?? "";
+        User = config["SystemDB:User"] ?? "";
+        DatabaseName = config["SystemDB:DatabaseName"] ?? "";
         
     }
     

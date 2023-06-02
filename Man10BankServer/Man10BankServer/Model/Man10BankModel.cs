@@ -210,22 +210,22 @@ public class BankContext : DbContext
     /// </summary>
     static BankContext()
     {
-        Host = "localhost";
-        Port = "3306";
-        Pass = "rDcrmPRLJvu@ex/E,>K";
-        User = "forest";
-        DatabaseName = "man10_bank";
+        Host = "";
+        Port = "";
+        Pass = "";
+        User = "";
+        DatabaseName = "";
 
         Task.Run(RunDatabaseQueue);
     }
 
     public static void SetDatabase(IConfiguration config)
     {
-        Host = config["MySQL:Host"] ?? "";
-        Port = config["MySQL:Port"] ?? "";
-        Pass = config["MySQL:Pass"] ?? "";
-        User = config["MySQL:User"] ?? "";
-        DatabaseName = config["MySQL:DatabaseName"] ?? "";
+        Host = config["BankDB:Host"] ?? "";
+        Port = config["BankDB:Port"] ?? "";
+        Pass = config["BankDB:Pass"] ?? "";
+        User = config["BankDB:User"] ?? "";
+        DatabaseName = config["BankDB:DatabaseName"] ?? "";
     }
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
