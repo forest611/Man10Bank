@@ -13,6 +13,7 @@ import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.APIHistory
 import red.man10.man10bank.util.BlockingQueue
+import red.man10.man10bank.util.Utility.loggerInfo
 import red.man10.man10bank.util.Utility.msg
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -28,7 +29,7 @@ object ATM :CommandExecutor{
         for (amount in moneyAmount){
             moneyItems[amount] = instance.config.getItemStack("money.${amount}")?: ItemStack(Material.STONE)
         }
-        Bukkit.getLogger().info("現金を読み込みました")
+        loggerInfo("現金のアイテムを読み込みました")
     }
 
     private fun setCashItem(itemStack: ItemStack, amount:Double){

@@ -1,12 +1,13 @@
 package red.man10.man10bank.util
 
+import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import java.text.Normalizer
 
 object Utility{
 
-    const val prefix = "§l[§e§lMan10Bank§f§l]"
+    const val prefix = "§l[§e§lMan10Bank§f§l]§f"
 
     fun msg(p: Player, msg: String) {
         p.sendMessage(prefix + msg)
@@ -27,6 +28,14 @@ object Utility{
 
     fun parse(str:String) : Double? {
         return ZenkakuToHankaku(str.replace(",",""))
+    }
+
+    fun loggerInfo(str: String?){
+        Bukkit.getLogger().info("[Man10Bank]$str")
+    }
+
+    fun loggerWarn(str: String?){
+        Bukkit.getLogger().warning("[Man10Bank]$str")
     }
 
 }

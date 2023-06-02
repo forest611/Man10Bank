@@ -14,6 +14,7 @@ import red.man10.man10bank.api.APIServerLoan
 import red.man10.man10bank.api.APIServerLoan.ServerLoanProperty
 import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.Utility.format
+import red.man10.man10bank.util.Utility.loggerInfo
 import red.man10.man10bank.util.Utility.msg
 import red.man10.man10bank.util.Utility.prefix
 import java.lang.Math.floor
@@ -25,11 +26,11 @@ object ServerLoan : CommandExecutor{
 
     fun setup(){
         serverLoanProperty = APIServerLoan.property()
-        Bukkit.getLogger().info("リボの設定値を読み込みました")
-        Bukkit.getLogger().info("支払い期間:${serverLoanProperty.PaymentInterval}")
-        Bukkit.getLogger().info("一日あたりの利息:${serverLoanProperty.DailyInterest}")
-        Bukkit.getLogger().info("最小貸出可能額:${serverLoanProperty.MinimumAmount}")
-        Bukkit.getLogger().info("最大貸出可能額:${serverLoanProperty.MaximumAmount}")
+        loggerInfo("リボの設定値を読み込みました")
+        loggerInfo("支払い期間:${serverLoanProperty.PaymentInterval}")
+        loggerInfo("一日あたりの利息:${serverLoanProperty.DailyInterest}")
+        loggerInfo("最小貸出可能額:${serverLoanProperty.MinimumAmount}")
+        loggerInfo("最大貸出可能額:${serverLoanProperty.MaximumAmount}")
     }
 
     private fun checkAmount(p:Player){

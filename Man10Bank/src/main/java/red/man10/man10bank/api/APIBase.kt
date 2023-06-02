@@ -7,6 +7,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.bukkit.Bukkit
 import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.util.Utility.loggerInfo
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
@@ -109,7 +110,7 @@ object APIBase {
         }else{
             Thread{
                 Thread.sleep(1000)
-                Bukkit.getLogger().info("Man10BankServerの接続を確認しました")
+                loggerInfo("Man10BankServerの接続を確認しました")
             }.start()
         }
         return true
@@ -133,7 +134,7 @@ object APIBase {
             }
 
         }catch (e: Exception){
-            Bukkit.getLogger().info(e.message)
+            loggerInfo(e.message)
         }
 
         return result

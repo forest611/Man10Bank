@@ -1,6 +1,7 @@
 package red.man10.man10bank.util
 
 import org.bukkit.Bukkit
+import red.man10.man10bank.util.Utility.loggerInfo
 import java.util.concurrent.LinkedBlockingQueue
 
 object BlockingQueue {
@@ -38,7 +39,7 @@ object BlockingQueue {
 
     private fun blockingQueue(){
 
-        Bukkit.getLogger().info("ブロッキングキューを起動(ThreadID:${thread.id})")
+        loggerInfo("ブロッキングキューを起動(ThreadID:${thread.id})")
 
         while (true){
 
@@ -46,7 +47,7 @@ object BlockingQueue {
                 val task = queue.take()
                 task.invoke()
             }catch (e:InterruptedException){
-                Bukkit.getLogger().info("ブロッキングキュー終了")
+                loggerInfo("ブロッキングキュー終了")
                 return
             }catch (e:Exception){
                 continue
