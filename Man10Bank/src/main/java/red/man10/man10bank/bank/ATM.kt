@@ -3,11 +3,14 @@ package red.man10.man10bank.bank
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
+import org.bukkit.block.ShulkerBox
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.BlockStateMeta
+import org.bukkit.inventory.meta.BundleMeta
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.vault
@@ -95,6 +98,74 @@ object ATM :CommandExecutor{
         }else{
             msg(p,"§c§l電子マネーが足りません！")
         }
+    }
+
+    //現金を計算する
+    fun getCash(p:Player):Double{
+
+        var cash = 0.0
+
+        for (item in p.inventory.contents){
+            if (item ==null ||item.type == Material.AIR)continue
+            val money = getMoneyAmount(item)
+            cash+=money
+
+            for (i in getShulkerItem(item)){
+                cash+=getMoneyAmount(i)
+
+                for (j in getBundleItem(i)){
+                    cash+=getMoneyAmount(j)
+                }
+            }
+
+            for (i in getBundleItem(item)){
+                cash+=getMoneyAmount(i)
+            }
+        }
+
+        for (item in p.enderChest.contents){
+            if (item ==null ||item.type == Material.AIR)continue
+            val money = getMoneyAmount(item)
+            cash+=money
+
+            for (i in getShulkerItem(item)){
+                cash+=getMoneyAmount(i)
+
+                for (j in getBundleItem(i)){
+                    cash+=getMoneyAmount(j)
+                }
+            }
+
+            for (i in getBundleItem(item)){
+                cash+=getMoneyAmount(i)
+            }
+        }
+
+        return cash
+
+    }
+
+    private fun getShulkerItem(item:ItemStack?):List<ItemStack>{
+
+        val meta = item?.itemMeta?: emptyList<ItemStack>()
+
+        if (meta is BlockStateMeta && meta.blockState is ShulkerBox && meta.hasBlockState()){
+
+            val shulker = meta.blockState as ShulkerBox
+            return shulker.inventory.toList()
+        }
+        return emptyList()
+    }
+
+    private fun getBundleItem(item: ItemStack?):List<ItemStack>{
+
+        val meta = item?.itemMeta?: emptyList<ItemStack>()
+
+        if (meta is BundleMeta){
+            return meta.items
+        }
+
+        return emptyList()
     }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {

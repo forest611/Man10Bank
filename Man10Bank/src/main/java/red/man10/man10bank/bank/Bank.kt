@@ -239,18 +239,17 @@ object Bank : CommandExecutor{
         val failed = serverLoanData?.failed_payment?:0
         val nextDate = APIServerLoan.nextPayDate(p.uniqueId)
         val score = APIBank.getScore(p.uniqueId)
-        val cash = vault.getBalance(p.uniqueId)
+        val balance = vault.getBalance(p.uniqueId)
+        val cash = ATM.getCash(p)
         val estate = APIHistory.getUserEstate(p.uniqueId)?.estete?:0.0
 
-        Bukkit.getLogger().info(nextDate?.year.toString())
-
-
         msg(sender,"§e§l==========${p.name}のお金==========")
-        msg(sender," §b§l電子マネー:  §e§l${format(vault.getBalance(p.uniqueId))}円")
-        msg(sender," §b§l銀行:  §e§l${format(bankAmount)}円")
+        msg(sender," §b§l電子マネー:  §e§l${format(balance)}円")
+        if (bankAmount != -1.0){
+            msg(sender," §b§l銀行:  §e§l${format(bankAmount)}円")
+        }
         if (cash>0.0){ msg(sender," §b§l現金:  §e§l${format(cash)}円") }
         if (estate>0.0){ msg(sender," §b§lその他の資産:  §e§l${format(estate)}円") }
-//        if(EstateData.getShopTotalBalance(p) > 0.0) msg(sender, " §b§lショップ口座:  §e§l${format(EstateData.getShopTotalBalance(p))}円")
 
         msg(sender," §b§lスコア: §a§l${format(score.toDouble())}")
 
@@ -262,7 +261,6 @@ object Bank : CommandExecutor{
                 msg(sender," §c§lMan10リボの支払いに失敗しました(失敗回数:${failed}回)。支払いに失敗するとスコアの減少や労働所送りにされることがあります")
             }
         }
-
         sender.sendMessage(text("$prefix §a§l§n[ここをクリックでコマンドをみる]").clickEvent(ClickEvent.runCommand("/bank help")))
     }
 
