@@ -38,4 +38,8 @@ object Utility{
         Bukkit.getLogger().warning("[Man10Bank]$str")
     }
 
+    fun loggerDebug(str: String?){
+        Bukkit.getLogger().warning("[Man10BankDebug]$str")
+    }
+
 }
