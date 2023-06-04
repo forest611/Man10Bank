@@ -48,9 +48,9 @@ public class BankController : ControllerBase
     }
     
     [HttpGet("log")]
-    public MoneyLog[] GetLog(string uuid)
+    public MoneyLog[] GetLog(string uuid,int record,int skip)
     {
-        return Bank.GetLog(uuid).Result;
+        return Bank.GetLog(uuid,record,skip).Result;
     }
 
     [HttpGet("add")]

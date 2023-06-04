@@ -5,6 +5,7 @@ import org.bukkit.entity.Player
 import red.man10.man10bank.api.APIBase.getRequest
 import red.man10.man10bank.api.APIBase.gson
 import red.man10.man10bank.api.APIBase.mediaType
+import java.time.LocalDateTime
 import java.util.*
 
 object APIBank {
@@ -18,7 +19,7 @@ object APIBank {
     fun getUUID(mcid:String): UUID? {
         val uuid : UUID
         try {
-            uuid = UUID.fromString(getRequest(apiRoute+"mcid?uuid=${mcid}"))
+            uuid = UUID.fromString(getRequest(apiRoute+"uuid?mcid=${mcid}"))
         }catch (e:Exception){
             return null
         }
@@ -29,8 +30,8 @@ object APIBank {
         return getRequest(apiRoute + "balance?uuid=${uuid}")?.toDoubleOrNull() ?: -1.0
     }
 
-    fun getUserLog(uuid: UUID): Array<MoneyLog> {
-        val result = getRequest(apiRoute+"log?uuid=${uuid}")
+    fun getBankLog(uuid: UUID,record:Int,skip:Int): Array<MoneyLog> {
+        val result = getRequest(apiRoute+"log?uuid=${uuid}&record=${record}&skip=${skip}")
         return gson.fromJson(result, arrayOf<MoneyLog>()::class.java)
     }
 
@@ -77,6 +78,6 @@ object APIBank {
         var display_note : String,
         var server : String,
         var deposit : Boolean,
-        var date : Date
+        var date : LocalDateTime
     )
 }

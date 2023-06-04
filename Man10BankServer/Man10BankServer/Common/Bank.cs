@@ -267,7 +267,14 @@ public static class Bank
         });
     }
 
-    public static async Task<MoneyLog[]> GetLog(string uuid)
+    /// <summary>
+    /// 銀行の取引履歴を取得
+    /// </summary>
+    /// <param name="uuid"></param>
+    /// <param name="record">レコード数</param>
+    /// <param name="skip">何件飛ばすか</param>
+    /// <returns></returns>
+    public static async Task<MoneyLog[]> GetLog(string uuid,int record,int skip)
     {
         var result = await Task.Run(() =>
         {
@@ -275,7 +282,8 @@ public static class Bank
             var ret = context.money_log
                 .Where(r => r.uuid == uuid)
                 .OrderBy(r => r.date)
-                .Take(10)
+                .Skip(skip)
+                .Take(record)
                 .ToArray();
             return ret;
         });

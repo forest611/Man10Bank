@@ -59,11 +59,13 @@ object Bank : CommandExecutor{
             }
 
             "log" ->{
-
+                val page  = if (args.size == 1) 0 else args[1].toIntOrNull()?:0
+                BlockingQueue.addTask { showLog(sender.uniqueId,sender,page) }
             }
 
             /////////運営用コマンド/////////
 
+            //人の所持金を見る
             "user" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
@@ -75,6 +77,20 @@ object Bank : CommandExecutor{
                 }
 
                 BlockingQueue.addTask { showBalance(p,sender) }
+            }
+
+            "logop" ->{//bal logop forest611 0
+                if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
+
+                val page  = if (args.size == 2) 0 else args[2].toIntOrNull()?:0
+                BlockingQueue.addTask {
+                    val uuid = APIBank.getUUID(args[1])
+                    if (uuid == null){
+                        msg(sender,"プレイヤーが見つかりません")
+                        return@addTask
+                    }
+                    showLog(uuid,sender,page)
+                }
             }
 
             "give" ->{
@@ -285,7 +301,7 @@ object Bank : CommandExecutor{
         val withdraw = text("$prefix §c[電子マネーを銀行から出す]  §n/withdraw").clickEvent(ClickEvent.suggestCommand("/withdraw "))
         val revolving = text("$prefix §e[Man10リボを使う]  §n/mrevo borrow").clickEvent(ClickEvent.suggestCommand("/mrevo borrow "))
         val ranking = text("$prefix §6[お金持ちランキング]  §n/mbaltop").clickEvent(ClickEvent.runCommand("/mbaltop"))
-        val log = text("$prefix §7[銀行の履歴]  §n/ballog").clickEvent(ClickEvent.runCommand("/ballog"))
+        val log = text("$prefix §7[銀行の履歴]  §n/bal log").clickEvent(ClickEvent.runCommand("/bal log"))
 
         sender.sendMessage(pay)
         sender.sendMessage(atm)
@@ -294,6 +310,33 @@ object Bank : CommandExecutor{
         sender.sendMessage(revolving)
         sender.sendMessage(ranking)
         sender.sendMessage(log)
+    }
+
+    private fun showLog(uuid:UUID,sender:CommandSender,page:Int){
+
+        val skip = page*10
+        val log = APIBank.getBankLog(uuid,10,skip)
+        val mcid = Bukkit.getOfflinePlayer(uuid).name
+
+        msg(sender,"§d§l===========${mcid}の銀行の履歴==========")
+
+        log.forEach { data->
+            val tag = if (data.deposit) "§a[入金]" else "§c[出金]"
+            msg(sender,"$tag §e${data.date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))} " +
+                    "§e§l${format(data.amount)} §e${data.display_note}")
+        }
+
+        val arg = if (mcid == sender.name) "/bal log " else "/bal logop $mcid "
+
+        val previous = if (page!=0) {
+            text("${prefix}§b§l<<==前のページ ").clickEvent(ClickEvent.runCommand(arg+(page-1)))
+        }else text(prefix)
+
+        val next = if (log.size == 10){
+            text("§b§l次のページ==>>").clickEvent(ClickEvent.runCommand(arg+(page+1)))
+        }else text("")
+
+        sender.sendMessage(previous.append(next))
     }
 
 }
