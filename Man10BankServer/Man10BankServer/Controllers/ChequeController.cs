@@ -20,4 +20,10 @@ public class ChequeController : ControllerBase
     {
         return Cheque.Use(id).Result;
     }
+
+    [HttpGet("amount")]
+    public double Amount(int id)
+    {
+        return Cheque.Amount(id).Result;
+    }
 }

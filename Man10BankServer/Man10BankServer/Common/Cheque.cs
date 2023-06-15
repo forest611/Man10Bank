@@ -41,6 +41,32 @@ public static class Cheque
     }
 
     /// <summary>
+    /// 価格を取得する
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public static async Task<double> Amount(int id)
+    {
+        var result = await Task.Run(()=>
+        {
+            var context = new BankContext();
+            var record = context.cheque_tbl.FirstOrDefault(r => r.id == id);
+
+            if (record==null || record.used)
+            {
+                context.Dispose();
+                return -1;
+            }
+            var amount = record.amount;
+            context.Dispose();
+
+            return amount;
+        });
+
+        return result;
+    }
+
+    /// <summary>
     /// 小切手を使用する
     /// </summary>
     /// <param name="id"></param>
