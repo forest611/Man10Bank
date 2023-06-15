@@ -147,6 +147,7 @@ public static class History
             
             context.estate_tbl.Add(data);
 
+            //ヒストリーを追加
             var history = new EstateHistoryTable
             {
                 vault = data.vault,
