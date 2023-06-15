@@ -16,10 +16,14 @@ object EstateHistory {
 
     }
 
-    fun showEstate(uuid:UUID){
+    fun showEstate(p:Player,uuid:UUID){
 
         val data = APIHistory.getUserEstate(uuid)
+    }
 
+    fun showServerEstate(p:Player){
+
+        val data = APIHistory.getServerEstate()
 
     }
 
