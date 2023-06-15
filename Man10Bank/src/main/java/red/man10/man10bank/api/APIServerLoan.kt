@@ -72,10 +72,10 @@ object APIServerLoan {
     )
 
     data class ServerLoanProperty(
-        var dailyInterest:Double,
-        var paymentInterval:Int,
-        var minimumAmount:Double,
-        var maximumAmount:Double
+        var DailyInterest:Double,
+        var PaymentInterval:Int,
+        var MinimumAmount:Double,
+        var MaximumAmount:Double
     )
 
 }
