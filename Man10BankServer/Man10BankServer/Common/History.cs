@@ -125,6 +125,10 @@ public static class History
                 return;
             }
 
+            //銀行とローンはこっちで取得する
+            data.bank = Bank.SyncGetBalance(data.uuid).Result;
+            data.loan = ServerLoan.GetBorrowingInfo(data.uuid).Result?.borrow_amount ?? 0;
+
             //古いデータ
             var lastVault = record.vault;
             var lastBank = record.bank;
@@ -140,6 +144,8 @@ public static class History
                                      data.estate == lastEstate &&
                                      data.shop == lastShop;
 
+            data.total = data.vault + data.bank + data.cash + data.estate + data.shop + data.crypto;
+            
             if (dataHasNotChanged)
             {
                 return; 
@@ -157,7 +163,9 @@ public static class History
                 estate = data.estate,
                 shop = data.shop,
                 uuid = data.uuid,
-                player = data.player
+                player = data.player,
+                crypto = data.crypto,
+                total = data.total
             };
 
             context.estate_history_tbl.Add(history);
