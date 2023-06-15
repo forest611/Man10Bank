@@ -8,8 +8,8 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import red.man10.man10bank.Man10Bank.Companion.thread
 import red.man10.man10bank.history.EstateHistory
-import red.man10.man10bank.util.BlockingQueue
 
 object BankEvent : Listener{
 
@@ -25,13 +25,13 @@ object BankEvent : Listener{
 
     @EventHandler(priority = EventPriority.LOWEST)
     fun logout(e: PlayerQuitEvent){
-        BlockingQueue.addTask { EstateHistory.addEstate(e.player) }
+        thread.execute { EstateHistory.addEstate(e.player) }
     }
 
     @EventHandler
     fun closeEnderChest(e: InventoryCloseEvent){
         if (e.inventory.type != InventoryType.ENDER_CHEST)return
         val p = e.player as Player
-        BlockingQueue.addTask { EstateHistory.addEstate(p) }
+        thread.execute { EstateHistory.addEstate(p) }
     }
 }

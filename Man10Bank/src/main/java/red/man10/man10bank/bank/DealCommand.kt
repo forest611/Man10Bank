@@ -6,9 +6,9 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.instance
+import red.man10.man10bank.Man10Bank.Companion.thread
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.APIBank
-import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.msg
 
@@ -52,7 +52,7 @@ object DealCommand : CommandExecutor{
                 return true
             }
 
-            BlockingQueue.addTask {
+            thread.execute {
                 val ret = APIBank.addBank(APIBank.TransactionData(
                     sender.uniqueId.toString(),
                     amount,
@@ -64,7 +64,7 @@ object DealCommand : CommandExecutor{
                 if (ret != "Successful"){
                     msg(sender,"§c入金エラーが発生しました")
                     vault.deposit(sender.uniqueId,amount)
-                    return@addTask
+                    return@execute
                 }
                 msg(sender,"§e入金できました！")
             }
@@ -89,7 +89,7 @@ object DealCommand : CommandExecutor{
                 return true
             }
 
-            BlockingQueue.addTask {
+            thread.execute {
                 val ret = APIBank.takeBank(APIBank.TransactionData(
                     sender.uniqueId.toString(),
                     amount,
@@ -101,7 +101,7 @@ object DealCommand : CommandExecutor{
                 if (ret != "Successful"){
                     msg(sender,"§c出金エラーが発生しました")
                     vault.deposit(sender.uniqueId,amount)
-                    return@addTask
+                    return@execute
                 }
                 vault.deposit(sender.uniqueId,amount)
                 msg(sender,"§e出金できました！")

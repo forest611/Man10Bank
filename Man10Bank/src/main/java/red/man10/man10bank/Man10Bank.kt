@@ -9,8 +9,8 @@ import red.man10.man10bank.bank.DealCommand
 import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.loan.LocalLoan
 import red.man10.man10bank.loan.ServerLoan
-import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.MenuFramework
+import java.util.concurrent.Executors
 
 class Man10Bank : JavaPlugin() {
 
@@ -18,6 +18,8 @@ class Man10Bank : JavaPlugin() {
 
         lateinit var instance : Man10Bank
         lateinit var vault : VaultManager
+
+        val thread = Executors.newSingleThreadExecutor()
 
         private var bankOpen = true
 
@@ -45,12 +47,11 @@ class Man10Bank : JavaPlugin() {
             if (!canConnectServer)return
             ATM.load()
             ServerLoan.setup()
-            BlockingQueue.start()
         }
 
         //      システム終了
         fun systemClose(){
-            BlockingQueue.stop()
+            thread.shutdownNow()
         }
 
         //      Configの読み込み

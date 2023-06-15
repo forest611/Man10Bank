@@ -1,6 +1,5 @@
 package red.man10.man10bank.bank
 
-import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.block.ShulkerBox
@@ -13,13 +12,12 @@ import org.bukkit.inventory.meta.BlockStateMeta
 import org.bukkit.inventory.meta.BundleMeta
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank.Companion.instance
+import red.man10.man10bank.Man10Bank.Companion.thread
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.APIHistory
-import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.Utility.loggerInfo
 import red.man10.man10bank.util.Utility.msg
 import java.time.LocalDateTime
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 object ATM :CommandExecutor{
@@ -74,7 +72,7 @@ object ATM :CommandExecutor{
             itemStack.amount = 0
             vault.deposit(p.uniqueId,amount)
 
-            BlockingQueue.addTask {
+            thread.execute {
                 APIHistory.addATMLog(APIHistory.ATMLog(0,p.name,p.uniqueId.toString(),amount,true, LocalDateTime.now()))
             }
         }

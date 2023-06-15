@@ -3,32 +3,21 @@ package red.man10.man10bank.bank
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent
 import org.bukkit.Bukkit
-import org.bukkit.block.Block
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import org.bukkit.event.EventHandler
-import org.bukkit.event.EventPriority
-import org.bukkit.event.Listener
-import org.bukkit.event.inventory.InventoryCloseEvent
-import org.bukkit.event.inventory.InventoryType
-import org.bukkit.event.player.PlayerJoinEvent
-import org.bukkit.event.player.PlayerQuitEvent
 import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Man10Bank.Companion.thread
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APIBank
-import red.man10.man10bank.api.APIBase
 import red.man10.man10bank.api.APIHistory
 import red.man10.man10bank.api.APIServerLoan
-import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
 import red.man10.man10bank.util.Utility.prefix
-import java.text.SimpleDateFormat
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.*
 
@@ -47,7 +36,7 @@ object Bank : CommandExecutor{
 
         //所持金確認コマンド
         if (args.isEmpty()){
-            BlockingQueue.addTask { showBalance(sender,sender) }
+            thread.execute { showBalance(sender,sender) }
             return true
         }
 
@@ -60,7 +49,7 @@ object Bank : CommandExecutor{
 
             "log" ->{
                 val page  = if (args.size == 1) 0 else args[1].toIntOrNull()?:0
-                BlockingQueue.addTask { showLog(sender.uniqueId,sender,page) }
+                thread.execute { showLog(sender.uniqueId,sender,page) }
             }
 
             /////////運営用コマンド/////////
@@ -76,18 +65,18 @@ object Bank : CommandExecutor{
                     return true
                 }
 
-                BlockingQueue.addTask { showBalance(p,sender) }
+                thread.execute { showBalance(p,sender) }
             }
 
             "logop" ->{//bal logop forest611 0
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
                 val page  = if (args.size == 2) 0 else args[2].toIntOrNull()?:0
-                BlockingQueue.addTask {
+                thread.execute {
                     val uuid = APIBank.getUUID(args[1])
                     if (uuid == null){
                         msg(sender,"プレイヤーが見つかりません")
-                        return@addTask
+                        return@execute
                     }
                     showLog(uuid,sender,page)
                 }
@@ -119,7 +108,7 @@ object Bank : CommandExecutor{
                     return true
                 }
 
-                BlockingQueue.addTask {
+                thread.execute {
                     val ret = APIBank.addBank(APIBank.TransactionData(
                         sender.uniqueId.toString(),
                         amount,
@@ -131,7 +120,7 @@ object Bank : CommandExecutor{
                     if (ret != "Successful"){
                         msg(sender,"§c入金エラーが発生しました")
                         vault.deposit(sender.uniqueId,amount)
-                        return@addTask
+                        return@execute
                     }
                     msg(sender,"§e入金できました！")
                 }
@@ -163,7 +152,7 @@ object Bank : CommandExecutor{
                     return true
                 }
 
-                BlockingQueue.addTask {
+                thread.execute {
                     val ret = APIBank.takeBank(APIBank.TransactionData(
                         sender.uniqueId.toString(),
                         amount,
@@ -175,7 +164,7 @@ object Bank : CommandExecutor{
                     if (ret != "Successful"){
                         msg(sender,"§c出金エラーが発生しました")
                         vault.deposit(sender.uniqueId,amount)
-                        return@addTask
+                        return@execute
                     }
                     msg(sender,"§e出金できました！")
                 }
@@ -207,7 +196,7 @@ object Bank : CommandExecutor{
                     return true
                 }
 
-                BlockingQueue.addTask {
+                thread.execute {
                     val ret = APIBank.setBank(APIBank.TransactionData(
                         sender.uniqueId.toString(),
                         amount,
@@ -219,7 +208,7 @@ object Bank : CommandExecutor{
                     if (ret != "Successful"){
                         msg(sender,"§cエラーが発生しました")
                         vault.deposit(sender.uniqueId,amount)
-                        return@addTask
+                        return@execute
                     }
                     msg(sender,"§e設定できました！")
                 }

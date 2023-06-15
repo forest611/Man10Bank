@@ -16,9 +16,9 @@ import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Man10Bank.Companion.thread
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APICheque
-import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
 
@@ -124,7 +124,7 @@ object Cheque : CommandExecutor, Listener {
             return
         }
 
-        BlockingQueue.addTask {
+        thread.execute {
             use(e.player,item)
         }
 
@@ -164,7 +164,7 @@ object Cheque : CommandExecutor, Listener {
 
         val note = if (args.size>=2) args[1] else "empty"
 
-        BlockingQueue.addTask {
+        thread.execute {
             create(sender,amount,isOp,note)
         }
 

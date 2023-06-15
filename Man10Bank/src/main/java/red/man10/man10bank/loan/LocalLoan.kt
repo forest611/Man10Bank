@@ -15,16 +15,15 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank.Companion.instance
+import red.man10.man10bank.Man10Bank.Companion.thread
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APILocalLoan
-import red.man10.man10bank.util.BlockingQueue
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
 import red.man10.man10bank.util.Utility.prefix
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.HashMap
 
 object LocalLoan: Listener,CommandExecutor{
 
@@ -126,9 +125,9 @@ object LocalLoan: Listener,CommandExecutor{
 
         item.amount = 0
 
-        BlockingQueue.addTask {
+        thread.execute {
 
-            val data = APILocalLoan.getInfo(id)?:return@addTask
+            val data = APILocalLoan.getInfo(id)?:return@execute
             val uuid = UUID.fromString(data.borrow_uuid)
 
             val vaultMoney = vault.getBalance(uuid)
@@ -228,7 +227,7 @@ object LocalLoan: Listener,CommandExecutor{
                 return true
             }
 
-            BlockingQueue.addTask {
+            thread.execute {
                 create(lendP,sender,data.amount,data.interest,data.due)
             }
 
