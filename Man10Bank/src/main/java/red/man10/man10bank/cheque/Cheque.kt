@@ -19,6 +19,8 @@ import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.thread
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APICheque
+import red.man10.man10bank.bank.ATM
+import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
 
@@ -102,9 +104,56 @@ object Cheque : CommandExecutor, Listener {
         msg(p,"§e§l${format(amount)}円の小切手を電子マネーに変えた！")
     }
 
+    //スレッドで呼ぶ
+    fun getChequeInInventory(p:Player):Double{
+        var amount = 0.0
+
+        for (item in p.inventory.contents){
+            if (item ==null ||item.type == Material.AIR)continue
+            val money = getChequeAmount(item)
+            amount+=money
+
+            for (i in Utility.getShulkerItem(item)){
+                amount+= getChequeAmount(item)
+
+                for (j in Utility.getBundleItem(i)){
+                    amount+= getChequeAmount(item)
+                }
+            }
+
+            for (i in Utility.getBundleItem(item)){
+                amount+= getChequeAmount(item)
+            }
+        }
+
+        for (item in p.enderChest.contents){
+            if (item ==null ||item.type == Material.AIR)continue
+            val money = getChequeAmount(item)
+            amount+=money
+
+            for (i in Utility.getShulkerItem(item)){
+                amount+= getChequeAmount(item)
+
+                for (j in Utility.getBundleItem(i)){
+                    amount+= getChequeAmount(item)
+                }
+            }
+
+            for (i in Utility.getBundleItem(item)){
+                amount+= getChequeAmount(item)
+            }
+        }
+
+        return amount
+    }
+
     private fun getChequeID(item: ItemStack): Int? {
         if (!item.hasItemMeta())return null
         return item.itemMeta.persistentDataContainer[(NamespacedKey.fromString("cheque_id") ?: return null), PersistentDataType.INTEGER]
+    }
+
+    private fun getChequeAmount(item:ItemStack):Double{
+        return APICheque.amount(getChequeID(item)?:0)
     }
 
     @EventHandler

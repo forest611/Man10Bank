@@ -1,8 +1,12 @@
 package red.man10.man10bank.util
 
 import org.bukkit.Bukkit
+import org.bukkit.block.ShulkerBox
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.BlockStateMeta
+import org.bukkit.inventory.meta.BundleMeta
 import java.text.Normalizer
 
 object Utility{
@@ -40,6 +44,29 @@ object Utility{
 
     fun loggerDebug(str: String?){
         Bukkit.getLogger().warning("[Man10BankDebug]$str")
+    }
+
+    fun getShulkerItem(item: ItemStack?):List<ItemStack>{
+
+        val meta = item?.itemMeta?: emptyList<ItemStack>()
+
+        if (meta is BlockStateMeta && meta.blockState is ShulkerBox && meta.hasBlockState()){
+
+            val shulker = meta.blockState as ShulkerBox
+            return shulker.inventory.toList()
+        }
+        return emptyList()
+    }
+
+    fun getBundleItem(item: ItemStack?):List<ItemStack>{
+
+        val meta = item?.itemMeta?: emptyList<ItemStack>()
+
+        if (meta is BundleMeta){
+            return meta.items
+        }
+
+        return emptyList()
     }
 
 }

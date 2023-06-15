@@ -15,6 +15,8 @@ import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.thread
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.APIHistory
+import red.man10.man10bank.util.Utility.getBundleItem
+import red.man10.man10bank.util.Utility.getShulkerItem
 import red.man10.man10bank.util.Utility.loggerInfo
 import red.man10.man10bank.util.Utility.msg
 import java.time.LocalDateTime
@@ -143,28 +145,7 @@ object ATM :CommandExecutor{
 
     }
 
-    private fun getShulkerItem(item:ItemStack?):List<ItemStack>{
 
-        val meta = item?.itemMeta?: emptyList<ItemStack>()
-
-        if (meta is BlockStateMeta && meta.blockState is ShulkerBox && meta.hasBlockState()){
-
-            val shulker = meta.blockState as ShulkerBox
-            return shulker.inventory.toList()
-        }
-        return emptyList()
-    }
-
-    private fun getBundleItem(item: ItemStack?):List<ItemStack>{
-
-        val meta = item?.itemMeta?: emptyList<ItemStack>()
-
-        if (meta is BundleMeta){
-            return meta.items
-        }
-
-        return emptyList()
-    }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
 

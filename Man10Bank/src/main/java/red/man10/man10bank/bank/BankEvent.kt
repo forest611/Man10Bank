@@ -25,13 +25,13 @@ object BankEvent : Listener{
 
     @EventHandler(priority = EventPriority.LOWEST)
     fun logout(e: PlayerQuitEvent){
-        thread.execute { EstateHistory.addEstate(e.player) }
+        EstateHistory.asyncAddEstate(e.player)
     }
 
     @EventHandler
     fun closeEnderChest(e: InventoryCloseEvent){
         if (e.inventory.type != InventoryType.ENDER_CHEST)return
         val p = e.player as Player
-        thread.execute { EstateHistory.addEstate(p) }
+        EstateHistory.asyncAddEstate(p)
     }
 }

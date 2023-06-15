@@ -19,4 +19,9 @@ object APICheque {
         return result?.toDoubleOrNull()?:-1.0
     }
 
+    fun amount(id:Int):Double{
+        val result = getRequest("${apiRoute}amount?id=${id}")
+        return result?.toDoubleOrNull()?:0.0
+    }
+
 }
