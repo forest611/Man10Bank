@@ -62,9 +62,6 @@ public static class History
 
             context.SaveChanges();
         });
-        // var context = new Context();
-        
-        // context.Dispose();
     }
     
     /// <summary>
@@ -145,6 +142,7 @@ public static class History
                                      data.shop == lastShop;
 
             data.total = data.vault + data.bank + data.cash + data.estate + data.shop + data.crypto;
+            data.date = DateTime.Now;
             
             if (dataHasNotChanged)
             {
@@ -165,7 +163,8 @@ public static class History
                 uuid = data.uuid,
                 player = data.player,
                 crypto = data.crypto,
-                total = data.total
+                total = data.total,
+                date = DateTime.Now
             };
 
             context.estate_history_tbl.Add(history);
@@ -233,7 +232,6 @@ public static class History
     /// </summary>
     public static void AddAtmLog(ATMLog log)
     {
-        //TODO:ログ取れてない問題なおす
         BankContext.AddDatabaseJob(context =>
         {
             context.atm_log.Add(log);
