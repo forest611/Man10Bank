@@ -82,7 +82,7 @@ public static class History
     }
 
     /// <summary>
-    /// 新規資産レコード作成(口座作成時に呼ぶ)
+    /// 新規資産レコード作成
     /// </summary>
     /// <param name="uuid"></param>
     private static void CreateEstateRecord(string uuid)

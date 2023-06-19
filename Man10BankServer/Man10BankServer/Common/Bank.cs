@@ -259,7 +259,8 @@ public static class Bank
                 plugin_name = plugin,
                 server = "paper",
                 note = note,
-                display_note = displayNote
+                display_note = displayNote,
+                date = DateTime.Now
             };
 
             context.money_log.Add(log);
