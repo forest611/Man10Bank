@@ -22,7 +22,7 @@ object EstateHistory {
 
             msg(p,"§6§k§lXX§e§l富豪トップ${page*10}§6§k§lXX")
 
-            var i = (page*10)-1
+            var i = (page+1)*10-9
             array.forEach {data ->
                 msg(p,"§7§l${i}.§b§l${data.player} : §e§l${format(data.total)}円")
                 i++

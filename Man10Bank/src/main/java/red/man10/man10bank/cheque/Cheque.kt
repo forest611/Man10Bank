@@ -152,7 +152,8 @@ object Cheque : CommandExecutor, Listener {
     }
 
     private fun getChequeAmount(item:ItemStack):Double{
-        return APICheque.amount(getChequeID(item)?:0)
+        val id = getChequeID(item) ?: return 0.0
+        return APICheque.amount(id)
     }
 
     @EventHandler

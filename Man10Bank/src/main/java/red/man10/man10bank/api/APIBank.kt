@@ -1,10 +1,12 @@
 package red.man10.man10bank.api
 
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import red.man10.man10bank.api.APIBase.getRequest
 import red.man10.man10bank.api.APIBase.gson
 import red.man10.man10bank.api.APIBase.mediaType
+import red.man10.man10bank.api.APIBase.postRequest
 import java.time.LocalDateTime
 import java.util.*
 
@@ -56,8 +58,9 @@ object APIBank {
         return getRequest(apiRoute+"set",body)?:"Null"
     }
 
-    fun createBank(p:Player): String {
-        return getRequest("${apiRoute}create?uuid=${p.uniqueId}&mcid=${p.name}")?:"Null"
+    fun createBank(uuid:UUID) {
+        val p = Bukkit.getOfflinePlayer(uuid)
+        getRequest("${apiRoute}create?uuid=${p.uniqueId}&mcid=${p.name}")
     }
 
     data class TransactionData(

@@ -37,7 +37,7 @@ object BankCommand : CommandExecutor{
 
         //所持金確認コマンド
         if (args.isEmpty()){
-            async.execute { showBalance(sender,sender.uniqueId) }
+            asyncShowBalance(sender,sender.uniqueId)
             return true
         }
 
@@ -50,7 +50,7 @@ object BankCommand : CommandExecutor{
 
             "log" ->{
                 val page  = if (args.size == 1) 0 else args[1].toIntOrNull()?:0
-                async.execute { showLog(sender.uniqueId,sender,page) }
+                asyncShowLog(sender.uniqueId,sender,page)
             }
 
             /////////運営用コマンド/////////
@@ -65,7 +65,7 @@ object BankCommand : CommandExecutor{
                         msg(sender,"ログイン履歴がない可能性があります")
                         return@execute
                     }
-                    showBalance(sender,uuid)
+                    asyncShowBalance(sender,uuid)
                 }
             }
 
@@ -79,7 +79,7 @@ object BankCommand : CommandExecutor{
                         msg(sender,"プレイヤーが見つかりません")
                         return@execute
                     }
-                    showLog(uuid,sender,page)
+                    asyncShowLog(uuid,sender,page)
                 }
             }
 
@@ -249,46 +249,54 @@ object BankCommand : CommandExecutor{
         return true
     }
 
-    fun showBalance(sender: CommandSender,uuid:UUID){
+    fun asyncShowBalance(sender: CommandSender, uuid:UUID){
 
-        val p = Bukkit.getPlayer(uuid)
+        async.execute {
+            val p = Bukkit.getPlayer(uuid)
 
-        if (p == null){
-            EstateHistory.asyncShowEstate(sender,uuid)
-            return
-        }
-
-        val revoInfo = APIServerLoan.getInfo(p.uniqueId)
-
-        val bankAmount = APIBank.getBalance(p.uniqueId)
-        val loan = revoInfo?.borrow_amount?:0.0
-        val payment =revoInfo?.payment_amount?:0.0
-        val failed = revoInfo?.failed_payment?:0
-        val nextDate = APIServerLoan.nextPayDate(p.uniqueId)
-        val score = APIBank.getScore(p.uniqueId)
-        val balance = vault.getBalance(p.uniqueId)
-        val cash = ATM.getCash(p)
-        val estate = APIHistory.getUserEstate(p.uniqueId)?.estete?:0.0
-
-        msg(sender,"§e§l==========${p.name}のお金==========")
-        msg(sender," §b§l電子マネー:  §e§l${format(balance)}円")
-        if (bankAmount != -1.0){
-            msg(sender," §b§l銀行:  §e§l${format(bankAmount)}円")
-        }
-        if (cash>0.0){ msg(sender," §b§l現金:  §e§l${format(cash)}円") }
-        if (estate>0.0){ msg(sender," §b§lその他の資産:  §e§l${format(estate)}円") }
-
-        msg(sender," §b§lスコア: §a§l${format(score.toDouble())}")
-
-        if (loan!=0.0 && nextDate!=null){
-            msg(sender," §b§lまんじゅうリボ:  §c§l${format(loan)}円")
-            msg(sender," §b§l支払額:  §c§l${format(payment)}円")
-            msg(sender," §b§l次の支払日: §c§l${nextDate.format(DateTimeFormatter.ISO_LOCAL_DATE)}")
-            if (failed>0){
-                msg(sender," §c§lMan10リボの支払いに失敗しました(失敗回数:${failed}回)。支払いに失敗するとスコアの減少や労働所送りにされることがあります")
+            if (p == null){
+                EstateHistory.asyncShowEstate(sender,uuid)
+                return@execute
             }
+
+            val revoInfo = APIServerLoan.getInfo(p.uniqueId)
+
+            val bankAmount = APIBank.getBalance(p.uniqueId)
+
+            if (bankAmount < 0){
+                APIBank.createBank(uuid)
+                return@execute
+            }
+
+            val loan = revoInfo?.borrow_amount?:0.0
+            val payment =revoInfo?.payment_amount?:0.0
+            val failed = revoInfo?.failed_payment?:0
+            val nextDate = APIServerLoan.nextPayDate(p.uniqueId)
+            val score = APIBank.getScore(p.uniqueId)
+            val balance = vault.getBalance(p.uniqueId)
+            val cash = ATM.getCash(p)
+            val estate = APIHistory.getUserEstate(p.uniqueId)?.estete?:0.0
+
+            msg(sender,"§e§l==========${p.name}のお金==========")
+            msg(sender," §b§l電子マネー:  §e§l${format(balance)}円")
+            msg(sender," §b§l銀行:  §e§l${format(bankAmount)}円")
+            if (cash>0.0){ msg(sender," §b§l現金:  §e§l${format(cash)}円") }
+            if (estate>0.0){ msg(sender," §b§lその他の資産:  §e§l${format(estate)}円") }
+
+            msg(sender," §b§lスコア: §a§l${format(score.toDouble())}")
+
+            if (loan!=0.0 && nextDate!=null){
+                msg(sender," §b§lまんじゅうリボ:  §c§l${format(loan)}円")
+                msg(sender," §b§l支払額:  §c§l${format(payment)}円")
+                msg(sender," §b§l次の支払日: §c§l${nextDate.format(DateTimeFormatter.ISO_LOCAL_DATE)}")
+                if (failed>0){
+                    msg(sender," §c§lMan10リボの支払いに失敗しました(失敗回数:${failed}回)。支払いに失敗するとスコアの減少や労働所送りにされることがあります")
+                }
+            }
+            sender.sendMessage(text("$prefix §a§l§n[ここをクリックでコマンドをみる]").clickEvent(ClickEvent.runCommand("/bank help")))
+
         }
-        sender.sendMessage(text("$prefix §a§l§n[ここをクリックでコマンドをみる]").clickEvent(ClickEvent.runCommand("/bank help")))
+
     }
 
     private fun showCommand(sender:Player){
@@ -309,31 +317,34 @@ object BankCommand : CommandExecutor{
         sender.sendMessage(log)
     }
 
-    private fun showLog(uuid:UUID,sender:CommandSender,page:Int){
+    private fun asyncShowLog(uuid:UUID, sender:CommandSender, page:Int){
 
-        val skip = page*10
-        val log = APIBank.getBankLog(uuid,10,skip)
-        val mcid = Bukkit.getOfflinePlayer(uuid).name
+        async.execute {
+            val skip = page*10
+            val log = APIBank.getBankLog(uuid,10,skip)
+            val mcid = Bukkit.getOfflinePlayer(uuid).name
 
-        msg(sender,"§d§l===========${mcid}の銀行の履歴==========")
+            msg(sender,"§d§l===========${mcid}の銀行の履歴==========")
 
-        log.forEach { data->
-            val tag = if (data.deposit) "§a[入金]" else "§c[出金]"
-            msg(sender,"$tag §e${data.date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))} " +
-                    "§e§l${format(data.amount)} §e${data.display_note}")
+            log.forEach { data->
+                val tag = if (data.deposit) "§a[入金]" else "§c[出金]"
+                msg(sender,"$tag §e${data.date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))} " +
+                        "§e§l${format(data.amount)} §e${data.display_note}")
+            }
+
+            val arg = if (mcid == sender.name) "/bal log " else "/bal logop $mcid "
+
+            val previous = if (page!=0) {
+                text("${prefix}§b§l<<==前のページ ").clickEvent(ClickEvent.runCommand(arg+(page-1)))
+            }else text(prefix)
+
+            val next = if (log.size == 10){
+                text("§b§l次のページ==>>").clickEvent(ClickEvent.runCommand(arg+(page+1)))
+            }else text("")
+
+            sender.sendMessage(previous.append(next))
         }
 
-        val arg = if (mcid == sender.name) "/bal log " else "/bal logop $mcid "
-
-        val previous = if (page!=0) {
-            text("${prefix}§b§l<<==前のページ ").clickEvent(ClickEvent.runCommand(arg+(page-1)))
-        }else text(prefix)
-
-        val next = if (log.size == 10){
-            text("§b§l次のページ==>>").clickEvent(ClickEvent.runCommand(arg+(page+1)))
-        }else text("")
-
-        sender.sendMessage(previous.append(next))
     }
 
 }

@@ -22,7 +22,7 @@ object APIHistory {
     }
 
     fun getServerEstate():ServerEstate?{
-        val result = getRequest(apiRoute+"get-user-estate")?:return null
+        val result = getRequest(apiRoute+"get-server-estate")?:return null
         return gson.fromJson(result, ServerEstate::class.java)
     }
 
