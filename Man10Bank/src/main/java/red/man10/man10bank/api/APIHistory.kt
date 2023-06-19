@@ -11,8 +11,8 @@ object APIHistory {
 
     private const val apiRoute = "/history/"
 
-    fun getBalanceTop(size : Int):Array<EstateTable>{
-        val result = getRequest("${apiRoute}get-balance-top?size=${size}")?:""
+    fun getBalanceTop(record : Int, skip:Int):Array<EstateTable>{
+        val result = getRequest("${apiRoute}get-balance-top?record=${record}&skip=${skip}")?:""
         return gson.fromJson(result,arrayOf<EstateTable>()::class.java)
     }
 

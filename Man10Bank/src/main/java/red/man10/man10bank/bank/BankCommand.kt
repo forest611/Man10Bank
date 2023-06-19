@@ -8,12 +8,13 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
-import red.man10.man10bank.Man10Bank.Companion.thread
+import red.man10.man10bank.Man10Bank.Companion.async
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APIHistory
 import red.man10.man10bank.api.APIServerLoan
+import red.man10.man10bank.history.EstateHistory
 import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
@@ -24,7 +25,7 @@ import java.util.*
 /**
  *  銀行の残高を閲覧したりするコマンド
  */
-object Bank : CommandExecutor{
+object BankCommand : CommandExecutor{
 
     val labels = arrayOf("bal","balance","bank","money")
 
@@ -36,7 +37,7 @@ object Bank : CommandExecutor{
 
         //所持金確認コマンド
         if (args.isEmpty()){
-            thread.execute { showBalance(sender,sender) }
+            async.execute { showBalance(sender,sender.uniqueId) }
             return true
         }
 
@@ -49,7 +50,7 @@ object Bank : CommandExecutor{
 
             "log" ->{
                 val page  = if (args.size == 1) 0 else args[1].toIntOrNull()?:0
-                thread.execute { showLog(sender.uniqueId,sender,page) }
+                async.execute { showLog(sender.uniqueId,sender,page) }
             }
 
             /////////運営用コマンド/////////
@@ -58,21 +59,21 @@ object Bank : CommandExecutor{
             "user" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
-                val p = Bukkit.getPlayer(args[1])
-
-                if (p==null){
-                    msg(sender,"プレイヤーがオフラインです")
-                    return true
+                async.execute {
+                    val uuid = APIBank.getUUID(args[1])
+                    if (uuid == null){
+                        msg(sender,"ログイン履歴がない可能性があります")
+                        return@execute
+                    }
+                    showBalance(sender,uuid)
                 }
-
-                thread.execute { showBalance(p,sender) }
             }
 
             "logop" ->{//bal logop forest611 0
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
                 val page  = if (args.size == 2) 0 else args[2].toIntOrNull()?:0
-                thread.execute {
+                async.execute {
                     val uuid = APIBank.getUUID(args[1])
                     if (uuid == null){
                         msg(sender,"プレイヤーが見つかりません")
@@ -108,7 +109,7 @@ object Bank : CommandExecutor{
                     return true
                 }
 
-                thread.execute {
+                async.execute {
                     val ret = APIBank.addBank(APIBank.TransactionData(
                         sender.uniqueId.toString(),
                         amount,
@@ -152,7 +153,7 @@ object Bank : CommandExecutor{
                     return true
                 }
 
-                thread.execute {
+                async.execute {
                     val ret = APIBank.takeBank(APIBank.TransactionData(
                         sender.uniqueId.toString(),
                         amount,
@@ -196,7 +197,7 @@ object Bank : CommandExecutor{
                     return true
                 }
 
-                thread.execute {
+                async.execute {
                     val ret = APIBank.setBank(APIBank.TransactionData(
                         sender.uniqueId.toString(),
                         amount,
@@ -248,14 +249,21 @@ object Bank : CommandExecutor{
         return true
     }
 
-    fun showBalance(p:Player, sender: CommandSender){
+    fun showBalance(sender: CommandSender,uuid:UUID){
 
-        val serverLoanData = APIServerLoan.getInfo(p.uniqueId)
+        val p = Bukkit.getPlayer(uuid)
+
+        if (p == null){
+            EstateHistory.asyncShowEstate(sender,uuid)
+            return
+        }
+
+        val revoInfo = APIServerLoan.getInfo(p.uniqueId)
 
         val bankAmount = APIBank.getBalance(p.uniqueId)
-        val loan = serverLoanData?.borrow_amount?:0.0
-        val payment =serverLoanData?.payment_amount?:0.0
-        val failed = serverLoanData?.failed_payment?:0
+        val loan = revoInfo?.borrow_amount?:0.0
+        val payment =revoInfo?.payment_amount?:0.0
+        val failed = revoInfo?.failed_payment?:0
         val nextDate = APIServerLoan.nextPayDate(p.uniqueId)
         val score = APIBank.getScore(p.uniqueId)
         val balance = vault.getBalance(p.uniqueId)

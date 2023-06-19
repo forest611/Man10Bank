@@ -198,15 +198,15 @@ public static class History
     /// <summary>
     /// 資産トップを取得
     /// </summary>
-    /// <param name="size">何位まで取得するか</param>
+    /// <param name="record">何位まで取得するか</param>
     /// <returns></returns>
-    public static async Task<EstateTable[]> GetBalanceTop(int size)
+    public static async Task<EstateTable[]> GetBalanceTop(int record,int skip)
     {
         var result = await Task.Run(() =>
         {
             var context = new BankContext();
 
-            var records = context.estate_tbl.OrderByDescending(r => r.total).Take(size).ToArray();
+            var records = context.estate_tbl.OrderByDescending(r => r.total).Skip(skip).Take(record).ToArray();
             
             context.Dispose();
             

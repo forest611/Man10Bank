@@ -8,7 +8,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import red.man10.man10bank.Man10Bank.Companion.thread
 import red.man10.man10bank.history.EstateHistory
 
 object BankEvent : Listener{
@@ -19,7 +18,7 @@ object BankEvent : Listener{
 
         Thread{
             Thread.sleep(3000)
-            Bank.showBalance(p, p)
+            BankCommand.showBalance(p, p)
         }.start()
     }
 

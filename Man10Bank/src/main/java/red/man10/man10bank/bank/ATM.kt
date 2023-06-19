@@ -2,17 +2,14 @@ package red.man10.man10bank.bank
 
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
-import org.bukkit.block.ShulkerBox
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.BlockStateMeta
-import org.bukkit.inventory.meta.BundleMeta
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank.Companion.instance
-import red.man10.man10bank.Man10Bank.Companion.thread
+import red.man10.man10bank.Man10Bank.Companion.async
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.APIHistory
 import red.man10.man10bank.util.Utility.getBundleItem
@@ -74,7 +71,7 @@ object ATM :CommandExecutor{
             itemStack.amount = 0
             vault.deposit(p.uniqueId,amount)
 
-            thread.execute {
+            async.execute {
                 APIHistory.addATMLog(APIHistory.ATMLog(0,p.name,p.uniqueId.toString(),amount,true, LocalDateTime.now()))
             }
         }

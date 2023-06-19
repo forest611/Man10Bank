@@ -8,7 +8,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Config
 import red.man10.man10bank.Man10Bank
-import red.man10.man10bank.Man10Bank.Companion.thread
+import red.man10.man10bank.Man10Bank.Companion.async
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APIServerLoan
 import red.man10.man10bank.api.APIServerLoan.ServerLoanProperty
@@ -144,7 +144,7 @@ object ServerLoan : CommandExecutor{
         when(args[0]){
 
             "check" ->{
-                thread.execute {
+                async.execute {
                     checkAmount(sender)
                 }
             }
@@ -187,7 +187,7 @@ object ServerLoan : CommandExecutor{
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                thread.execute {
+                async.execute {
                     showBorrowMessage(sender,amount)
                 }
             }
@@ -200,7 +200,7 @@ object ServerLoan : CommandExecutor{
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                thread.execute { borrow(sender,amount) }
+                async.execute { borrow(sender,amount) }
             }
 
             "payment" ->{
@@ -209,7 +209,7 @@ object ServerLoan : CommandExecutor{
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                thread.execute {
+                async.execute {
                     setPayment(sender,amount)
                 }
 
@@ -220,7 +220,7 @@ object ServerLoan : CommandExecutor{
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                thread.execute {
+                async.execute {
                     pay(sender,amount)
                 }
             }
@@ -228,7 +228,7 @@ object ServerLoan : CommandExecutor{
             "payall" ->{
                 if (args.size != 2)return true
 
-                thread.execute {
+                async.execute {
                     payAll(sender)
                 }
             }

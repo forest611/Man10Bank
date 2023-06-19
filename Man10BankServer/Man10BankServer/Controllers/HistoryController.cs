@@ -10,9 +10,9 @@ public class HistoryController : ControllerBase
 {
 
     [HttpGet("get-balance-top")]
-    public EstateTable[] GetBalanceTop(int size)
+    public EstateTable[] GetBalanceTop(int record,int skip)
     {
-        return History.GetBalanceTop(size).Result;
+        return History.GetBalanceTop(record,skip).Result;
     }
 
     [HttpGet("get-user-estate")]

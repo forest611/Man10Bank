@@ -32,3 +32,7 @@ commands:
     description: 'リボのコマンド'
   mlend:
     description: '個人間借金'
+  mbaltop:
+    description: '長者番付'
+  estateinfo:
+    description: '資産情報'

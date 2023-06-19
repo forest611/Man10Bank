@@ -2,10 +2,7 @@ package red.man10.man10bank
 
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.api.APIBase
-import red.man10.man10bank.bank.ATM
-import red.man10.man10bank.bank.Bank
-import red.man10.man10bank.bank.BankEvent
-import red.man10.man10bank.bank.DealCommand
+import red.man10.man10bank.bank.*
 import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.loan.LocalLoan
 import red.man10.man10bank.loan.ServerLoan
@@ -19,7 +16,7 @@ class Man10Bank : JavaPlugin() {
         lateinit var instance : Man10Bank
         lateinit var vault : VaultManager
 
-        val thread = Executors.newSingleThreadExecutor()
+        val async = Executors.newSingleThreadExecutor()
 
         private var bankOpen = true
 
@@ -51,7 +48,7 @@ class Man10Bank : JavaPlugin() {
 
         //      システム終了
         fun systemClose(){
-            thread.shutdownNow()
+            async.shutdownNow()
         }
 
         //      Configの読み込み
@@ -81,7 +78,9 @@ class Man10Bank : JavaPlugin() {
         getCommand("mchequeop")!!.setExecutor(Cheque)
         getCommand("atm")!!.setExecutor(ATM)
         getCommand("mlend")!!.setExecutor(LocalLoan)
-        Bank.labels.forEach { getCommand(it)!!.setExecutor(Bank) }
+        getCommand("mbaltop")!!.setExecutor(TopCommand)
+        getCommand("estateinfo")!!.setExecutor(TopCommand)
+        BankCommand.labels.forEach { getCommand(it)!!.setExecutor(BankCommand) }
         DealCommand.labels.forEach { getCommand(it)!!.setExecutor(DealCommand) }
 
         //イベントの登録

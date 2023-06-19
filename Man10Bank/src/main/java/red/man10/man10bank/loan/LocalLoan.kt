@@ -15,7 +15,7 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank.Companion.instance
-import red.man10.man10bank.Man10Bank.Companion.thread
+import red.man10.man10bank.Man10Bank.Companion.async
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APILocalLoan
@@ -125,7 +125,7 @@ object LocalLoan: Listener,CommandExecutor{
 
         item.amount = 0
 
-        thread.execute {
+        async.execute {
 
             val data = APILocalLoan.getInfo(id)?:return@execute
             val uuid = UUID.fromString(data.borrow_uuid)
@@ -227,7 +227,7 @@ object LocalLoan: Listener,CommandExecutor{
                 return true
             }
 
-            thread.execute {
+            async.execute {
                 create(lendP,sender,data.amount,data.interest,data.due)
             }
 
