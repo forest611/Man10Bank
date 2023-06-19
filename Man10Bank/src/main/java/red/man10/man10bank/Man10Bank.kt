@@ -7,6 +7,7 @@ import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.loan.LocalLoan
 import red.man10.man10bank.loan.ServerLoan
 import red.man10.man10bank.util.MenuFramework
+import red.man10.man10bank.util.Utility
 import java.util.concurrent.Executors
 
 class Man10Bank : JavaPlugin() {
@@ -59,6 +60,7 @@ class Man10Bank : JavaPlugin() {
 
             bankOpen = instance.config.getBoolean(Config.BANK_ENABLE)
             ServerLoan.isEnable = instance.config.getBoolean(Config.SERVER_LOAN_ENABLE)
+            Utility.debugMode = instance.config.getBoolean(Config.DEBUG_MODE)
         }
     }
 

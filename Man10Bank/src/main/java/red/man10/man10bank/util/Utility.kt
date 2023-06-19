@@ -12,6 +12,7 @@ import java.text.Normalizer
 object Utility{
 
     const val prefix = "§l[§e§lMan10Bank§f§l]§f"
+    var debugMode = false
 
     fun msg(p: Player, msg: String) {
         p.sendMessage(prefix + msg)
@@ -43,6 +44,7 @@ object Utility{
     }
 
     fun loggerDebug(str: String?){
+        if (!debugMode)return
         Bukkit.getLogger().warning("[Man10BankDebug]$str")
     }
 

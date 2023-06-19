@@ -6,6 +6,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import org.bukkit.Bukkit
+import red.man10.man10bank.Config
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.util.Utility.loggerDebug
 import red.man10.man10bank.util.Utility.loggerInfo
@@ -108,7 +109,7 @@ object APIBase {
 
         Man10Bank.instance.reloadConfig()
 
-        url = Man10Bank.instance.config.getString("api.url")?:"https://localhost:7031"
+        url = Man10Bank.instance.config.getString(Config.API_URL)?:"https://localhost:7031"
 
         val code = connectionCheck()
 
