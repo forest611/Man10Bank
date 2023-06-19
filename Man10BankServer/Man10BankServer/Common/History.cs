@@ -126,31 +126,27 @@ public static class History
             data.bank = Bank.SyncGetBalance(data.uuid).Result;
             data.loan = ServerLoan.GetBorrowingInfo(data.uuid).Result?.borrow_amount ?? 0;
 
-            //古いデータ
-            var lastVault = record.vault;
-            var lastBank = record.bank;
-            var lastCash = record.cash;
-            var lastLoan = record.loan;
-            var lastEstate = record.estate;
-            var lastShop = record.shop;
+            var dataHasNotChanged = data.vault == record.vault &&
+                                     data.bank == record.bank &&
+                                     data.cash == record.cash &&
+                                     data.loan == record.loan &&
+                                     data.estate == record.estate &&
+                                     data.shop == record.shop;
 
-            var dataHasNotChanged = data.vault == lastVault &&
-                                     data.bank == lastBank &&
-                                     data.cash == lastCash &&
-                                     data.loan == lastLoan &&
-                                     data.estate == lastEstate &&
-                                     data.shop == lastShop;
-
-            data.total = data.vault + data.bank + data.cash + data.estate + data.shop + data.crypto;
-            data.date = DateTime.Now;
-            
             if (dataHasNotChanged)
             {
                 return; 
             }
-            
-            context.estate_tbl.Add(data);
 
+            record.vault = data.vault;
+            record.bank = data.bank;
+            record.cash = data.cash;
+            record.loan = data.loan;
+            record.estate = data.estate;
+            record.shop = data.shop;
+            record.total = data.vault + data.bank + data.cash + data.estate + data.shop + data.crypto;
+            record.date = DateTime.Now;
+            
             //ヒストリーを追加
             var history = new EstateHistoryTable
             {
@@ -163,8 +159,7 @@ public static class History
                 uuid = data.uuid,
                 player = data.player,
                 crypto = data.crypto,
-                total = data.total,
-                date = DateTime.Now
+                total = data.total
             };
 
             context.estate_history_tbl.Add(history);
