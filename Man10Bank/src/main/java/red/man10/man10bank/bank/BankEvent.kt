@@ -18,7 +18,7 @@ object BankEvent : Listener{
 
         Thread{
             Thread.sleep(3000)
-            BankCommand.showBalance(p, p)
+            BankCommand.showBalance(p, p.uniqueId)
         }.start()
     }
 
