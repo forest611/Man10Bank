@@ -73,7 +73,7 @@ public class BankController : ControllerBase
         return false;
     }
 
-    [HttpPost("create")]
+    [HttpGet("create")]
     public void CreateBank(string uuid,string mcid)
     {
         Bank.CreateBank(uuid,mcid);
