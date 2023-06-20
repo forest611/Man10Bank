@@ -140,7 +140,7 @@ object LocalLoan: Listener,CommandExecutor{
                     bankMoney,
                     instance.name,
                     "paybackmoney",
-                    "借金の返済")) == "Successful"){
+                    "借金の返済")) == APIBank.BankResult.SUCCESSFUL){
                 paidMoney += bankMoney
             }
 

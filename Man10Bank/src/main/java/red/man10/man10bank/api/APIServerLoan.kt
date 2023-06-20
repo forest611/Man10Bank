@@ -3,6 +3,7 @@ package red.man10.man10bank.api
 import okhttp3.RequestBody.Companion.toRequestBody
 import red.man10.man10bank.api.APIBase.getRequest
 import red.man10.man10bank.api.APIBase.gson
+import red.man10.man10bank.api.APIBase.postRequest
 import java.time.LocalDateTime
 import java.util.*
 
@@ -30,10 +31,14 @@ object APIServerLoan {
         return gson.fromJson(result,ServerLoanTable::class.java)
     }
 
-    fun setInfo(data: ServerLoanTable): String {
+    fun setInfo(data: ServerLoanTable): APIBank.BankResult {
         val jsonStr = gson.toJson(data)
         val body = jsonStr.toRequestBody(APIBase.mediaType)
-        return getRequest("${apiRoute}set-info", body) ?: "Null"
+        return when(postRequest("${apiRoute}set-info", body)){
+            200 -> APIBank.BankResult.SUCCESSFUL
+            550 -> APIBank.BankResult.NOT_FOUND_ACCOUNT
+            else -> APIBank.BankResult.UNKNOWN_STATUS_CODE
+        }
     }
 
     //お金を借りる

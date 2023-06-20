@@ -29,7 +29,7 @@ object APIBase {
     lateinit var gson : Gson
 
     //      POST
-    fun postRequest(url: String,body: RequestBody? = null){
+    fun postRequest(url: String,body: RequestBody? = null):Int{
 
         loggerDebug("PostRequest:${url}")
 
@@ -44,28 +44,28 @@ object APIBase {
                 .build()
         }
 
+        var code = 0
+
         try {
-            client.newCall(request).execute()
+            val response = client.newCall(request).execute()
+            code = response.code
+            response.close()
+            loggerDebug("StatusCode:${code}")
         }catch (e:Exception){
             Bukkit.getLogger().info(e.message)
         }
+
+        return code
     }
 
     //      GET
-    fun getRequest(url:String, body: RequestBody? = null): String? {
+    fun getRequest(url:String): String? {
 
         loggerDebug("GetRequest:${url}")
 
-        val request = if (body!=null){
-            Request.Builder()
-                .url(APIBase.url+url)
-                .post(body)
-                .build()
-        } else{
-            Request.Builder()
-                .url(APIBase.url+url)
-                .build()
-        }
+        val request = Request.Builder()
+            .url(APIBase.url+url)
+            .build()
 
         var result : String? = null
 

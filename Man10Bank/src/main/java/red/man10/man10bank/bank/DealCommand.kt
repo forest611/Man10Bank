@@ -53,7 +53,7 @@ object DealCommand : CommandExecutor{
             }
 
             async.execute {
-                val ret = APIBank.addBank(APIBank.TransactionData(
+                val result = APIBank.addBank(APIBank.TransactionData(
                     sender.uniqueId.toString(),
                     amount,
                     instance.name,
@@ -61,7 +61,7 @@ object DealCommand : CommandExecutor{
                     "/depositによる入金"
                 ))
 
-                if (ret != "Successful"){
+                if (result != APIBank.BankResult.SUCCESSFUL){
                     msg(sender,"§c入金エラーが発生しました")
                     vault.deposit(sender.uniqueId,amount)
                     return@execute
@@ -90,7 +90,7 @@ object DealCommand : CommandExecutor{
             }
 
             async.execute {
-                val ret = APIBank.takeBank(APIBank.TransactionData(
+                val result = APIBank.takeBank(APIBank.TransactionData(
                     sender.uniqueId.toString(),
                     amount,
                     instance.name,
@@ -98,7 +98,12 @@ object DealCommand : CommandExecutor{
                     "/withdrawによる出金"
                 ))
 
-                if (ret != "Successful"){
+                if (result == APIBank.BankResult.NOT_ENOUGH_MONEY){
+                    msg(sender,"§c所持金が足りません")
+                    return@execute
+                }
+
+                if (result != APIBank.BankResult.SUCCESSFUL){
                     msg(sender,"§c出金エラーが発生しました")
                     vault.deposit(sender.uniqueId,amount)
                     return@execute

@@ -110,7 +110,7 @@ object BankCommand : CommandExecutor{
                 }
 
                 async.execute {
-                    val ret = APIBank.addBank(APIBank.TransactionData(
+                    val result = APIBank.addBank(APIBank.TransactionData(
                         sender.uniqueId.toString(),
                         amount,
                         Man10Bank.instance.name,
@@ -118,7 +118,7 @@ object BankCommand : CommandExecutor{
                         "サーバーから発行"
                     ))
 
-                    if (ret != "Successful"){
+                    if (result != APIBank.BankResult.SUCCESSFUL){
                         msg(sender,"§c入金エラーが発生しました")
                         return@execute
                     }
@@ -153,7 +153,7 @@ object BankCommand : CommandExecutor{
                 }
 
                 async.execute {
-                    val ret = APIBank.takeBank(APIBank.TransactionData(
+                    val result = APIBank.takeBank(APIBank.TransactionData(
                         sender.uniqueId.toString(),
                         amount,
                         Man10Bank.instance.name,
@@ -161,7 +161,7 @@ object BankCommand : CommandExecutor{
                         "サーバーから徴収"
                     ))
 
-                    if (ret != "Successful"){
+                    if (result != APIBank.BankResult.SUCCESSFUL){
                         msg(sender,"§c出金エラーが発生しました")
                         return@execute
                     }
@@ -196,7 +196,7 @@ object BankCommand : CommandExecutor{
                 }
 
                 async.execute {
-                    val ret = APIBank.setBank(APIBank.TransactionData(
+                    APIBank.setBank(APIBank.TransactionData(
                         sender.uniqueId.toString(),
                         amount,
                         Man10Bank.instance.name,
@@ -204,10 +204,6 @@ object BankCommand : CommandExecutor{
                         "サーバーによる設定"
                     ))
 
-                    if (ret != "Successful"){
-                        msg(sender,"§cエラーが発生しました")
-                        return@execute
-                    }
                     msg(sender,"§e設定できました！")
                 }
             }

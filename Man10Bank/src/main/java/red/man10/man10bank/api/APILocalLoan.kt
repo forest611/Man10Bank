@@ -3,6 +3,7 @@ package red.man10.man10bank.api
 import okhttp3.RequestBody.Companion.toRequestBody
 import red.man10.man10bank.api.APIBase.getRequest
 import red.man10.man10bank.api.APIBase.gson
+import red.man10.man10bank.api.APIBase.postRequest
 import java.util.*
 
 object APILocalLoan {
@@ -12,8 +13,9 @@ object APILocalLoan {
     fun create(data:LocalLoanTable):Int{
         val jsonStr = APIBase.gson.toJson(data)
         val body = jsonStr.toRequestBody(APIBase.mediaType)
-        val result = getRequest("${apiRoute}create",body)
-        return result?.toIntOrNull()?:-1
+        val result = postRequest("${apiRoute}create",body)
+        //TODO:なんとかする
+        return 0
     }
 
     fun pay(id:Int,amount:Double):String{

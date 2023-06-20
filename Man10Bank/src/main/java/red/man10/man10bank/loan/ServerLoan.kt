@@ -10,6 +10,7 @@ import red.man10.man10bank.Config
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.async
 import red.man10.man10bank.Permissions
+import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APIServerLoan
 import red.man10.man10bank.api.APIServerLoan.ServerLoanProperty
 import red.man10.man10bank.util.Utility.format
@@ -47,7 +48,7 @@ object ServerLoan : CommandExecutor{
 
         val ret = APIServerLoan.setInfo(data)
 
-        if (ret == "Successful"){
+        if (ret == APIBank.BankResult.SUCCESSFUL){
             msg(p,"§e§l支払額を${format(amount)}円に変更しました")
             return
         }
