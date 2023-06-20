@@ -27,10 +27,10 @@ public class ServerLoanController : ControllerBase
         return ServerLoan.GetBorrowingInfo(uuid).Result;
     }
 
-    [HttpGet("set-info")]
-    public string SetInfo([FromBody] ServerLoanTable info)
+    [HttpPost("set-info")]
+    public IActionResult SetInfo([FromBody] ServerLoanTable info)
     {
-        return ServerLoan.SetBorrowingInfo(info).Result;
+        return StatusCode(ServerLoan.SetBorrowingInfo(info).Result);
     }
 
     [HttpGet("try-borrow")]

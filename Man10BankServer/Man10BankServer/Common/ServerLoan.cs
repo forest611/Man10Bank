@@ -134,7 +134,7 @@ public static class ServerLoan
             
             //支払い処理
             if (Bank.SyncTakeBalance(data.uuid, amount, "Man10Bank", "Man10Revolving", "Man10リボの支払い").Result 
-                != "Successful") return false;
+                != 200) return false;
             //支払い成功した場合
             // data.last_pay_date = now;
             data.borrow_amount -= data.payment_amount;
@@ -175,24 +175,24 @@ public static class ServerLoan
     /// </summary>
     /// <param name="data"></param>
     /// <returns></returns>
-    public static async Task<string> SetBorrowingInfo(ServerLoanTable data)
+    public static async Task<int> SetBorrowingInfo(ServerLoanTable data)
     {
 
         var result = await Task.Run(() =>
         {
             var context = new BankContext();
 
-            string ret;
+            int ret;
 
             if (!context.server_loan_tbl.Any(r=>r.id==data.id))
             {
                 context.Dispose();
-                ret = "NotFound";            
+                ret = 550;
                 return ret;
             }
             
             context.server_loan_tbl.Update(data);
-            ret = "Update";
+            ret = 200;
             context.Dispose();
             
             return ret;
@@ -304,7 +304,7 @@ public static class ServerLoan
                 var failedFlag = false;
                 
                 //支払い処理
-                if (Bank.SyncTakeBalance(data.uuid,payment,"Man10Bank","Man10Revolving","Man10リボの支払い").Result == "Successful")
+                if (Bank.SyncTakeBalance(data.uuid,payment,"Man10Bank","Man10Revolving","Man10リボの支払い").Result == 200)
                 {
                      //支払い成功した場合
                     data.last_pay_date = now;

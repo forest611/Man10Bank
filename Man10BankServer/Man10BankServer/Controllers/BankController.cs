@@ -53,24 +53,22 @@ public class BankController : ControllerBase
         return Bank.GetLog(uuid,record,skip).Result;
     }
 
-    [HttpGet("add")]
-    public string AddBalance([FromBody]TransactionData data)
+    [HttpPost("add")]
+    public IActionResult AddBalance([FromBody]TransactionData data)
     {
-        var ret = Bank.SyncAddBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
-        return ret.Result;
+        return StatusCode(Bank.SyncAddBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote).Result);
     }
 
-    [HttpGet("take")]
-    public string TakeBalance([FromBody]TransactionData data)
+    [HttpPost("take")]
+    public IActionResult TakeBalance([FromBody]TransactionData data)
     {
-        return Bank.SyncTakeBalance(data.UUID, data.Amount, data.Plugin, data.Note, data.DisplayNote).Result;
+        return StatusCode(Bank.SyncTakeBalance(data.UUID, data.Amount, data.Plugin, data.Note, data.DisplayNote).Result);
     }
     
-    [HttpGet("set")]
-    public bool SetBalance([FromBody]TransactionData data)
+    [HttpPost("set")]
+    public void SetBalance([FromBody]TransactionData data)
     {
-        Bank.SetBalance(data.UUID,data.Amount,data.Plugin,data.Note,data.DisplayNote);
-        return false;
+        Bank.SetBalance(data.UUID, data.Amount, data.Plugin, data.Note, data.DisplayNote);
     }
 
     [HttpGet("create")]

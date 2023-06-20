@@ -59,11 +59,11 @@ public static class Bank
     /// <param name="note"></param>
     /// <param name="displayNote"></param>
     /// <returns></returns>
-    public static async Task<string> SyncAddBalance(string uuid, double amount,string plugin,string note,string displayNote)
+    public static async Task<int> SyncAddBalance(string uuid, double amount,string plugin,string note,string displayNote)
     {
         var result = await Task.Run(() =>
         {
-            var ret = "Successful";
+            var ret = 550;
             var lockObj = new object();
 
             Monitor.Enter(lockObj);
@@ -94,11 +94,11 @@ public static class Bank
     /// <param name="note"></param>
     /// <param name="displayNote"></param>
     /// <returns></returns>
-    public static async Task<string> SyncTakeBalance(string uuid, double amount,string plugin,string note,string displayNote)
+    public static async Task<int> SyncTakeBalance(string uuid, double amount,string plugin,string note,string displayNote)
     {
         var result = await Task.Run(() =>
         {
-            var ret = "Successful";
+            var ret = 550;
             var lockObj = new object();
             
             Monitor.Enter(lockObj);
@@ -154,8 +154,11 @@ public static class Bank
     /// <param name="plugin"></param>
     /// <param name="note"></param>
     /// <param name="displayNote"></param>
-    /// <param name="callback"></param>
-    private static void AddBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<string>? callback = null)
+    /// <param name="callback">
+    /// 200:成功
+    /// 550:口座なし
+    /// </param>
+    private static void AddBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<int>? callback = null)
     {
         BankQueue.TryAdd(context =>
         {
@@ -163,7 +166,7 @@ public static class Bank
             if (result == null)
             {
                 Console.WriteLine("口座がありません");
-                callback?.Invoke("NotFoundBank");
+                callback?.Invoke(550);
                 return;
             }
             result.balance = Math.Floor(result.balance+amount);
@@ -171,7 +174,7 @@ public static class Bank
             
             PushBankLog(uuid,Math.Floor(amount),true,plugin,note,displayNote);
             
-            callback?.Invoke("Successful");
+            callback?.Invoke(200);
         });
     }
 
@@ -183,8 +186,12 @@ public static class Bank
     /// <param name="plugin"></param>
     /// <param name="note"></param>
     /// <param name="displayNote"></param>
-    /// <param name="callback"></param>
-    private static void TakeBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<string>? callback = null)
+    /// <param name="callback">
+    /// 200:成功
+    /// 550:口座なし
+    /// 551:残高不足
+    /// </param>
+    private static void TakeBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<int>? callback = null)
     {
         BankQueue.TryAdd(context =>
         {
@@ -192,14 +199,14 @@ public static class Bank
             if (result == null)
             {
                 Console.WriteLine("口座がありません");
-                callback?.Invoke("NotFoundBank");
+                callback?.Invoke(550);
                 return;
             }
 
             if (result.balance<amount)
             {
                 Console.WriteLine("残高不足");
-                callback?.Invoke("NotEnoughMoney");
+                callback?.Invoke(551);
                 return;
             }
             
@@ -208,7 +215,7 @@ public static class Bank
             
             PushBankLog(uuid,Math.Floor(amount),false,plugin,note,displayNote);
             
-            callback?.Invoke("Successful");
+            callback?.Invoke(200);
         });
     }
 
@@ -282,7 +289,7 @@ public static class Bank
             using var context = new BankContext();
             var ret = context.money_log
                 .Where(r => r.uuid == uuid)
-                .OrderBy(r => r.date)
+                .OrderByDescending(r => r.date)
                 .Skip(skip)
                 .Take(record)
                 .ToArray();
