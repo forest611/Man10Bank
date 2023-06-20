@@ -10,7 +10,7 @@ class BankAPI(private val plugin: JavaPlugin) {
      * 出金リクエストを送る
      */
     fun withdraw(uuid: UUID,amount:Double,note:String,displayNote:String):Boolean{
-        val ret = APIBank.takeBank(APIBank.TransactionData(
+        val result = APIBank.takeBank(APIBank.TransactionData(
             uuid.toString(),
             amount,
             plugin.name,
@@ -18,14 +18,14 @@ class BankAPI(private val plugin: JavaPlugin) {
             displayNote
         ))
 
-        return Result.valueOf(ret) == Result.Successful
+        return result == APIBank.BankResult.SUCCESSFUL
     }
 
     /**
      * 入金リクエストを送る
      */
     fun deposit(uuid: UUID,amount:Double,note:String,displayNote:String) : Boolean{
-        val ret = APIBank.addBank(APIBank.TransactionData(
+        val result = APIBank.addBank(APIBank.TransactionData(
             uuid.toString(),
             amount,
             plugin.name,
@@ -33,7 +33,7 @@ class BankAPI(private val plugin: JavaPlugin) {
             displayNote
         ))
 
-        return Result.valueOf(ret) == Result.Successful
+        return result == APIBank.BankResult.SUCCESSFUL
     }
 
     @Deprecated("displayNoteが設定できない", ReplaceWith("DisplayNoteつき"),DeprecationLevel.WARNING)
@@ -44,11 +44,6 @@ class BankAPI(private val plugin: JavaPlugin) {
     @Deprecated("displayNoteが設定できない", ReplaceWith("DisplayNoteつき"),DeprecationLevel.WARNING)
     fun withdraw(uuid:UUID,amount:Double,note:String):Boolean{
         return withdraw(uuid,amount, note,note)
-    }
-    enum class Result{
-        Successful,
-        NotEnoughMoney,
-        NotFoundBank,
     }
 
 }

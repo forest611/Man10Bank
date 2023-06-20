@@ -37,25 +37,34 @@ object APIBank {
         return gson.fromJson(result, arrayOf<MoneyLog>()::class.java)
     }
 
-    fun addBank(data: TransactionData): String {
+    fun addBank(data: TransactionData): BankResult {
 
         val jsonStr = gson.toJson(data)
         val body = jsonStr.toRequestBody(mediaType)
-        return getRequest(apiRoute + "add", body) ?: "Null"
+        when(postRequest(apiRoute + "add", body)){
+            200 -> return BankResult.SUCCESSFUL
+            550 -> return BankResult.NOT_FOUND_ACCOUNT
+        }
+        return BankResult.UNKNOWN_STATUS_CODE
     }
 
-    fun takeBank(data: TransactionData): String {
+    fun takeBank(data: TransactionData): BankResult {
 
         val jsonStr = gson.toJson(data)
         val body = jsonStr.toRequestBody(mediaType)
-        return getRequest(apiRoute + "take", body) ?: "Null"
+        when(postRequest(apiRoute + "take", body)){
+            200 -> return BankResult.SUCCESSFUL
+            550 -> return BankResult.NOT_FOUND_ACCOUNT
+            551 -> return BankResult.NOT_ENOUGH_MONEY
+        }
+        return BankResult.UNKNOWN_STATUS_CODE
     }
 
-    fun setBank(data:TransactionData): String {
+    fun setBank(data:TransactionData) {
 
         val jsonStr = gson.toJson(data)
         val body = jsonStr.toRequestBody(mediaType)
-        return getRequest(apiRoute+"set",body)?:"Null"
+        postRequest(apiRoute+"set",body)
     }
 
     fun createBank(uuid:UUID) {
@@ -83,4 +92,11 @@ object APIBank {
         var deposit : Boolean,
         var date : LocalDateTime
     )
+
+    enum class BankResult{
+        SUCCESSFUL,
+        NOT_FOUND_ACCOUNT,
+        NOT_ENOUGH_MONEY,
+        UNKNOWN_STATUS_CODE
+    }
 }
