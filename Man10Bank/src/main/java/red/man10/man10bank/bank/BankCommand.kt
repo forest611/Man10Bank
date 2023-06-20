@@ -120,7 +120,6 @@ object BankCommand : CommandExecutor{
 
                     if (ret != "Successful"){
                         msg(sender,"§c入金エラーが発生しました")
-                        vault.deposit(sender.uniqueId,amount)
                         return@execute
                     }
                     msg(sender,"§e入金できました！")
@@ -164,7 +163,6 @@ object BankCommand : CommandExecutor{
 
                     if (ret != "Successful"){
                         msg(sender,"§c出金エラーが発生しました")
-                        vault.deposit(sender.uniqueId,amount)
                         return@execute
                     }
                     msg(sender,"§e出金できました！")
@@ -208,7 +206,6 @@ object BankCommand : CommandExecutor{
 
                     if (ret != "Successful"){
                         msg(sender,"§cエラーが発生しました")
-                        vault.deposit(sender.uniqueId,amount)
                         return@execute
                     }
                     msg(sender,"§e設定できました！")
