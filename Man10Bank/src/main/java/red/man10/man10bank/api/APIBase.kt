@@ -58,6 +58,36 @@ object APIBase {
         return code
     }
 
+    //      POST
+    fun postAndGetResponse(url: String,body: RequestBody? = null):String{
+
+        loggerDebug("PostRequest:${url}")
+
+        val request = if (body!=null){
+            Request.Builder()
+                .url(APIBase.url+url)
+                .post(body)
+                .build()
+        } else{
+            Request.Builder()
+                .url(APIBase.url+url)
+                .build()
+        }
+
+        var result = ""
+
+        try {
+            val response = client.newCall(request).execute()
+            result = response.body?.string()?:""
+            response.close()
+            loggerDebug("ResponseBody:${result}")
+        }catch (e:Exception){
+            Bukkit.getLogger().info(e.message)
+        }
+
+        return result
+    }
+
     //      GET
     fun getRequest(url:String): String? {
 
