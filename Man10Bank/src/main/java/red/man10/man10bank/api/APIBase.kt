@@ -141,17 +141,26 @@ object APIBase {
 
         url = Man10Bank.instance.config.getString(Config.API_URL)?:"https://localhost:7031"
 
-        val code = connectionCheck()
+        when(val code = connectionCheck()){
+            0 ->{
+                loggerInfo("Man10BankServerの接続を確認しました")
+                return true
+            }
 
-        if (code != 0){
-            Man10Bank.instance.server.setWhitelist(true)
-            Bukkit.getLogger().warning("Man10BankServerの接続に失敗したので、ホワイトリストをかけます Code:${code}")
-            Bukkit.getLogger().warning("接続できる状態にした後にPaperMCの再起動をしてください")
-            return false
-        }else{
-            loggerInfo("Man10BankServerの接続を確認しました")
+            1 ->{
+                Man10Bank.instance.server.setWhitelist(true)
+                Bukkit.getLogger().warning("Man10BankServerがMySQLに接続できていません。ホワイトリストをかけます Code:${code}")
+                Bukkit.getLogger().warning("接続できる状態にした後にPaperMCの再起動をしてください")
+                return false
+            }
+
+            else ->{
+                Man10Bank.instance.server.setWhitelist(true)
+                Bukkit.getLogger().warning("Man10BankServerの接続に失敗したので、ホワイトリストをかけます Code:${code}")
+                Bukkit.getLogger().warning("接続できる状態にした後にPaperMCの再起動をしてください")
+                return false
+            }
         }
-        return true
     }
 
     //      接続を試す
