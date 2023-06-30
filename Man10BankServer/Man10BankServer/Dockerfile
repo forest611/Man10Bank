@@ -6,13 +6,13 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["Man10BankServer.csproj", "Man10BankServer/"]
-RUN dotnet restore "Man10BankServer/Man10BankServer.csproj"
+RUN dotnet restore Man10BankServer/Man10BankServer.csproj
 COPY . .
-WORKDIR "/src/Man10BankServer"
+WORKDIR /src/Man10BankServer
 RUN dotnet build "Man10BankServer.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Man10BankServer.csproj" -c Release -o /app/publish
+RUN dotnet publish "Man10BankServer.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
