@@ -149,14 +149,12 @@ create table server_loan_tbl
     id int auto_increment,
     player varchar(16) null comment '借りたプレイヤー',
     uuid varchar(36) null,
-    borrow_date datetime default now() null comment '借りた日
-',
-    last_pay_date datetime default now() null comment '最後に支払った日
-',
+    borrow_date datetime default now() null comment '借りた日',
+    last_pay_date datetime default now() null comment '最後に支払った日',
     borrow_amount double null comment '借りた金額の合計',
     payment_amount double null comment '週ごとの支払額',
     failed_payment int default 0 comment '支払いに失敗した回数',
-    stop_interest tinyint default 0 comment '利息をたすかどうか'
+    stop_interest tinyint default 0 comment '利息をたすかどうか',
         constraint server_loan_tbl_pk
         primary key (id)
 );
