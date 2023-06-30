@@ -7,7 +7,7 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["Man10BankServer.csproj", "Man10BankServer/"]
 RUN dotnet restore Man10BankServer/Man10BankServer.csproj
-COPY . .
+COPY . Man10BankServer
 WORKDIR /src/Man10BankServer
 RUN dotnet build "Man10BankServer.csproj" -c Release -o /app/build
 
