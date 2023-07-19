@@ -17,7 +17,7 @@ public class PlayerData
     public int score { get; set; }
 }
 
-public class PlayerContext : DbContext
+public class SystemContext : DbContext
 {
     
     public DbSet<PlayerData> player_data { get; set; }
@@ -30,7 +30,7 @@ public class PlayerContext : DbContext
     /// <summary>
     /// DBの接続設定を読み込む
     /// </summary>
-    static PlayerContext()
+    static SystemContext()
     {
         Host = "";
         Port = "";

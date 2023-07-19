@@ -15,7 +15,7 @@ var app = builder.Build();
 //Configの読み込み
 ServerLoan.StartPaymentTask(builder.Configuration);
 BankContext.SetDatabase(builder.Configuration);
-PlayerContext.SetDatabase(builder.Configuration);
+SystemContext.SetDatabase(builder.Configuration);
 
 Debug.DebugTask(builder.Configuration);
 

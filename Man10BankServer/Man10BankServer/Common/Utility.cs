@@ -13,7 +13,7 @@ public static class Utility
     {
         var result = await Task.Run(() =>
         {
-            var context = new PlayerContext();
+            var context = new SystemContext();
             var userName = context.player_data.FirstOrDefault(r => r.uuid == uuid)?.mcid;
             context.Dispose();
             return userName ?? "";
@@ -31,7 +31,7 @@ public static class Utility
     {
         var result = await Task.Run(() =>
         {
-            var context = new PlayerContext();
+            var context = new SystemContext();
             var userName = context.player_data.FirstOrDefault(r => r.mcid == mcid)?.uuid;
             context.Dispose();
             return userName ?? "";
@@ -45,7 +45,7 @@ public static class Utility
     {
         var result = await Task.Run(() =>
         {
-            var context = new PlayerContext();
+            var context = new SystemContext();
             var score = context.player_data.FirstOrDefault(r=>r.uuid==uuid)?.score??null;
             context.Dispose();
             return score;
@@ -53,11 +53,17 @@ public static class Utility
         return result;
     }
 
+    /// <summary>
+    /// そのうちスコア用のAPI鯖を作る
+    /// </summary>
+    /// <param name="uuid"></param>
+    /// <param name="amount"></param>
+    /// <returns></returns>
     public static async Task<bool> TakeScore(string uuid, int amount)
     {
         var result = await Task.Run(() =>
         {
-            var context = new PlayerContext();
+            var context = new SystemContext();
             var data = context.player_data.FirstOrDefault(r => r.uuid == uuid);
             if (data == null)
             {
@@ -65,7 +71,7 @@ public static class Utility
                 return false;
             }
 
-            data.score += amount;
+            data.score -= amount;
             context.SaveChanges();
             context.Dispose();
             
