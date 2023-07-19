@@ -23,6 +23,8 @@ import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
 import red.man10.man10bank.util.Utility.prefix
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 object LocalLoan: Listener,CommandExecutor{
@@ -49,7 +51,7 @@ object LocalLoan: Listener,CommandExecutor{
             lender.uniqueId.toString(),
             borrower.name,
             borrower.uniqueId.toString(),
-            Date(),
+            LocalDateTime.now(),
             paybackDate,
             payment
         ))
@@ -93,7 +95,7 @@ object LocalLoan: Listener,CommandExecutor{
         meta.lore = mutableListOf(
             "§4§l========[Man10Bank]========",
             "   §7§l債務者:  ${Bukkit.getOfflinePlayer(data.borrow_uuid).name}",
-            "   §8§l有効日:  ${SimpleDateFormat("yyyy-MM-dd").format(data.payback_date)}",
+            "   §8§l有効日:  ${data.payback_date.format(DateTimeFormatter.ISO_DATE_TIME)}",
             "   §7§l支払額:  ${format(data.amount)}",
             "§4§l==========================")
 
@@ -104,11 +106,12 @@ object LocalLoan: Listener,CommandExecutor{
         return note
     }
 
-    private fun calcDue(day:Int,borrow:Date = Date()):Date{
-        val calender = Calendar.getInstance()
-        calender.time = borrow
-        calender.add(Calendar.DAY_OF_YEAR,day)
-        return calender.time
+    private fun calcDue(day:Int,borrow:LocalDateTime = LocalDateTime.now()):LocalDateTime{
+        borrow.plusDays(day.toLong())
+//        val calender = Calendar.getInstance()
+//        calender.time = borrow
+//        calender.add(Calendar.DAY_OF_YEAR,day)
+        return borrow
     }
 
     @EventHandler
@@ -279,8 +282,6 @@ object LocalLoan: Listener,CommandExecutor{
         val allowOrDeny = text("${prefix}§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow"))
             .append(text("§c§l§n[借りない]").clickEvent(runCommand("/mlend deny")))
 
-        val sdf = SimpleDateFormat("yyyy-MM-dd")
-
         msg(sender,"§a§l借金の提案を相手に提示しました")
 
         msg(borrower,"§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
@@ -288,7 +289,7 @@ object LocalLoan: Listener,CommandExecutor{
         msg(borrower,"§e貸し出す人:${sender.name}")
         msg(borrower,"§e貸し出される金額:${format(amount)}")
         msg(borrower,"§e返す金額:${format(amount + (amount * interest * due))}")
-        msg(borrower,"§e返す日:$${sdf.format(calcDue(due))}")
+        msg(borrower,"§e返す日:$${calcDue(due).format(DateTimeFormatter.ISO_DATE_TIME)}")
         borrower.sendMessage(allowOrDeny)
         msg(borrower,"§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
         return true

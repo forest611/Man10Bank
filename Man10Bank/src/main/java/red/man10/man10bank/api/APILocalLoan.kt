@@ -4,6 +4,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import red.man10.man10bank.api.APIBase.getRequest
 import red.man10.man10bank.api.APIBase.gson
 import red.man10.man10bank.api.APIBase.postAndGetResponse
+import java.time.LocalDateTime
 import java.util.*
 
 object APILocalLoan {
@@ -33,8 +34,8 @@ object APILocalLoan {
         var lend_uuid:String,
         var borrow_player:String,
         var borrow_uuid:String,
-        var borrow_date:Date,
-        var payback_date:Date,
+        var borrow_date:LocalDateTime,
+        var payback_date:LocalDateTime,
         var amount:Double
 
     )
