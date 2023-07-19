@@ -5,20 +5,19 @@ namespace Man10BankServer.Common;
 public static class History
 {
 
-    static History()
+    public static void AsyncServerEstateHistoryTask()
     {
-        Task.Run(ServerEstateHistoryTask);
-    }
 
-    private static void ServerEstateHistoryTask()
-    {
-        Console.WriteLine("サーバー全体資産の履歴をとるタスクを開始");
-
-        while (true)
+        Task.Run(() =>
         {
-            Thread.Sleep(1000*60);
-            AddServerEstateHistory();
-        }
+            Console.WriteLine("サーバー全体資産の履歴をとるタスクを開始");
+
+            while (true)
+            {
+                Thread.Sleep(1000*60);
+                AddServerEstateHistory();
+            }
+        });
     }
     
     /// <summary>

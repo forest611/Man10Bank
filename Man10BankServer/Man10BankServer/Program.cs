@@ -12,13 +12,8 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-//Configの読み込み
-ServerLoan.StartPaymentTask(builder.Configuration);
-BankContext.SetDatabase(builder.Configuration);
-SystemContext.SetDatabase(builder.Configuration);
-
-Debug.DebugTask(builder.Configuration);
-
+Utility.LoadConfig(builder.Configuration);
+Bank.Setup();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

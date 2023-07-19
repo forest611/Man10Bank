@@ -10,7 +10,14 @@ public static class Bank
 
     static Bank()
     {
+    }
+
+    public static void Setup()
+    {
+        //ブロッキングキューの起動
         Task.Run(BlockingQueue);
+        ServerLoan.Async(Utility.Config!);
+        History.AsyncServerEstateHistoryTask();
     }
 
     /// <summary>

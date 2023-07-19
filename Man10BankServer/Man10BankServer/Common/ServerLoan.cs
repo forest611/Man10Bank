@@ -244,7 +244,7 @@ public static class ServerLoan
     /// リボの設定読み込み
     /// </summary>
     /// <param name="config"></param>
-    public static void StartPaymentTask(IConfiguration config)
+    public static void Async(IConfiguration config)
     {
         _lastTaskDate = config.GetValue<DateTime>("ServerLoan:LastTaskDate");
 

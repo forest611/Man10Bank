@@ -4,6 +4,11 @@ namespace Man10BankServer.Common;
 
 public static class Utility
 {
+    
+    public static IConfiguration? Config { get; set; }
+
+    public static void LoadConfig(IConfiguration config) => Config = config;
+    
     /// <summary>
     /// MinecraftIDを取得する
     /// </summary>
@@ -13,10 +18,7 @@ public static class Utility
     {
         var result = await Task.Run(() =>
         {
-            var context = new SystemContext();
-            var userName = context.player_data.FirstOrDefault(r => r.uuid == uuid)?.mcid;
-            context.Dispose();
-            return userName ?? "";
+            return "";
         });
         
         return result;
@@ -31,10 +33,8 @@ public static class Utility
     {
         var result = await Task.Run(() =>
         {
-            var context = new SystemContext();
-            var userName = context.player_data.FirstOrDefault(r => r.mcid == mcid)?.uuid;
-            context.Dispose();
-            return userName ?? "";
+
+            return ""; 
         });
         
         return result;
@@ -45,10 +45,7 @@ public static class Utility
     {
         var result = await Task.Run(() =>
         {
-            var context = new SystemContext();
-            var score = context.player_data.FirstOrDefault(r=>r.uuid==uuid)?.score??null;
-            context.Dispose();
-            return score;
+            return 0;
         });
         return result;
     }
@@ -63,19 +60,7 @@ public static class Utility
     {
         var result = await Task.Run(() =>
         {
-            var context = new SystemContext();
-            var data = context.player_data.FirstOrDefault(r => r.uuid == uuid);
-            if (data == null)
-            {
-                context.Dispose();
-                return false;
-            }
-
-            data.score -= amount;
-            context.SaveChanges();
-            context.Dispose();
-            
-            return true;            
+            return true;
         });
 
         return result;

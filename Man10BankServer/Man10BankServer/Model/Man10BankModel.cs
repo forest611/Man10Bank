@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
+using Man10BankServer.Common;
 using Microsoft.EntityFrameworkCore;
 
 namespace Man10BankServer.Model;
@@ -210,26 +211,13 @@ public class BankContext : DbContext
     /// </summary>
     static BankContext()
     {
-        Host = "";
-        Port = "";
-        Pass = "";
-        User = "";
-        DatabaseName = "";
-
-        Task.Run(RunDatabaseQueue);
-    }
-
-    /// <summary>
-    /// DBの接続を設定する
-    /// </summary>
-    /// <param name="config"></param>
-    public static void SetDatabase(IConfiguration config)
-    {
+        var config = Utility.Config!;
         Host = config["BankDB:Host"] ?? "";
         Port = config["BankDB:Port"] ?? "";
         Pass = config["BankDB:Pass"] ?? "";
         User = config["BankDB:User"] ?? "";
         DatabaseName = config["BankDB:DatabaseName"] ?? "";
+        AsyncRunDatabaseQueue();
     }
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -240,23 +228,26 @@ public class BankContext : DbContext
     }
 
 
-    private static void RunDatabaseQueue()
+    private static void AsyncRunDatabaseQueue()
     {
-        var context = new BankContext();
-        Console.WriteLine("データベースキューを起動");
-        while (true)
+        Task.Run(() =>
         {
-            if (!DbQueue.TryTake(out var job))continue;
-            try
+            var context = new BankContext();
+            Console.WriteLine("データベースキューを起動");
+            while (true)
             {
-                job.Invoke(context);
+                if (!DbQueue.TryTake(out var job))continue;
+                try
+                {
+                    job.Invoke(context);
+                }
+                catch (Exception e)
+                {
+                    // ignored
+                    Console.WriteLine(e.Message);
+                }
             }
-            catch (Exception e)
-            {
-                // ignored
-                Console.WriteLine(e.Message);
-            }
-        }
+        });
     }
 
     /// <summary>
