@@ -17,6 +17,8 @@ ServerLoan.StartPaymentTask(builder.Configuration);
 BankContext.SetDatabase(builder.Configuration);
 PlayerContext.SetDatabase(builder.Configuration);
 
+Debug.DebugTask(builder.Configuration);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

@@ -311,19 +311,19 @@ public static class Bank
 
         var context = new BankContext();
         
-        while (true)
+        while (BankQueue.TryTake(out var job,-1))
         {
-            if (!BankQueue.TryTake(out var job)) continue;
             try
             {
-                job(context);
-                // context.Dispose();
+                Console.WriteLine(job?.Method.Name);
+                job?.Invoke(context);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
             }
         }
+        Console.WriteLine("Man10Bankキューを終了");
     }
     
     #endregion

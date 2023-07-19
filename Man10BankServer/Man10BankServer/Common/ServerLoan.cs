@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Man10BankServer.Model;
 
 namespace Man10BankServer.Common;
@@ -70,21 +69,18 @@ public static class ServerLoan
         {
             var context = new BankContext();
             var record = context.server_loan_tbl.FirstOrDefault(r => r.uuid == uuid);
-
+            
             //借金がこれ以上できない場合
             if (amount + (record?.borrow_amount ?? 0.0) > CalculateLoanAmount(uuid).Result)
             {
                 return "Failed";
             }
-
-            var hasBorrowed = record != null;
             string ret;
-
-
-            if (hasBorrowed)
+            
+            //レコードがnullなら初借金とする
+            if (record != null)
             {
                 ret = "Successful";
-                Debug.Assert(record != null, nameof(record) + " != null");
                 record.borrow_amount += amount;
                 record.payment_amount = record.borrow_amount * DailyInterest * 2;
                 record.borrow_date = DateTime.Now;
