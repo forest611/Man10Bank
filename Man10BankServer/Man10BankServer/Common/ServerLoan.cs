@@ -325,11 +325,11 @@ public static class ServerLoan
                 //基準スコア以上なら半減
                 if (score>_standardScore)
                 {
-                    var _ = Utility.TakeScore(data.uuid, Convert.ToInt32(score) / 2);
+                    var _ = Utility.TakeScore(data.uuid, (int)score/ 2,"まんじゅうリボの未払い");
                 }
                 else
                 {
-                    var _ = Utility.TakeScore(data.uuid, _penaltyScore);
+                    var _ = Utility.TakeScore(data.uuid, _penaltyScore,"まんじゅうリボの未払い");
                 }
             }
             context.SaveChanges();
