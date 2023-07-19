@@ -25,7 +25,14 @@ import red.man10.man10bank.util.Utility.msg
 
 object Cheque : CommandExecutor, Listener {
 
+    private const val MAX_CHARACTERS = 32
+
     private fun create(p:Player,amount:Double,isOP:Boolean,note:String = "empty"){
+
+        if (note.length > MAX_CHARACTERS){
+            msg(p,"§c§l文字数が多すぎます！")
+            return
+        }
 
         if (amount<1){
             msg(p,"§c§l1円未満の小切手は作れません")
