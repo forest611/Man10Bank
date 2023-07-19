@@ -17,6 +17,7 @@ public static class Utility
     {
         Config = config;
         SystemUrl = Config["Man10SystemUrl"]!;
+        Task.Run(TryConnect);
     }
 
     /// <summary>
@@ -72,7 +73,13 @@ public static class Utility
         var response = await Client.PostAsync($"{SystemUrl}/Score/take",content);
         return (int)response.StatusCode == 200;
     }
-    
+
+    private static async Task TryConnect()
+    {
+        var result = await Client.GetAsync($"{SystemUrl}/try");
+        Console.WriteLine((int)result.StatusCode == 200 ? "Man10System接続成功" : "Man10System接続失敗");
+    }
+
 }
 internal class ScoreData
 {
