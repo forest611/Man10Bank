@@ -40,6 +40,10 @@ public class PlayerContext : DbContext
 
     }
 
+    /// <summary>
+    /// DBの接続を設定する
+    /// </summary>
+    /// <param name="config"></param>
     public static void SetDatabase(IConfiguration config)
     {
         Host = config["SystemDB:Host"] ?? "";

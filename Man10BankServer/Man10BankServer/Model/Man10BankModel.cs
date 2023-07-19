@@ -219,6 +219,10 @@ public class BankContext : DbContext
         Task.Run(RunDatabaseQueue);
     }
 
+    /// <summary>
+    /// DBの接続を設定する
+    /// </summary>
+    /// <param name="config"></param>
     public static void SetDatabase(IConfiguration config)
     {
         Host = config["BankDB:Host"] ?? "";
@@ -242,10 +246,10 @@ public class BankContext : DbContext
         Console.WriteLine("データベースキューを起動");
         while (true)
         {
+            if (!DbQueue.TryTake(out var job))continue;
             try
             {
-                DbQueue.TryTake(out var job);
-                job?.Invoke(context);
+                job.Invoke(context);
             }
             catch (Exception e)
             {

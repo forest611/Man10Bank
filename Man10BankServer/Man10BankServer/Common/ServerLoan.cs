@@ -244,6 +244,10 @@ public static class ServerLoan
         return result;
     }
 
+    /// <summary>
+    /// リボの設定読み込み
+    /// </summary>
+    /// <param name="config"></param>
     public static void StartPaymentTask(IConfiguration config)
     {
         _lastTaskDate = config.GetValue<DateTime>("ServerLoan:LastTaskDate");
@@ -265,7 +269,7 @@ public static class ServerLoan
     /// </summary>
     private static void PaymentTask()
     {
-        Console.WriteLine("リボのタスク起動");
+        Console.WriteLine("リボのタスク起動しました");
         
         var context = new BankContext();
         

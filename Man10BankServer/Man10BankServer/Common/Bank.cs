@@ -313,10 +313,10 @@ public static class Bank
         
         while (true)
         {
-            BankQueue.TryTake(out var job);
+            if (!BankQueue.TryTake(out var job)) continue;
             try
             {
-                job?.Invoke(context);
+                job(context);
                 // context.Dispose();
             }
             catch (Exception e)

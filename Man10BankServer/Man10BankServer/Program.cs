@@ -12,6 +12,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+//Configの読み込み
 ServerLoan.StartPaymentTask(builder.Configuration);
 BankContext.SetDatabase(builder.Configuration);
 PlayerContext.SetDatabase(builder.Configuration);
