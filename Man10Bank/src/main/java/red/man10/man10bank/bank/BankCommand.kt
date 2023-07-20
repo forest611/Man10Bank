@@ -111,7 +111,7 @@ object BankCommand : CommandExecutor{
 
                 async.execute {
                     val result = APIBank.addBank(APIBank.TransactionData(
-                        sender.uniqueId.toString(),
+                        uuid.toString(),
                         amount,
                         Man10Bank.instance.name,
                         "GivenFromServer",
@@ -154,7 +154,7 @@ object BankCommand : CommandExecutor{
 
                 async.execute {
                     val result = APIBank.takeBank(APIBank.TransactionData(
-                        sender.uniqueId.toString(),
+                        uuid.toString(),
                         amount,
                         Man10Bank.instance.name,
                         "TakenByCommand",
@@ -197,7 +197,7 @@ object BankCommand : CommandExecutor{
 
                 async.execute {
                     APIBank.setBank(APIBank.TransactionData(
-                        sender.uniqueId.toString(),
+                        uuid.toString(),
                         amount,
                         Man10Bank.instance.name,
                         "SetByCommand",
