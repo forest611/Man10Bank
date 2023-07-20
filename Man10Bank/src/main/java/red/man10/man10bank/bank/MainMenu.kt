@@ -12,6 +12,9 @@ class MainMenu(p:Player) : MenuFramework(p,27,"§d§lMa§f§ln§a§l10§e§l[ATM
     override fun init() {
 
         val back = Button(Material.GRAY_STAINED_GLASS_PANE)
+        back.setClickAction{
+            it.isCancelled = true
+        }
         fill(back)
 
         val youtubeLink = Button(Material.WOODEN_SHOVEL)
