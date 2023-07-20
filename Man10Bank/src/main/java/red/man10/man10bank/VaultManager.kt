@@ -11,30 +11,37 @@ import java.util.*
 
 /**
  * Created by takatronix on 2017/03/04.
+ * Updated by Jin Morikawa on 2023/07/20
  */
 class VaultManager(private val plugin: JavaPlugin) {
-    private fun setupEconomy(): Boolean {
-        Bukkit.getLogger().info("setupEconomy")
+
+    init {
+        setupEconomy()
+    }
+
+    companion object {
+        lateinit var economy: Economy
+    }
+    private fun setupEconomy() {
+        Bukkit.getLogger().info("VaultManagerのセットアップ")
         if (plugin.server.pluginManager.getPlugin("Vault") == null) {
-            Bukkit.getLogger().info("Vault plugin is not installed")
-            return false
+            Bukkit.getLogger().info("Vaultが導入されていません")
+            return
         }
         val rsp = plugin.server.servicesManager.getRegistration(Economy::class.java)
         if (rsp == null) {
-            Bukkit.getLogger().info("Can't get vault service")
-            return false
+            Bukkit.getLogger().info("セットアップ失敗")
+            return
         }
         economy = rsp.provider
-        Bukkit.getLogger().info("Economy setup")
-        return economy != null
+        Bukkit.getLogger().info("セットアップ完了")
     }
 
     /////////////////////////////////////
     //      残高確認
     /////////////////////////////////////
-    fun getBalance(uuid: UUID?): Double {
-
-        return economy!!.getBalance(Bukkit.getOfflinePlayer(uuid!!).name)
+    fun getBalance(uuid: UUID): Double {
+        return economy.getBalance(Bukkit.getOfflinePlayer(uuid))
     }
 
     /////////////////////////////////////
@@ -42,7 +49,8 @@ class VaultManager(private val plugin: JavaPlugin) {
     /////////////////////////////////////
     fun withdraw(uuid: UUID, money: Double): Boolean {
         val p = Bukkit.getOfflinePlayer(uuid)
-        val resp = economy!!.withdrawPlayer(p.name, money)
+        if (getBalance(uuid)<money)return false
+        val resp = economy.withdrawPlayer(p,money)
         if (resp.transactionSuccess()) {
             if (p.isOnline) {
                 Utility.msg(p.player!!,"§e§l電子マネーを${Utility.format(money)}円支払いました")
@@ -57,7 +65,7 @@ class VaultManager(private val plugin: JavaPlugin) {
     /////////////////////////////////////
     fun deposit(uuid: UUID, money: Double): Boolean {
         val p = Bukkit.getOfflinePlayer(uuid)
-        val resp = economy!!.depositPlayer(p.name, money)
+        val resp = economy.depositPlayer(p,money)
         if (resp.transactionSuccess()) {
             if (p.isOnline) {
                 Utility.msg(p.player!!,"§e§l電子マネーを${Utility.format(money)}円受け取りました")
@@ -67,11 +75,5 @@ class VaultManager(private val plugin: JavaPlugin) {
         return false
     }
 
-    companion object {
-        var economy: Economy? = null
-    }
 
-    init {
-        setupEconomy()
-    }
 }

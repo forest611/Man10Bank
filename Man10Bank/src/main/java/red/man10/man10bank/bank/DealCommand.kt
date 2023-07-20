@@ -11,6 +11,7 @@ import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.msg
+import kotlin.math.floor
 
 /**
  * Vaultと銀行のお金をやり取りするコマンドを追加するクラス
@@ -42,12 +43,14 @@ object DealCommand : CommandExecutor{
                 return true
             }
 
-            if (amount < 1){
+            val fixedAmount = floor(amount)
+
+            if (fixedAmount < 1){
                 msg(sender,"§c§l1円以上を入力してください！")
                 return true
             }
 
-            if (!vault.withdraw(sender.uniqueId,amount)){
+            if (!vault.withdraw(sender.uniqueId,fixedAmount)){
                 msg(sender,"§c§l電子マネーが足りません！")
                 return true
             }
@@ -55,7 +58,7 @@ object DealCommand : CommandExecutor{
             async.execute {
                 val result = APIBank.addBank(APIBank.TransactionData(
                     sender.uniqueId.toString(),
-                    amount,
+                    fixedAmount,
                     instance.name,
                     "PlayerDepositOnCommand",
                     "/depositによる入金"
@@ -63,7 +66,7 @@ object DealCommand : CommandExecutor{
 
                 if (result != APIBank.BankResult.SUCCESSFUL){
                     msg(sender,"§c入金エラーが発生しました")
-                    vault.deposit(sender.uniqueId,amount)
+                    vault.deposit(sender.uniqueId,fixedAmount)
                     return@execute
                 }
                 msg(sender,"§e入金できました！")
@@ -86,14 +89,16 @@ object DealCommand : CommandExecutor{
                     return@execute
                 }
 
-                if (amount < 1){
+                val fixedAmount = floor(amount)
+
+                if (fixedAmount < 1){
                     msg(sender,"§c§l1円以上を入力してください！")
                     return@execute
                 }
 
                 val result = APIBank.takeBank(APIBank.TransactionData(
                     sender.uniqueId.toString(),
-                    amount,
+                    fixedAmount,
                     instance.name,
                     "PlayerWithdrawOnCommand",
                     "/withdrawによる出金"
@@ -106,10 +111,10 @@ object DealCommand : CommandExecutor{
 
                 if (result != APIBank.BankResult.SUCCESSFUL){
                     msg(sender,"§c出金エラーが発生しました")
-                    vault.deposit(sender.uniqueId,amount)
+                    vault.deposit(sender.uniqueId,fixedAmount)
                     return@execute
                 }
-                vault.deposit(sender.uniqueId,amount)
+                vault.deposit(sender.uniqueId,fixedAmount)
                 msg(sender,"§e出金できました！")
             }
         }
