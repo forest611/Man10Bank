@@ -217,6 +217,8 @@ public class BankContext : DbContext
         Pass = config["BankDB:Pass"] ?? "";
         User = config["BankDB:User"] ?? "";
         DatabaseName = config["BankDB:DatabaseName"] ?? "";
+        var connect = new BankContext().Database.CanConnect();
+        Console.WriteLine(connect? "MySQLの接続成功" : "MySQLの接続失敗");
         AsyncRunDatabaseQueue();
     }
     

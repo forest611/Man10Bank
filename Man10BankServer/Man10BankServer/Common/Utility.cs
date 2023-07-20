@@ -17,7 +17,11 @@ public static class Utility
     {
         Config = config;
         SystemUrl = Config["Man10SystemUrl"]!;
-        Task.Run(TryConnect);
+        Task.Run(() =>
+        {
+            Thread.Sleep(5000);
+            TryConnect();
+        });
     }
 
     /// <summary>
@@ -74,9 +78,9 @@ public static class Utility
         return (int)response.StatusCode == 200;
     }
 
-    private static async Task TryConnect()
+    private static void TryConnect()
     {
-        var result = await Client.GetAsync($"{SystemUrl}/try");
+        var result = Client.GetAsync($"{SystemUrl}/try").Result;
         Console.WriteLine((int)result.StatusCode == 200 ? "Man10System接続成功" : "Man10System接続失敗");
     }
 
