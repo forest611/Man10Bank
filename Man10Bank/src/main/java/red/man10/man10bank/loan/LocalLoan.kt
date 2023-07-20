@@ -14,18 +14,18 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.async
+import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APILocalLoan
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
 import red.man10.man10bank.util.Utility.prefix
-import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.math.floor
 
 object LocalLoan: Listener,CommandExecutor{
 
@@ -230,6 +230,7 @@ object LocalLoan: Listener,CommandExecutor{
                 return true
             }
 
+            map.remove(sender.uniqueId)
             async.execute {
                 create(lendP,sender,data.amount,data.interest,data.due)
             }
@@ -251,6 +252,11 @@ object LocalLoan: Listener,CommandExecutor{
             return true
         }
 
+        if (args.size != 4){
+            msg(sender,"§a/mlend <貸す相手> <金額> <返済日(日)> <金利(日)0.0〜1.0>")
+            return true
+        }
+
         val borrower = Bukkit.getPlayer(args[0])
         val amount = args[1].toDoubleOrNull()
         val due = args[2].toIntOrNull()
@@ -261,10 +267,12 @@ object LocalLoan: Listener,CommandExecutor{
             return true
         }
 
-        if (amount == null){
-            msg(sender,"金額は数字で入力してください")
+        if (amount == null || amount<0){
+            msg(sender,"金額は数字で１円以上を入力してください")
             return true
         }
+
+        val fixedAmount = floor(amount)
 
         if (due == null){
             msg(sender,"期日は数字で入力してください")
@@ -276,7 +284,7 @@ object LocalLoan: Listener,CommandExecutor{
             return true
         }
 
-        val data = CommandParam(sender.uniqueId,amount, due, interest)
+        val data = CommandParam(sender.uniqueId,fixedAmount, due, interest)
         map[borrower.uniqueId] = data
 
         val allowOrDeny = text("${prefix}§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow"))
@@ -287,8 +295,8 @@ object LocalLoan: Listener,CommandExecutor{
         msg(borrower,"§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
         msg(borrower,"§e§kXX§b§l借金の提案§e§kXX")
         msg(borrower,"§e貸し出す人:${sender.name}")
-        msg(borrower,"§e貸し出される金額:${format(amount)}")
-        msg(borrower,"§e返す金額:${format(amount + (amount * interest * due))}")
+        msg(borrower,"§e貸し出される金額:${format(fixedAmount)}")
+        msg(borrower,"§e返す金額:${format(fixedAmount + (fixedAmount * interest * due))}")
         msg(borrower,"§e返す日:$${calcDue(due).format(DateTimeFormatter.ISO_DATE_TIME)}")
         borrower.sendMessage(allowOrDeny)
         msg(borrower,"§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
