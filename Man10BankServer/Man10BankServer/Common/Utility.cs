@@ -1,7 +1,5 @@
-using System.Net;
 using System.Text;
 using System.Text.Json;
-using Man10BankServer.Model;
 
 namespace Man10BankServer.Common;
 
@@ -17,11 +15,7 @@ public static class Utility
     {
         Config = config;
         SystemUrl = Config["Man10SystemUrl"]!;
-        Task.Run(() =>
-        {
-            Thread.Sleep(5000);
-            TryConnect();
-        });
+        TryConnect();
     }
 
     /// <summary>
@@ -33,6 +27,7 @@ public static class Utility
     {
         var response = await Client.GetAsync($"{SystemUrl}/Player/mcid?uuid={uuid}");
         var body = await response.Content.ReadAsStringAsync();
+        response.Dispose();
         return body;
     }
 
@@ -45,6 +40,7 @@ public static class Utility
     {
         var response = await Client.GetAsync($"{SystemUrl}/Player/uuid?minecraftId={mcid}");
         var body = await response.Content.ReadAsStringAsync();
+        response.Dispose();
         return body;
     }
 
@@ -53,6 +49,7 @@ public static class Utility
     {
         var response = await Client.GetAsync($"{SystemUrl}/Score/get?uuid={uuid}");
         var body = await response.Content.ReadAsStringAsync();
+        response.Dispose();
         return int.Parse(body);
     }
 
@@ -75,13 +72,22 @@ public static class Utility
         
         var content = new StringContent(JsonSerializer.Serialize(data),Encoding.UTF8);
         var response = await Client.PostAsync($"{SystemUrl}/Score/take",content);
+        response.Dispose();
         return (int)response.StatusCode == 200;
     }
 
-    private static void TryConnect()
+    private static async void TryConnect()
     {
-        var result = Client.GetAsync($"{SystemUrl}/try").Result;
-        Console.WriteLine((int)result.StatusCode == 200 ? "Man10System接続成功" : "Man10System接続失敗");
+        try
+        {
+            var result = await Client.GetAsync($"{SystemUrl}/score/try");
+            result.Dispose();
+            Console.WriteLine((int)result.StatusCode == 200 ? "Man10System接続成功" : "Man10System接続失敗");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Man10System接続失敗:{e}");
+        }
     }
 
 }
