@@ -22,6 +22,7 @@ import red.man10.man10bank.api.APICheque
 import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
+import kotlin.math.floor
 
 object Cheque : CommandExecutor, Listener {
 
@@ -34,22 +35,24 @@ object Cheque : CommandExecutor, Listener {
             return
         }
 
-        if (amount<1){
+        val fixedAmount = floor(amount)
+
+        if (fixedAmount<1){
             msg(p,"§c§l1円未満の小切手は作れません")
             return
         }
 
-        if (!Man10Bank.vault.withdraw(p.uniqueId,amount)){
+        if (!Man10Bank.vault.withdraw(p.uniqueId,fixedAmount)){
             msg(p,"§c§l電子マネーがありません")
             return
         }
 
-        val id = APICheque.create(p.uniqueId,amount,note,isOP)
+        val id = APICheque.create(p.uniqueId,fixedAmount,note,isOP)
 
         //失敗
         if (id==-1){
             msg(p,"§c§l小切手の発行に失敗しました。時間をおいて作り直してください")
-            Man10Bank.vault.deposit(p.uniqueId,amount)
+            Man10Bank.vault.deposit(p.uniqueId,fixedAmount)
             return
         }
 
@@ -69,7 +72,7 @@ object Cheque : CommandExecutor, Listener {
         lore.add(Component.text("§e====[Man10Bank]===="))
         lore.add(Component.text(""))
         lore.add(Component.text("§a§l発行者: ${if (isOP)"§c§l" else "§d§l"}${p.name}"))
-        lore.add(Component.text("§a§l金額: ${format(amount)}円"))
+        lore.add(Component.text("§a§l金額: ${format(fixedAmount)}円"))
         if (note != "empty"){
             lore.add(Component.text("§d§lメモ: $note"))
         }
@@ -89,7 +92,7 @@ object Cheque : CommandExecutor, Listener {
 
         p.inventory.addItem(chequeItem)
 
-        msg(p,"§a§l小切手を作成しました§e(金額:${format(amount)}円)")
+        msg(p,"§a§l小切手を作成しました§e(金額:${format(fixedAmount)}円)")
     }
 
     private fun use(p:Player,item:ItemStack){
