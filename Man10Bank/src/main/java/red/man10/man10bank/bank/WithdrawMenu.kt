@@ -8,7 +8,7 @@ class WithdrawMenu(p:Player) : MenuFramework(p,27,"§d§lMa§f§ln§a§l10§e§l
 
     private val slot = arrayOf(10,11,12,13,14,15,16,17)
 
-    init {
+    override fun init() {
 
         val back = Button(Material.GRAY_STAINED_GLASS_PANE)
         fill(back)

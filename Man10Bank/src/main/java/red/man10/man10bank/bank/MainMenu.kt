@@ -9,7 +9,7 @@ import red.man10.man10bank.util.Utility.msg
 
 class MainMenu(p:Player) : MenuFramework(p,27,"§d§lMa§f§ln§a§l10§e§l[ATM](現金を扱う)") {
 
-    init {
+    override fun init() {
 
         val back = Button(Material.GRAY_STAINED_GLASS_PANE)
         fill(back)

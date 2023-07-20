@@ -16,44 +16,85 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
+import org.bukkit.plugin.java.JavaPlugin
+import java.awt.Menu
 import java.util.*
-import kotlin.collections.HashMap
 
-open class MenuFramework(val p:Player,menuSize: Int, title: String) {
+/**
+ * マイクラプラグインでメニューを作るためのフレームワーク
+ * このクラスを継承させて使用する。
+ * 起動時にsetup関数を呼んでPluginインスタンスを渡す
+ *
+ * (最終更新 2023/07/07) created by Jin Morikawa
+ */
+open class MenuFramework(val p:Player,private val menuSize: Int, private val title: String){
 
-    var menu : Inventory
+    lateinit var menu : Inventory
     private var closeAction : OnCloseListener? = null
     private var clickAction : Button.OnClickListener? = null
 
-    init {
-        menu = Bukkit.createInventory(null,menuSize, text(title))
-    }
-
     companion object{
-        private val menuMap = HashMap<UUID, MenuFramework>()
+        private val menuStack = HashMap<UUID,Stack<MenuFramework>>()
+        private lateinit var instance : JavaPlugin
 
-        fun set(p:Player,menu: MenuFramework){
-            menuMap[p.uniqueId] = menu
+        const val CHEST_SIZE = 27
+        const val LARGE_CHEST_SIZE= 54
+
+        //      起動時に読み込む
+        fun setup(plugin:JavaPlugin){
+            instance = plugin
         }
 
-        fun get(p:Player): MenuFramework?{
-            return menuMap[p.uniqueId]
+        fun push(p:Player,menu:MenuFramework){
+            val stack = menuStack[p.uniqueId]?: Stack()
+            if (stack.isNotEmpty() && menu::class == stack.peek()::class){
+                return
+            }
+            stack.push(menu)
+            menuStack[p.uniqueId] = stack
         }
 
-        fun delete(p:Player){
-            menuMap.remove(p.uniqueId)
+        //      スタックの取り出し
+        fun pop(p:Player):MenuFramework?{
+            val stack = menuStack[p.uniqueId]?:return null
+            if (stack.isEmpty())return null
+            val menu = stack.pop()
+            menuStack[p.uniqueId] = stack
+            return menu
+        }
+
+        //      スタックの最新を確かめる
+        fun peek(p:Player): MenuFramework? {
+            val stack = menuStack[p.uniqueId]
+            if (stack.isNullOrEmpty()) return null
+            return stack.peek()
+        }
+
+        fun dispatch(plugin:JavaPlugin,job:()->Unit){
+            Bukkit.getScheduler().runTask(plugin, Runnable(job))
         }
     }
+
+    open fun init(){}
 
     fun open(){
-        p.closeInventory()
-        set(p,this)
-        p.openInventory(menu)
+//        p.closeInventory()
+        menu = Bukkit.createInventory(null,menuSize, text(title))
+        init()
+        push(p,this)
+        Bukkit.getScheduler().runTask(instance,Runnable {
+            p.openInventory(menu)
+        })
     }
 
     //slotは0スタート
     fun setButton(button: Button, slot:Int){
         menu.setItem(slot,button.icon())
+    }
+
+    //
+    fun addButton(button:Button){
+        menu.addItem(button.icon())
     }
 
     //背景として全埋めする
@@ -63,23 +104,28 @@ open class MenuFramework(val p:Player,menuSize: Int, title: String) {
         }
     }
 
-    fun setCloseListener(action: OnCloseListener){
+    fun setCloseAction(action: OnCloseListener){
         closeAction = action
     }
 
-    fun setClickListener(action: Button.OnClickListener){
+    fun setClickAction(action: Button.OnClickListener){
         clickAction = action
     }
 
     fun close(e:InventoryCloseEvent){
-        delete(e.player as Player)
         closeAction?.closeAction(e)
+        if (e.reason == InventoryCloseEvent.Reason.PLAYER){
+            pop(p)//ひとつ前のメニューに戻るためにスタックを一個削除
+            pop(p)?.open()
+        }
+        if (e.reason == InventoryCloseEvent.Reason.PLUGIN){
+            menuStack.remove(e.player.uniqueId)
+        }
     }
 
     fun interface OnCloseListener{
         fun closeAction(e: InventoryCloseEvent)
     }
-
 
     class Button(icon:Material):Cloneable{
 
@@ -91,7 +137,7 @@ open class MenuFramework(val p:Player,menuSize: Int, title: String) {
             buttonItem = ItemStack(icon)
             val meta = buttonItem.itemMeta
             meta.persistentDataContainer.set(NamespacedKey.fromString("key")!!
-                , PersistentDataType.STRING,key)
+                    , PersistentDataType.STRING,key)
             buttonItem.itemMeta = meta
         }
 
@@ -114,11 +160,11 @@ open class MenuFramework(val p:Player,menuSize: Int, title: String) {
             }
         }
 
-        fun fromItemStack(item:ItemStack):Button{
+        fun fromItemStack(item:ItemStack): Button {
             buttonItem = item.clone()
             val meta = buttonItem.itemMeta
             meta.persistentDataContainer.set(NamespacedKey.fromString("key")!!
-                , PersistentDataType.STRING,key)
+                    , PersistentDataType.STRING,key)
             buttonItem.itemMeta = meta
             set(this)
             return this
@@ -196,14 +242,14 @@ open class MenuFramework(val p:Player,menuSize: Int, title: String) {
 
     object MenuListener:Listener{
 
-        @EventHandler
+        @EventHandler(priority = EventPriority.HIGHEST)
         fun clickEvent(e:InventoryClickEvent){
 
             val p = e.whoClicked
 
             if (p !is Player)return
 
-            val menu = get(p) ?:return
+            val menu = peek(p) ?:return
 
             menu.clickAction?.action(e)
 
@@ -218,10 +264,9 @@ open class MenuFramework(val p:Player,menuSize: Int, title: String) {
         fun closeEvent(e:InventoryCloseEvent){
 
             if (e.player !is Player)return
-            val menu = get(e.player as Player) ?:return
+            val menu = peek(e.player as Player) ?:return
             menu.close(e)
         }
 
     }
 }
-

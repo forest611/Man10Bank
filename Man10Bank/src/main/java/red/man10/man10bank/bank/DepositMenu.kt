@@ -8,7 +8,7 @@ import red.man10.man10bank.util.Utility.format
 
 class DepositMenu(p:Player) : MenuFramework(p,54,"§d§lMa§f§ln§a§l10§e§l[ATM]§9現金を電子マネーにチャージ"){
 
-    init {
+    override fun init() {
 
         //アイテムが入っていたら閉じない設定をつける
 //        setCloseListener{
