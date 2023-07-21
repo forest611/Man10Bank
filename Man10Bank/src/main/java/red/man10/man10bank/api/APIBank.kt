@@ -3,6 +3,7 @@ package red.man10.man10bank.api
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
+import red.man10.man10bank.Status
 import red.man10.man10bank.api.APIBase.getRequest
 import red.man10.man10bank.api.APIBase.gson
 import red.man10.man10bank.api.APIBase.mediaType
@@ -70,6 +71,15 @@ object APIBank {
     fun createBank(uuid:UUID) {
         val p = Bukkit.getOfflinePlayer(uuid)
         getRequest("${apiRoute}create?uuid=${p.uniqueId}&mcid=${p.name}")
+    }
+
+    fun getStatus():Status.StatusData{
+        val result = getRequest("${apiRoute}get-status")
+        return gson.fromJson(result,Status.StatusData::class.java)
+    }
+
+    fun setStatus(data:Status.StatusData){
+        postRequest("${apiRoute}set-status", gson.toJson(data).toRequestBody(mediaType))
     }
 
     data class TransactionData(

@@ -19,30 +19,33 @@ class Man10Bank : JavaPlugin() {
 
         val async = Executors.newSingleThreadExecutor()
 
-        private var bankOpen = true
+//        private var bankOpen = true
 
         private var canConnectServer = false
 
-        fun open(){
-            bankOpen = true
-            instance.config.set(Config.BANK_ENABLE,true)
-            instance.saveConfig()
-        }
+//        fun open(){
+//            bankOpen = true
+//            instance.config.set(Config.BANK_ENABLE,true)
+//            instance.saveConfig()
+//        }
+//
+//        fun close(){
+//            bankOpen = false
+//            instance.config.set(Config.BANK_ENABLE,false)
+//            instance.saveConfig()
+//        }
 
-        fun close(){
-            bankOpen = false
-            instance.config.set(Config.BANK_ENABLE,false)
-            instance.saveConfig()
-        }
-
-        fun isEnableSystem():Boolean{
-            return bankOpen && canConnectServer
+        fun isEnableServer():Boolean{
+            return canConnectServer
         }
         //      システム起動
         fun systemSetup(){
             loadConfig()
             canConnectServer = APIBase.setup()
-            if (!canConnectServer)return
+            //接続に失敗したらこれ以降の読み込みをやめる
+            if (!canConnectServer){ return }
+
+            Status.startStatusTimer()
             ATM.load()
             ServerLoan.setup()
             LocalLoan.setup()
@@ -51,6 +54,7 @@ class Man10Bank : JavaPlugin() {
         //      システム終了
         fun systemClose(){
             async.shutdownNow()
+            Status.stopStatusTimer()
         }
 
         //      Configの読み込み
@@ -59,7 +63,7 @@ class Man10Bank : JavaPlugin() {
             instance.saveDefaultConfig()
             instance.reloadConfig()
 
-            bankOpen = instance.config.getBoolean(Config.BANK_ENABLE)
+//            bankOpen = instance.config.getBoolean(Config.BANK_ENABLE)
             ServerLoan.isEnable = instance.config.getBoolean(Config.SERVER_LOAN_ENABLE)
             Utility.debugMode = instance.config.getBoolean(Config.DEBUG_MODE)
         }

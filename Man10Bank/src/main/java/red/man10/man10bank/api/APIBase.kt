@@ -23,7 +23,7 @@ import javax.net.ssl.X509TrustManager
 
 object APIBase {
 
-    var url = "https://localhost:7031"
+    private var url = "https://localhost:7031"
     val mediaType = "application/json; charset=utf-8".toMediaType()
     private lateinit var client : OkHttpClient
     lateinit var gson : Gson

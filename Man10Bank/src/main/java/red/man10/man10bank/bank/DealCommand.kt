@@ -24,7 +24,7 @@ object DealCommand : CommandExecutor{
 
         if (sender !is Player)return true
 
-        if (!Man10Bank.isEnableSystem()){
+        if (!Man10Bank.isEnableServer()){
             msg(sender,"§c§l現在銀行はメンテナンス中です")
             return true
         }
