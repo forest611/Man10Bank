@@ -172,7 +172,7 @@ public static class Bank
             var result = context.user_bank.FirstOrDefault(r => r.uuid == uuid);
             if (result == null)
             {
-                Console.WriteLine("口座がありません");
+                // Console.WriteLine("口座がありません");
                 callback?.Invoke(550);
                 return;
             }
@@ -205,14 +205,14 @@ public static class Bank
             var result = context.user_bank.FirstOrDefault(r => r.uuid == uuid);
             if (result == null)
             {
-                Console.WriteLine("口座がありません");
+                // Console.WriteLine("口座がありません");
                 callback?.Invoke(550);
                 return;
             }
 
             if (result.balance<amount)
             {
-                Console.WriteLine("残高不足");
+                // Console.WriteLine("残高不足");
                 callback?.Invoke(551);
                 return;
             }
