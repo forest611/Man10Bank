@@ -29,6 +29,18 @@ public class LocalLoanController : ControllerBase
         var result = LocalLoan.GetInfo(id);
         return result.Result;
     }
-    
+
+    [HttpGet("property")]
+    public LocalLoanProperty Property()
+    {
+        return new LocalLoanProperty();
+    }
+}
+
+public class LocalLoanProperty
+{
+    public double MinimumInterest => LocalLoan.MinimumInterest;
+    public double MaximumInterest => LocalLoan.MaximumInterest;
+    public double Fee => LocalLoan.Fee;
 }
 

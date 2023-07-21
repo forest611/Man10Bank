@@ -5,6 +5,15 @@ namespace Man10BankServer.Common;
 
 public static class LocalLoan
 {
+    public static double MinimumInterest { get; set; }
+    public static double MaximumInterest { get; set; }
+    public static double Fee { get; set; }
+    public static void LoadProperty()
+    {
+        MinimumInterest = double.Parse(Utility.Config?["LocalLoan:MinimumInterest"] ?? "0");
+        MaximumInterest = double.Parse(Utility.Config?["LocalLoan:MaximumInterest"] ?? "0");
+        Fee = double.Parse(Utility.Config?["LocalLoan:Fee"] ?? "0");
+    }
 
     public static async Task<int> Create(LocalLoanTable data)
     {
