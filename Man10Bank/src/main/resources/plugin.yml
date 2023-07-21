@@ -36,3 +36,5 @@ commands:
     description: '長者番付'
   estateinfo:
     description: '資産情報'
+  bankstatus:
+    description: '銀行ステータス'
