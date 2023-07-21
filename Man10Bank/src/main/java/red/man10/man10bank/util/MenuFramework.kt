@@ -139,6 +139,7 @@ open class MenuFramework(val p:Player,private val menuSize: Int, private val tit
             meta.persistentDataContainer.set(NamespacedKey.fromString("key")!!
                     , PersistentDataType.STRING,key)
             buttonItem.itemMeta = meta
+            set(this)
         }
 
         companion object{
