@@ -243,8 +243,9 @@ public static class Bank
             {
                 return;
             }
-            result.balance = amount;
+            result.balance = Math.Floor(amount);
             context.SaveChanges();
+            PushBankLog(uuid,Math.Floor(amount),false,plugin,$"[Set]{note}",$"[Set]{displayNote}");
         });
     }
 
