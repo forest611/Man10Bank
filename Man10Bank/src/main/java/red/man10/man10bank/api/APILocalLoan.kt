@@ -26,6 +26,11 @@ object APILocalLoan {
         return gson.fromJson(result,LocalLoanTable::class.java)
     }
 
+    fun property():LocalLoanProperty{
+        val result = getRequest("${apiRoute}property")
+        return gson.fromJson(result,LocalLoanProperty::class.java)
+    }
+
 
     data class LocalLoanTable(
 
@@ -38,6 +43,12 @@ object APILocalLoan {
         var payback_date:LocalDateTime,
         var amount:Double
 
+    )
+
+    data class LocalLoanProperty(
+        var MinimumInterest : Double,
+        var MaximumInterest : Double,
+        var Fee : Double
     )
 
 }

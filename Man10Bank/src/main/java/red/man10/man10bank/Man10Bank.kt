@@ -45,6 +45,7 @@ class Man10Bank : JavaPlugin() {
             if (!canConnectServer)return
             ATM.load()
             ServerLoan.setup()
+            LocalLoan.setup()
         }
 
         //      システム終了

@@ -20,6 +20,7 @@ import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APILocalLoan
 import red.man10.man10bank.util.Utility.format
+import red.man10.man10bank.util.Utility.loggerInfo
 import red.man10.man10bank.util.Utility.msg
 import red.man10.man10bank.util.Utility.prefix
 import java.time.LocalDateTime
@@ -29,12 +30,24 @@ import kotlin.math.floor
 
 object LocalLoan: Listener,CommandExecutor{
 
+    private lateinit var property: APILocalLoan.LocalLoanProperty
+
+    fun setup(){
+        property = APILocalLoan.property()
+        loggerInfo("個人間借金の設定を読み込みました")
+        loggerInfo("最小金利:${property.MinimumInterest}")
+        loggerInfo("最大金利:${property.MaximumInterest}")
+        loggerInfo("手数料:${property.Fee}")
+    }
+
     /**
      * 個人間借金を作る
      */
     private fun create(lender:Player, borrower:Player, amount:Double, interest:Double, due:Int){
 
-        if (!vault.withdraw(lender.uniqueId,amount)){
+        val withdrawAmount = amount * (1 + property.Fee)
+
+        if (!vault.withdraw(lender.uniqueId,withdrawAmount)){
             msg(borrower,"提案者の所持金が足りませんでした。")
             msg(lender,"所持金が足りないためお金を貸すことができません！")
             return
@@ -60,19 +73,21 @@ object LocalLoan: Listener,CommandExecutor{
         if (ret<=0){
             msg(lender,"手形の発行に失敗。銀行への問い合わせができませんでした")
             msg(borrower,"手形の発行に失敗。銀行への問い合わせができませんでした")
+            vault.deposit(lender.uniqueId, withdrawAmount)
             return
         }
 
         val note = getNote(ret)
 
+        //手形の発行失敗
         if (note == null){
             msg(lender,"手形の発行に失敗。銀行への問い合わせができませんでした")
             msg(borrower,"手形の発行に失敗。銀行への問い合わせができませんでした")
+            vault.deposit(lender.uniqueId, withdrawAmount)
             return
         }
 
         lender.inventory.addItem(note)
-
         vault.deposit(borrower.uniqueId,amount)
 
         msg(lender,"手形の発行に成功")
@@ -216,7 +231,11 @@ object LocalLoan: Listener,CommandExecutor{
         if (sender !is Player)return true
 
         if (args.isNullOrEmpty()){
-            msg(sender,"§a/mlend <貸す相手> <金額> <返済日(日)> <金利(日)0.0〜1.0>")
+            msg(sender,"§a/mlend <貸す相手> <金額> <返済日(日)> " +
+                    "<金利(日)${format(property.MinimumInterest,1)}〜${format(property.MaximumInterest,1)}>")
+            if (property.Fee>0.0){
+                msg(sender,"§a貸出額の${format(property.Fee,2)}%を貸出側から手数料としていただきます")
+            }
             return true
         }
 
@@ -274,13 +293,13 @@ object LocalLoan: Listener,CommandExecutor{
 
         val fixedAmount = floor(amount)
 
-        if (due == null){
-            msg(sender,"期日は数字で入力してください")
+        if (due == null || due < 0){
+            msg(sender,"期日は数字で1日以上を入力してください")
             return true
         }
 
-        if (interest == null){
-            msg(sender,"金利は数字で入力してください")
+        if (interest == null || interest !in property.MinimumInterest..property.MaximumInterest){
+            msg(sender,"金利は数字で指定金利内で入力してください")
             return true
         }
 
