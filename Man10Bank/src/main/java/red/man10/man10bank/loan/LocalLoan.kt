@@ -110,7 +110,7 @@ object LocalLoan: Listener,CommandExecutor{
         meta.lore = mutableListOf(
             "§4§l========[Man10Bank]========",
             "   §7§l債務者:  ${Bukkit.getOfflinePlayer(data.borrow_uuid).name}",
-            "   §8§l有効日:  ${data.payback_date.format(DateTimeFormatter.ISO_DATE_TIME)}",
+            "   §8§l有効日:  ${data.payback_date.format(DateTimeFormatter.ISO_LOCAL_DATE)}",
             "   §7§l支払額:  ${format(data.amount)}",
             "§4§l==========================")
 
@@ -272,7 +272,11 @@ object LocalLoan: Listener,CommandExecutor{
         }
 
         if (args.size != 4){
-            msg(sender,"§a/mlend <貸す相手> <金額> <返済日(日)> <金利(日)0.0〜1.0>")
+            msg(sender,"§a/mlend <貸す相手> <金額> <返済日(日)> " +
+                    "<金利(日)${format(property.MinimumInterest,1)}〜${format(property.MaximumInterest,1)}>")
+            if (property.Fee>0.0){
+                msg(sender,"§a貸出額の${format(property.Fee,2)}%を貸出側から手数料としていただきます")
+            }
             return true
         }
 
@@ -316,7 +320,7 @@ object LocalLoan: Listener,CommandExecutor{
         msg(borrower,"§e貸し出す人:${sender.name}")
         msg(borrower,"§e貸し出される金額:${format(fixedAmount)}")
         msg(borrower,"§e返す金額:${format(fixedAmount + (fixedAmount * interest * due))}")
-        msg(borrower,"§e返す日:$${calcDue(due).format(DateTimeFormatter.ISO_DATE_TIME)}")
+        msg(borrower,"§e返す日:$${calcDue(due).format(DateTimeFormatter.ISO_LOCAL_DATE)}")
         borrower.sendMessage(allowOrDeny)
         msg(borrower,"§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
         return true
