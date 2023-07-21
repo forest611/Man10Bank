@@ -1,6 +1,7 @@
 package red.man10.man10bank.cheque
 
 import net.kyori.adventure.text.Component
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.command.Command
@@ -18,6 +19,7 @@ import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.async
 import red.man10.man10bank.Permissions
+import red.man10.man10bank.Status
 import red.man10.man10bank.api.APICheque
 import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.format
@@ -176,15 +178,22 @@ object Cheque : CommandExecutor, Listener {
 
         if (getChequeID(item) == null)return
 
+        val p = e.player
+
         e.isCancelled = true
 
-        if (!e.player.hasPermission(Permissions.USE_CHEQUE)){
-            msg(e.player,"§cあなたは小切手をお金に変える権限がありません")
+        if (!p.hasPermission(Permissions.USE_CHEQUE)){
+            msg(p,"§cあなたは小切手をお金に変える権限がありません")
+            return
+        }
+
+        if (!Status.enableCheque){
+            msg(p,"現在メンテナンスにより小切手は使えません")
             return
         }
 
         async.execute {
-            use(e.player,item)
+            use(p,item)
         }
 
     }
@@ -192,6 +201,11 @@ object Cheque : CommandExecutor, Listener {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
 
         if (label != "mcheque" && label!="mchequeop"){
+            return false
+        }
+
+        if (!Status.enableCheque){
+            msg(sender,"現在メンテナンスにより小切手は使えません")
             return false
         }
 

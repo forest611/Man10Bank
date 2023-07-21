@@ -11,6 +11,7 @@ import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.async
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.Permissions
+import red.man10.man10bank.Status
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APIHistory
 import red.man10.man10bank.api.APIServerLoan
@@ -212,32 +213,30 @@ object BankCommand : CommandExecutor{
                 }
             }
 
-            "on" ->{
-                if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
-                Man10Bank.open()
-                msg(sender,"銀行をオープンしました")
-            }
-
-            "off" ->{
-                if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
-                Man10Bank.close()
-                msg(sender,"銀行をクローズしました")
-            }
+//            "on" ->{
+//                if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
+//
+//                msg(sender,"銀行をオープンしました")
+//            }
+//
+//            "off" ->{
+//                if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
+//                Man10Bank.close()
+//                msg(sender,"銀行をクローズしました")
+//            }
 
             "reload" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
                 Thread{
-                    Man10Bank.close()
-                    msg(sender,"§c§l銀行のクローズ完了")
+//                    Man10Bank.close()
 
                     msg(sender,"§c§lシステム終了・・・")
                     Man10Bank.systemClose()
                     msg(sender,"§c§lシステム起動・・・")
                     Man10Bank.systemSetup()
                     msg(sender,"§c§lシステムリロード完了")
-                    Man10Bank.open()
-                    msg(sender,"§c§l銀行の再開")
+//                    Man10Bank.open()
                 }.start()
             }
         }

@@ -10,6 +10,7 @@ import red.man10.man10bank.Config
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.async
 import red.man10.man10bank.Permissions
+import red.man10.man10bank.Status
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APIServerLoan
 import red.man10.man10bank.api.APIServerLoan.ServerLoanProperty
@@ -127,6 +128,11 @@ object ServerLoan : CommandExecutor{
 
         if (sender !is Player){
             return true
+        }
+
+        if (!Status.enableServerLoan){
+            msg(sender,"現在メンテナンスによりMan10リボは行えません")
+            return false
         }
 
         if (args.isNullOrEmpty()){

@@ -17,6 +17,7 @@ import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank.Companion.async
 import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.vault
+import red.man10.man10bank.Status
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APILocalLoan
 import red.man10.man10bank.util.Utility.format
@@ -145,7 +146,14 @@ object LocalLoan: Listener,CommandExecutor{
 
         async.execute {
 
+            //ここでnullが帰ってきたら小切手じゃないと判定
             val data = APILocalLoan.getInfo(id)?:return@execute
+
+            if (!Status.enableLocalLoan){
+                msg(p,"現在メンテナンスにより個人間借金は行えません")
+                return@execute
+            }
+
             val uuid = UUID.fromString(data.borrow_uuid)
 
             val vaultMoney = vault.getBalance(uuid)
@@ -229,6 +237,11 @@ object LocalLoan: Listener,CommandExecutor{
         if (label != "mlend")return true
 
         if (sender !is Player)return true
+
+        if (!Status.enableLocalLoan){
+            msg(sender,"現在メンテナンスにより個人間借金は行えません")
+            return false
+        }
 
         if (args.isNullOrEmpty()){
             msg(sender,"§a/mlend <貸す相手> <金額> <返済日(日)> " +
