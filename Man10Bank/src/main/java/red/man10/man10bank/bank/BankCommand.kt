@@ -53,6 +53,10 @@ object BankCommand : CommandExecutor{
                 asyncShowLog(sender.uniqueId,sender,page)
             }
 
+            "bs" -> {
+                asyncShowBalanceSheet(sender.uniqueId,sender)
+            }
+
             /////////運営用コマンド/////////
 
             //人の所持金を見る
@@ -328,16 +332,24 @@ object BankCommand : CommandExecutor{
             val arg = if (mcid == sender.name) "/bal log " else "/bal logop $mcid "
 
             val previous = if (page!=0) {
-                text("${prefix}§b§l<<==前のページ ").clickEvent(ClickEvent.runCommand(arg+(page-1)))
+                text("${prefix}§b§l§n<<==前のページ ").clickEvent(ClickEvent.runCommand(arg+(page-1)))
             }else text(prefix)
 
             val next = if (log.size == 10){
-                text("§b§l次のページ==>>").clickEvent(ClickEvent.runCommand(arg+(page+1)))
+                text("§b§l§n次のページ==>>").clickEvent(ClickEvent.runCommand(arg+(page+1)))
             }else text("")
 
             sender.sendMessage(previous.append(next))
         }
+    }
 
+    private fun asyncShowBalanceSheet(uuid: UUID,sender: CommandSender){
+        async.execute {
+            val mcid = Bukkit.getOfflinePlayer(uuid).name
+
+            msg(sender,"§d§l===========${mcid}のバランスシート==========")
+
+        }
     }
 
 }

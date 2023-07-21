@@ -32,23 +32,18 @@ object DealCommand : CommandExecutor{
         if (label == "d" || label == "deposit"){
 
             if (args.isNullOrEmpty()){
-                msg(sender,"§a§l/deposit <金額> : 銀行に電子マネーを入れる")
+                msg(sender,"§a§l/deposit <金額/all> : 銀行に電子マネーを入れる")
                 return true
             }
 
             val amount = if (args[0] == "all") vault.getBalance(sender.uniqueId) else Utility.parse(args[0])
 
-            if (amount==null){
-                msg(sender,"§c§l数字で入力してください！")
+            if (amount==null || amount < 1){
+                msg(sender,"§c§l数字で1円以上を入力してください！")
                 return true
             }
 
             val fixedAmount = floor(amount)
-
-            if (fixedAmount < 1){
-                msg(sender,"§c§l1円以上を入力してください！")
-                return true
-            }
 
             if (!vault.withdraw(sender.uniqueId,fixedAmount)){
                 msg(sender,"§c§l電子マネーが足りません！")
@@ -76,7 +71,7 @@ object DealCommand : CommandExecutor{
 
         if (label == "w" || label == "withdraw"){
             if (args.isNullOrEmpty()){
-                msg(sender,"§c§l/withdraw <金額> : 銀行から電子マネーを引き出す")
+                msg(sender,"§c§l/withdraw <金額/all> : 銀行から電子マネーを引き出す")
                 return true
             }
 
@@ -84,17 +79,12 @@ object DealCommand : CommandExecutor{
 
                 val amount = if (args[0] == "all") APIBank.getBalance(sender.uniqueId) else Utility.parse(args[0])
 
-                if (amount==null){
-                    msg(sender,"§c§l数字で入力してください！")
+                if (amount==null || amount < 1){
+                    msg(sender,"§c§l数字で1円以上を入力してください！")
                     return@execute
                 }
 
                 val fixedAmount = floor(amount)
-
-                if (fixedAmount < 1){
-                    msg(sender,"§c§l1円以上を入力してください！")
-                    return@execute
-                }
 
                 val result = APIBank.takeBank(APIBank.TransactionData(
                     sender.uniqueId.toString(),
