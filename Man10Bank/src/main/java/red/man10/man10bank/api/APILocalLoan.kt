@@ -5,7 +5,6 @@ import red.man10.man10bank.api.APIBase.getRequest
 import red.man10.man10bank.api.APIBase.gson
 import red.man10.man10bank.api.APIBase.postAndGetResponse
 import java.time.LocalDateTime
-import java.util.*
 
 object APILocalLoan {
 
@@ -46,9 +45,9 @@ object APILocalLoan {
     )
 
     data class LocalLoanProperty(
-        var MinimumInterest : Double,
-        var MaximumInterest : Double,
-        var Fee : Double
+        var minimumInterest : Double,
+        var maximumInterest : Double,
+        var fee : Double
     )
 
 }

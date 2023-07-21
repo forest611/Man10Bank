@@ -35,9 +35,9 @@ object LocalLoan: Listener,CommandExecutor{
     fun setup(){
         property = APILocalLoan.property()
         loggerInfo("個人間借金の設定を読み込みました")
-        loggerInfo("最小金利:${property.MinimumInterest}")
-        loggerInfo("最大金利:${property.MaximumInterest}")
-        loggerInfo("手数料:${property.Fee}")
+        loggerInfo("最小金利:${property.minimumInterest}")
+        loggerInfo("最大金利:${property.maximumInterest}")
+        loggerInfo("手数料:${property.fee}")
     }
 
     /**
@@ -45,7 +45,7 @@ object LocalLoan: Listener,CommandExecutor{
      */
     private fun create(lender:Player, borrower:Player, amount:Double, interest:Double, due:Int){
 
-        val withdrawAmount = amount * (1 + property.Fee)
+        val withdrawAmount = amount * (1 + property.fee)
 
         if (!vault.withdraw(lender.uniqueId,withdrawAmount)){
             msg(borrower,"提案者の所持金が足りませんでした。")
@@ -232,9 +232,9 @@ object LocalLoan: Listener,CommandExecutor{
 
         if (args.isNullOrEmpty()){
             msg(sender,"§a/mlend <貸す相手> <金額> <返済日(日)> " +
-                    "<金利(日)${format(property.MinimumInterest,1)}〜${format(property.MaximumInterest,1)}>")
-            if (property.Fee>0.0){
-                msg(sender,"§a貸出額の${format(property.Fee,2)}%を貸出側から手数料としていただきます")
+                    "<金利(日)${format(property.minimumInterest,1)}〜${format(property.maximumInterest,1)}>")
+            if (property.fee>0.0){
+                msg(sender,"§a貸出額の${format(property.fee,2)}%を貸出側から手数料としていただきます")
             }
             return true
         }
@@ -273,9 +273,9 @@ object LocalLoan: Listener,CommandExecutor{
 
         if (args.size != 4){
             msg(sender,"§a/mlend <貸す相手> <金額> <返済日(日)> " +
-                    "<金利(日)${format(property.MinimumInterest,1)}〜${format(property.MaximumInterest,1)}>")
-            if (property.Fee>0.0){
-                msg(sender,"§a貸出額の${format(property.Fee,2)}%を貸出側から手数料としていただきます")
+                    "<金利(日)${format(property.minimumInterest,1)}〜${format(property.maximumInterest,1)}>")
+            if (property.fee>0.0){
+                msg(sender,"§a貸出額の${format(property.fee,2)}%を貸出側から手数料としていただきます")
             }
             return true
         }
@@ -302,7 +302,7 @@ object LocalLoan: Listener,CommandExecutor{
             return true
         }
 
-        if (interest == null || interest !in property.MinimumInterest..property.MaximumInterest){
+        if (interest == null || interest !in property.minimumInterest..property.maximumInterest){
             msg(sender,"金利は数字で指定金利内で入力してください")
             return true
         }
