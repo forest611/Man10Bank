@@ -187,7 +187,7 @@ object Cheque : CommandExecutor, Listener {
             return
         }
 
-        if (!Status.enableCheque){
+        if (!Status.status.enableCheque){
             msg(p,"現在メンテナンスにより小切手は使えません")
             return
         }
@@ -204,7 +204,7 @@ object Cheque : CommandExecutor, Listener {
             return false
         }
 
-        if (!Status.enableCheque){
+        if (!Status.status.enableCheque){
             msg(sender,"現在メンテナンスにより小切手は使えません")
             return false
         }

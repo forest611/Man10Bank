@@ -150,7 +150,7 @@ object ATM :CommandExecutor{
 
         if (sender !is Player)return true
 
-        if (!Status.enableATM){
+        if (!Status.status.enableATM){
             msg(sender,"現在ATMはメンテナンス中です")
             return true
         }

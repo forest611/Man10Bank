@@ -184,7 +184,7 @@ object ServerLoan : CommandExecutor{
                     return true
                 }
 
-                if (!Status.enableServerLoan){
+                if (!Status.status.enableServerLoan){
                     msg(sender,"現在新規貸し出しは行っておりません。返済は可能です。")
                     return true
                 }
@@ -197,7 +197,7 @@ object ServerLoan : CommandExecutor{
             }
 
             "confirm" ->{
-                if (!Status.enableServerLoan){
+                if (!Status.status.enableServerLoan){
                     msg(sender,"現在新規貸し出しは行っておりません。返済は可能です。")
                     return true
                 }

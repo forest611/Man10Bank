@@ -149,7 +149,7 @@ object LocalLoan: Listener,CommandExecutor{
             //ここでnullが帰ってきたら小切手じゃないと判定
             val data = APILocalLoan.getInfo(id)?:return@execute
 
-            if (!Status.enableLocalLoan){
+            if (!Status.status.enableLocalLoan){
                 msg(p,"現在メンテナンスにより個人間借金は行えません")
                 return@execute
             }
@@ -238,7 +238,7 @@ object LocalLoan: Listener,CommandExecutor{
 
         if (sender !is Player)return true
 
-        if (!Status.enableLocalLoan){
+        if (!Status.status.enableLocalLoan){
             msg(sender,"現在メンテナンスにより個人間借金は行えません")
             return false
         }

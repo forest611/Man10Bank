@@ -73,12 +73,12 @@ object APIBank {
         getRequest("${apiRoute}create?uuid=${p.uniqueId}&mcid=${p.name}")
     }
 
-    fun getStatus():Status.StatusData{
+    fun getStatus():Status{
         val result = getRequest("${apiRoute}get-status")
-        return gson.fromJson(result,Status.StatusData::class.java)
+        return gson.fromJson(result,Status::class.java)
     }
 
-    fun setStatus(data:Status.StatusData){
+    fun setStatus(data:Status){
         postRequest("${apiRoute}set-status", gson.toJson(data).toRequestBody(mediaType))
     }
 
