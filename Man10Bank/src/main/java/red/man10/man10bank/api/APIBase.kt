@@ -116,6 +116,10 @@ object APIBase {
 
         setupGson()
 
+        if (::client.isInitialized){
+            client.connectionPool.evictAll()
+        }
+
         val trustAllCerts = arrayOf<TrustManager>(
             object : X509TrustManager {
                 override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
