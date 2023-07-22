@@ -23,24 +23,24 @@ import javax.net.ssl.X509TrustManager
 
 object APIBase {
 
-    private var url = "https://localhost:7031"
+//    private var url = "https://localhost:7031"
     val mediaType = "application/json; charset=utf-8".toMediaType()
     private lateinit var client : OkHttpClient
     lateinit var gson : Gson
 
     //      POST
-    fun postRequest(url: String,body: RequestBody? = null):Int{
+    fun postRequest(path: String, body: RequestBody? = null):Int{
 
-        loggerDebug("PostRequest:${url}")
+        loggerDebug("PostRequest:${path}")
 
         val request = if (body!=null){
             Request.Builder()
-                .url(APIBase.url+url)
+                .url(Config.url+path)
                 .post(body)
                 .build()
         } else{
             Request.Builder()
-                .url(APIBase.url+url)
+                .url(Config.url+path)
                 .build()
         }
 
@@ -59,18 +59,18 @@ object APIBase {
     }
 
     //      POST
-    fun postAndGetResponse(url: String,body: RequestBody? = null):String{
+    fun postAndGetResponse(path: String, body: RequestBody? = null):String{
 
-        loggerDebug("PostRequest:${url}")
+        loggerDebug("PostRequest:${path}")
 
         val request = if (body!=null){
             Request.Builder()
-                .url(APIBase.url+url)
+                .url(Config.url+path)
                 .post(body)
                 .build()
         } else{
             Request.Builder()
-                .url(APIBase.url+url)
+                .url(Config.url+path)
                 .build()
         }
 
@@ -89,12 +89,12 @@ object APIBase {
     }
 
     //      GET
-    fun getRequest(url:String): String? {
+    fun getRequest(path:String): String? {
 
-        loggerDebug("GetRequest:${url}")
+        loggerDebug("GetRequest:${path}")
 
         val request = Request.Builder()
-            .url(APIBase.url+url)
+            .url(Config.url+path)
             .build()
 
         var result : String? = null
@@ -143,7 +143,7 @@ object APIBase {
 
         Man10Bank.instance.reloadConfig()
 
-        url = Man10Bank.instance.config.getString(Config.API_URL)?:"https://localhost:7031"
+//        url = Man10Bank.instance.config.getString(Config.API_URL)?:"https://localhost:7031"
 
         when(val code = connectionCheck()){
             0 ->{

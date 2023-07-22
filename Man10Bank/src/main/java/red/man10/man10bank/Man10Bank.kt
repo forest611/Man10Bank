@@ -40,7 +40,7 @@ class Man10Bank : JavaPlugin() {
         }
         //      システム起動
         fun systemSetup(){
-            loadConfig()
+            Config
             canConnectServer = APIBase.setup()
             //接続に失敗したらこれ以降の読み込みをやめる
             if (!canConnectServer){ return }
@@ -57,14 +57,6 @@ class Man10Bank : JavaPlugin() {
             Status.stopStatusTimer()
         }
 
-        //      Configの読み込み
-        private fun loadConfig(){
-
-            instance.saveDefaultConfig()
-            instance.reloadConfig()
-
-            Utility.debugMode = instance.config.getBoolean(Config.DEBUG_MODE)
-        }
     }
 
     override fun onEnable() {

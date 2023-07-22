@@ -7,12 +7,12 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.BlockStateMeta
 import org.bukkit.inventory.meta.BundleMeta
+import red.man10.man10bank.Config
 import java.text.Normalizer
 
 object Utility{
 
     const val prefix = "§l[§e§lMan10Bank§f§l]§f"
-    var debugMode = false
 
     fun msg(p: Player, msg: String) {
         p.sendMessage(prefix + msg)
@@ -44,7 +44,7 @@ object Utility{
     }
 
     fun loggerDebug(str: String?){
-        if (!debugMode)return
+        if (!Config.debugMode)return
         Bukkit.getLogger().warning("[Man10BankDebug]$str")
     }
 
