@@ -77,6 +77,18 @@ public class BankController : ControllerBase
         Bank.CreateBank(uuid,mcid);
     }
 
+    [HttpGet("get-status")]
+    public Status GetStatus()
+    {
+        return Status.NowStatus;
+    }
+
+    [HttpPost("set-status")]
+    public void SetStatus([FromBody] Status status)
+    {
+        Status.NowStatus = status;
+    }
+
 }
 
 public class TransactionData

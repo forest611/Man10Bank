@@ -17,8 +17,8 @@ object Status : CommandExecutor{
     var enableServerLoan = false
 
     private var timerThread = Thread()
-    private const val checkSpanSecond = 10
-    fun asyncSendStatus(){
+
+    private fun asyncSendStatus(){
         val data = StatusData()
         //TODO:動作確認必須
         data::class.java.fields.forEach { value ->
@@ -45,7 +45,7 @@ object Status : CommandExecutor{
             Bukkit.getLogger().info("ステータスチェク処理を走らせます")
             try {
                 getStatus()
-                Thread.sleep(1000L * checkSpanSecond)
+                Thread.sleep(1000L * Config.statusCheckSeconds)
             }catch (e:InterruptedException){
                 Bukkit.getLogger().info("ステータスチェック処理を終了")
                 return@Thread
