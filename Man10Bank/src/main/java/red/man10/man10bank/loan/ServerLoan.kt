@@ -6,8 +6,6 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import red.man10.man10bank.Config
-import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.async
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.Status
@@ -22,22 +20,21 @@ import java.lang.Math.floor
 
 object ServerLoan : CommandExecutor{
 
-    private lateinit var serverLoanProperty : ServerLoanProperty
-    var isEnable = true
+    private lateinit var property : ServerLoanProperty
 
     fun setup(){
-        serverLoanProperty = APIServerLoan.property()
+        property = APIServerLoan.property()
         loggerInfo("リボの設定値を読み込みました")
-        loggerInfo("支払い期間:${serverLoanProperty.paymentInterval}")
-        loggerInfo("一日あたりの利息:${serverLoanProperty.dailyInterest}")
-        loggerInfo("最小貸出可能額:${serverLoanProperty.minimumAmount}")
-        loggerInfo("最大貸出可能額:${serverLoanProperty.maximumAmount}")
+        loggerInfo("支払い期間:${property.paymentInterval}")
+        loggerInfo("一日あたりの利息:${property.dailyInterest}")
+        loggerInfo("最小貸出可能額:${property.minimumAmount}")
+        loggerInfo("最大貸出可能額:${property.maximumAmount}")
     }
 
     private fun checkAmount(p:Player){
         val maxLoan = APIServerLoan.getBorrowableAmount(p.uniqueId)
 
-        msg(p,"§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(serverLoanProperty.maximumAmount)}円)")
+        msg(p,"§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(property.maximumAmount)}円)")
     }
     private fun setPayment(p:Player,amount: Double){
         val data = APIServerLoan.getInfo(p.uniqueId)
@@ -83,7 +80,7 @@ object ServerLoan : CommandExecutor{
         val button = Component.text("${prefix}§c§l§n[借りる] ")
             .clickEvent(ClickEvent.runCommand("/mrevo confirm ${floor(amount)}"))
 
-        val minPaymentAmount = (borrowing + amount )* serverLoanProperty.paymentInterval * serverLoanProperty.dailyInterest
+        val minPaymentAmount = (borrowing + amount )* property.paymentInterval * property.dailyInterest
 
         msg(p,"§b§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
         msg(p,"§e§kXX§b§lMan10リボ§e§kXX")
@@ -91,7 +88,7 @@ object ServerLoan : CommandExecutor{
         msg(p,"§b現在の利用額:${format(borrowing)}")
         msg(p,"§c利息の計算方法:§l<利用額>x<金利>x<最後に支払ってからの日数>")
         msg(p,"§c※支払額から利息を引いた額が返済に充てられます")
-        msg(p,"§b${serverLoanProperty.paymentInterval}日ごとに最低${format(minPaymentAmount)}円支払う必要があります")
+        msg(p,"§b${property.paymentInterval}日ごとに最低${format(minPaymentAmount)}円支払う必要があります")
         p.sendMessage(button)
         msg(p,"§b§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
 
@@ -130,10 +127,10 @@ object ServerLoan : CommandExecutor{
             return true
         }
 
-        if (!Status.enableServerLoan){
-            msg(sender,"現在メンテナンスによりMan10リボは行えません")
-            return false
-        }
+//        if (!Status.enableServerLoan){
+//            msg(sender,"現在メンテナンスによりMan10リボは行えません")
+//            return false
+//        }
 
         if (args.isNullOrEmpty()){
 
@@ -187,7 +184,7 @@ object ServerLoan : CommandExecutor{
                     return true
                 }
 
-                if (!isEnable){
+                if (!Status.enableServerLoan){
                     msg(sender,"現在新規貸し出しはできません。返済は可能です。")
                     return true
                 }
@@ -200,7 +197,7 @@ object ServerLoan : CommandExecutor{
             }
 
             "confirm" ->{
-                if (!isEnable){
+                if (!Status.enableServerLoan){
                     msg(sender,"現在新規貸し出しはできません。返済は可能です。")
                     return true
                 }
@@ -258,22 +255,6 @@ object ServerLoan : CommandExecutor{
 //
 //                })
 //            }
-
-            "on" ->{
-                if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
-
-                isEnable = true
-
-                Man10Bank.instance.config.set(Config.SERVER_LOAN_ENABLE,true)
-                Man10Bank.instance.saveConfig()
-            }
-
-            "off" ->{
-                if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
-
-                Man10Bank.instance.config.set(Config.SERVER_LOAN_ENABLE,false)
-                Man10Bank.instance.saveConfig()
-            }
 
 
         }

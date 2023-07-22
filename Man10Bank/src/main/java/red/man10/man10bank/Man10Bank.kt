@@ -63,8 +63,6 @@ class Man10Bank : JavaPlugin() {
             instance.saveDefaultConfig()
             instance.reloadConfig()
 
-//            bankOpen = instance.config.getBoolean(Config.BANK_ENABLE)
-            ServerLoan.isEnable = instance.config.getBoolean(Config.SERVER_LOAN_ENABLE)
             Utility.debugMode = instance.config.getBoolean(Config.DEBUG_MODE)
         }
     }
