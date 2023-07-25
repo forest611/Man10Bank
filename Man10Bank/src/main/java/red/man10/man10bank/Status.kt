@@ -57,15 +57,39 @@ class Status : CommandExecutor{
         if (args.isNullOrEmpty()){
             msg(sender,"現在の稼働状況")
             msg(sender,"Man10BankServer:${Man10Bank.isEnableServer()}")
-            Status::class.java.fields.forEach { value ->
-                msg(sender,"${value.name}:${value.get(value.type)}")
-            }
+
+            msg(sender,"enableDealBank:$enableDealBank")
+            msg(sender,"enableATM:$enableATM")
+            msg(sender,"enableCheque:$enableCheque")
+            msg(sender,"enableServerLoan:$enableServerLoan")
+            msg(sender,"enableLocalLoan:$enableLocalLoan")
+
             return true
         }
 
         if (args[0] == "set" && args.size == 3){
             try {
-                Status::class.java.getField(args[1]).set(Boolean::class.java,args[2].toBoolean())
+
+                val value = args[2].toBoolean()
+
+                when(args[1]){
+                    "all" -> {
+                        enableDealBank = value
+                        enableATM = value
+                        enableCheque = value
+                        enableLocalLoan = value
+                        enableServerLoan = value
+                    }
+                    "enableDealBank" -> enableDealBank = value
+                    "enableATM" -> enableATM = value
+                    "enableCheque" -> enableCheque = value
+                    "enableLocalLoan" -> enableLocalLoan = value
+                    "enableServerLoan" -> enableServerLoan = value
+                    else ->{
+                        msg(sender,"無効なステータス")
+                    }
+                }
+
                 asyncSendStatus()
                 msg(sender,"設定完了")
             }catch (e:Exception){

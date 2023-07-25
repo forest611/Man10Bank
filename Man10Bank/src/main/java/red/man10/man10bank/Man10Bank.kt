@@ -40,7 +40,7 @@ class Man10Bank : JavaPlugin() {
         }
         //      システム起動
         fun systemSetup(){
-            Config
+            Config.load()
             canConnectServer = APIBase.setup()
             //接続に失敗したらこれ以降の読み込みをやめる
             if (!canConnectServer){ return }
