@@ -25,7 +25,7 @@ public static class Utility
     /// <returns></returns>
     public static async Task<string> GetMinecraftId(string uuid)
     {
-        var response = await Client.GetAsync($"{SystemUrl}/Player/mcid?uuid={uuid}");
+        var response = await Client.GetAsync($"{SystemUrl}/player/mcid?uuid={uuid}");
         var body = await response.Content.ReadAsStringAsync();
         response.Dispose();
         return body;
@@ -38,7 +38,7 @@ public static class Utility
     /// <returns></returns>
     public static async Task<string> GetUUID(string mcid)
     {
-        var response = await Client.GetAsync($"{SystemUrl}/Player/uuid?minecraftId={mcid}");
+        var response = await Client.GetAsync($"{SystemUrl}/player/uuid?minecraftId={mcid}");
         var body = await response.Content.ReadAsStringAsync();
         response.Dispose();
         return body;
