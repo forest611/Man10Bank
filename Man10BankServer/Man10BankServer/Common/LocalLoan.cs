@@ -75,4 +75,15 @@ public static class LocalLoan
 
         return result;
     }
+
+    public static async Task<double> GetTotalLoan(string uuid)
+    {
+        var result = await Task.Run(() =>
+        {
+            var context = new BankContext();
+            var total = context.loan_table.Where(r => r.borrow_uuid == uuid).Sum(r => r.amount);
+            return total;
+        });
+        return result;
+    }
 }

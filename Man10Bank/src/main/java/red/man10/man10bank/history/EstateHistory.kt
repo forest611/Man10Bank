@@ -77,8 +77,6 @@ object EstateHistory {
             msg(p,"§b§l合計:  §e§l${format(data.total)}")
             msg(p,"§c§lまんじゅうリボ:  §e§l${format(data.loan)}")
         }
-
-
     }
 
     fun asyncAddEstate(p:Player){

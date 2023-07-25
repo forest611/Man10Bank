@@ -14,6 +14,7 @@ import red.man10.man10bank.Permissions
 import red.man10.man10bank.Status
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APIHistory
+import red.man10.man10bank.api.APILocalLoan
 import red.man10.man10bank.api.APIServerLoan
 import red.man10.man10bank.history.EstateHistory
 import red.man10.man10bank.util.Utility
@@ -22,6 +23,7 @@ import red.man10.man10bank.util.Utility.msg
 import red.man10.man10bank.util.Utility.prefix
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.math.abs
 
 /**
  *  銀行の残高を閲覧したりするコマンド
@@ -344,9 +346,27 @@ object BankCommand : CommandExecutor{
 
     private fun asyncShowBalanceSheet(uuid: UUID,sender: CommandSender){
         async.execute {
+            val estate = APIHistory.getUserEstate(uuid)
             val mcid = Bukkit.getOfflinePlayer(uuid).name
 
+            val vault = vault.getBalance(uuid)
+            val bank = APIBank.getBalance(uuid)
+            val items = estate?.estete?:0.0
+            val cash = estate?.cash?:0.0
+            val serverLoan = APIServerLoan.getInfo(uuid)?.borrow_amount?:0.0
+            val localLoan = APILocalLoan.totalLoan(uuid)
+
+            val assets = vault+bank+items+cash
+            val liability = localLoan + serverLoan
+            val equity = assets - liability
+            val symbol = if (equity<0) { "△" } else {""}
+
             msg(sender,"§d§l===========${mcid}のバランスシート==========")
+            msg(sender,String.format(" §b現金:        %14s §f| §c個人間借金:            §c%14s", format(cash), format(localLoan)))
+            msg(sender,String.format(" §b電子マネー:   %14s §f| §cMan10リボ:            §c%14s", format(vault), format(serverLoan)))
+            msg(sender,String.format(" §b銀行:        %14s §f| §c合計負債:              §c%14s", format(bank), format(liability)))
+            msg(sender,String.format(" §bその他:      %14s §f| §a純資産:                §a%14s", format(items), "${format(abs(equity))}${symbol}"))
+            msg(sender,String.format(" §b合計資産:     %14s §f| §c負債と純資産:          §b%14s", format(assets), format(liability+equity)))
 
         }
     }

@@ -5,6 +5,7 @@ import red.man10.man10bank.api.APIBase.getRequest
 import red.man10.man10bank.api.APIBase.gson
 import red.man10.man10bank.api.APIBase.postAndGetResponse
 import java.time.LocalDateTime
+import java.util.UUID
 
 object APILocalLoan {
 
@@ -30,6 +31,9 @@ object APILocalLoan {
         return gson.fromJson(result,LocalLoanProperty::class.java)
     }
 
+    fun totalLoan(uuid: UUID):Double{
+        return getRequest("${apiRoute}total-loan")?.toDoubleOrNull()?:0.0
+    }
 
     data class LocalLoanTable(
 

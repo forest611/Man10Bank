@@ -35,6 +35,12 @@ public class LocalLoanController : ControllerBase
     {
         return new LocalLoanProperty();
     }
+
+    [HttpGet("total-loan")]
+    public double GetTotalLoan(string uuid)
+    {
+        return LocalLoan.GetTotalLoan(uuid).Result;
+    }
 }
 
 public class LocalLoanProperty
