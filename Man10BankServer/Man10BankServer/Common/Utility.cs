@@ -15,6 +15,7 @@ public static class Utility
     {
         Config = config;
         SystemUrl = Config["Man10SystemUrl"]!;
+        Thread.Sleep(1000);
         TryConnect();
     }
 
@@ -86,7 +87,8 @@ public static class Utility
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Man10System接続失敗:{e}");
+            Console.WriteLine($"Man10System接続失敗");
+            Console.WriteLine(e);
         }
     }
 
