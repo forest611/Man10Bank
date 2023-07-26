@@ -17,11 +17,8 @@ Utility.LoadConfig(builder.Configuration);
 Bank.Configure(app,app.Environment);
 Bank.Setup();
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
