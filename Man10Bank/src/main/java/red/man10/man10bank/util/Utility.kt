@@ -31,7 +31,7 @@ object Utility{
         return normalize.toDoubleOrNull()
     }
 
-    fun parse(str:String) : Double? {
+    fun fixedPerse(str:String) : Double? {
         return ZenkakuToHankaku(str.replace(",",""))
     }
 

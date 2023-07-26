@@ -37,7 +37,7 @@ object DealCommand : CommandExecutor{
                 return true
             }
 
-            val amount = if (args[0] == "all") vault.getBalance(sender.uniqueId) else Utility.parse(args[0])
+            val amount = if (args[0] == "all") vault.getBalance(sender.uniqueId) else Utility.fixedPerse(args[0])
 
             if (amount==null || amount < 1){
                 msg(sender,"§c§l数字で1円以上を入力してください！")
@@ -78,7 +78,7 @@ object DealCommand : CommandExecutor{
 
             async.execute {
 
-                val amount = if (args[0] == "all") APIBank.getBalance(sender.uniqueId) else Utility.parse(args[0])
+                val amount = if (args[0] == "all") APIBank.getBalance(sender.uniqueId) else Utility.fixedPerse(args[0])
 
                 if (amount==null || amount < 1){
                     msg(sender,"§c§l数字で1円以上を入力してください！")
