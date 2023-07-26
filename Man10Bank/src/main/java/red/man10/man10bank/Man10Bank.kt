@@ -79,6 +79,8 @@ class Man10Bank : JavaPlugin() {
         getCommand("mbaltop")!!.setExecutor(TopCommand)
         getCommand("estateinfo")!!.setExecutor(TopCommand)
         getCommand("bankstatus")!!.setExecutor(Status.status)
+        getCommand("pay")!!.setExecutor(PayCommand)
+        getCommand("mpay")!!.setExecutor(PayCommand)
         BankCommand.labels.forEach { getCommand(it)!!.setExecutor(BankCommand) }
         DealCommand.labels.forEach { getCommand(it)!!.setExecutor(DealCommand) }
 

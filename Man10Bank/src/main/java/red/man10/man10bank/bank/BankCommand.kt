@@ -11,7 +11,6 @@ import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.async
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.Permissions
-import red.man10.man10bank.Status
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APIHistory
 import red.man10.man10bank.api.APILocalLoan
