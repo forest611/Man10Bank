@@ -7,17 +7,49 @@ public static class Bank
 {
 
     private static readonly BlockingCollection<Action<BankContext>> BankQueue = new();
-
-    static Bank()
-    {
-    }
-
+    
     public static void Setup()
     {
         //ブロッキングキューの起動
         Task.Run(BlockingQueue);
         ServerLoan.Async(Utility.Config!);
         History.AsyncServerEstateHistoryTask();
+    }
+    
+    public static void ConfigureServices(IServiceCollection services)
+    {
+        services.AddControllers();
+
+        // CORS設定
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowOriginPolicy", builder =>
+            {
+                builder.AllowAnyOrigin() // すべてのオリジンからのリクエストを許可
+                    .AllowAnyMethod() // すべてのHTTPメソッドを許可 (GET、POST、PUT、DELETEなど)
+                    .AllowAnyHeader(); // すべてのヘッダーを許可
+            });
+        });
+    }
+
+    public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+        }
+
+        app.UseRouting();
+
+        // CORSポリシーを有効にする
+        app.UseCors("AllowOriginPolicy");
+
+        app.UseAuthorization();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+        });
     }
 
     /// <summary>
