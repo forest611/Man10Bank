@@ -18,6 +18,22 @@ export interface EstateData {
     total: number;
 }
 
+interface ServerEstateData {
+    id: number;
+    vault: number;
+    bank: number;
+    cash: number;
+    estate: number;
+    loan: number;
+    crypto: number;
+    total: number;
+    year: number;
+    month: number;
+    day: number;
+    hour: number;
+    date: Date;
+}
+
 export async function  getEstate(uuid : string) {
 
     try {
@@ -32,4 +48,31 @@ export async function  getEstate(uuid : string) {
     }
 
     return null
+}
+
+export async function getUserEstateHistory(uuid :string, day : number){
+
+    try {
+        const response = await fetch(`${apiUrl+apiRoute}get-user-estate-history?uuid=${uuid}&day=${day}`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const estate : EstateData[] = await response.json()
+        return estate
+    }catch (e){
+        return []
+    }
+}
+
+export async function getServerEstateHistory(day : number) {
+    try {
+        const response = await fetch(`${apiUrl+apiRoute}get-server-estate-history?day=${day}`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const estate : ServerEstateData[] = await response.json()
+        return estate
+    }catch (e){
+        return []
+    }
 }

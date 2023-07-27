@@ -1,13 +1,57 @@
-import React, {useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {getIdSuggest, getUUID} from "../services/BankApi";
-import {EstateData, getEstate} from "../services/EstateApi";
+import {EstateData, getEstate, getUserEstateHistory} from "../services/EstateApi";
 import {formatDate} from "../App";
 import '../css/SuggestStyle.css'
+import {Chart,registerables } from "chart.js";
+
+Chart.register(...registerables)
+let chart : Chart
+
 const EstatePage : React.FC = () => {
 
     const [estate,setEstate] = useState<EstateData | null>(null)
     const [input,setInput] = useState('')
     const [suggest,setSuggest] = useState<string[]>([])
+
+    const chartRef = useRef<HTMLCanvasElement>(null);
+
+    const drawChart = async (value:string) => {
+        const data = await getUserEstateHistory(value,30)
+
+        if (data.length <= 2){
+            console.log("データ不足")
+            return
+        }
+        if (chartRef.current === null){return}
+
+        const ctx = chartRef.current.getContext('2d');
+
+        if (ctx === null){return}
+        if (chart !== undefined)chart.destroy()
+
+        // チャート用のデータを整形する
+        const chartData = {
+            labels: data.map(item => formatDate(new Date())), // 横軸のラベル
+            datasets: [
+                {
+                    label: '直近30日の資産推移', // データセットのラベル
+                    data: data.map(item => item.total), // 縦軸のデータにtotalを使用
+                    borderColor: 'rgba(75, 192, 192, 1)', // 折れ線の色
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)', // 折れ線の下の領域の色
+                    fill: true, // 下の領域を塗りつぶすかどうか
+                },
+            ],
+        };
+
+        // チャートを描画する
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+        });
+
+        console.log(chart.id)
+    }
 
     const showResult = () => {
         if (estate === null)return '存在しないユーザーです'
@@ -41,12 +85,16 @@ const EstatePage : React.FC = () => {
 
         //uuid
         if (value.length === 36) {
+            await drawChart(value)
             setEstate(await getEstate(value))
             return
         }
         //mcid
         const uuid = await getUUID(value)
-        if (uuid.length === 36)setEstate(await getEstate(uuid))
+        if (uuid.length === 36){
+            await drawChart(uuid)
+            setEstate(await getEstate(uuid))
+        }
     }
 
     return (
@@ -73,6 +121,7 @@ const EstatePage : React.FC = () => {
                     {showResult().split("\n")
                         .map((line,index) => <li style={{color: 'antiquewhite'}} key={index}>{line}</li>)}
                 </ul>
+                <canvas id='Chart' ref={chartRef} width="400" height="200"></canvas>
             </div>
         </div>
     );
