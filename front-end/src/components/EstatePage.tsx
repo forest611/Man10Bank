@@ -28,6 +28,27 @@ const EstatePage : React.FC = () => {
         alignItems: 'center',
     }
 
+    const onClick = async (value:string) => {
+        setInput(value)
+
+        if (value.length < 3) {
+            setEstate(null)
+            setSuggest([])
+            return
+        }
+
+        setSuggest(await getIdSuggest(value))
+
+        //uuid
+        if (value.length === 36) {
+            setEstate(await getEstate(value))
+            return
+        }
+        //mcid
+        const uuid = await getUUID(value)
+        if (uuid.length === 36)setEstate(await getEstate(uuid))
+    }
+
     return (
         <div>
             <h1>資産状況の確認</h1>
@@ -37,33 +58,15 @@ const EstatePage : React.FC = () => {
                     type="text"
                     id="input"
                     value={input}
-                    onChange={async e => {
-                        const value = e.target.value
-                        setInput(value)
-
-                        if (value.length < 3) {
-                            setEstate(null)
-                            setSuggest([])
-                            return
-                        }
-
-                        setSuggest(await getIdSuggest(value))
-
-                        //uuid
-                        if (value.length === 36) {
-                            setEstate(await getEstate(value))
-                            return
-                        }
-                        //mcid
-                        const uuid = await getUUID(value)
-                        if (uuid.length === 36)setEstate(await getEstate(uuid))
-
-                    }}
+                    onChange={async e => await onClick(e.target.value)}
                     placeholder="UUIDかMCIDを入力してください"
                 />
                 {suggest.length　> 0 && (
                     <ul className='suggest'>
-                        {suggest.map((s,index) => <li　key={index} onClick={()=>{setInput(s)}}>{s}</li>)}
+                        {suggest.map((s,index) => <li　key={index} onClick={async ()=>{
+                            setInput(s)
+                            await onClick(s)
+                        }}>{s}</li>)}
                     </ul>
                 )}
                 <ul style={ulStyle}>
