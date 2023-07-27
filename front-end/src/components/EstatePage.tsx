@@ -47,7 +47,7 @@ const EstatePage : React.FC = () => {
                     }}
                     placeholder="UUIDかMCIDを入力してください"
                 />
-                <pre>{showResult()}</pre>
+                <p>{showResult()}</p>
             </div>
         </div>
     );
