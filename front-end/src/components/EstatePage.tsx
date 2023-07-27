@@ -17,8 +17,10 @@ const EstatePage : React.FC = () => {
     const chartRef = useRef<HTMLCanvasElement>(null);
 
     const drawChart = async (value:string) => {
-        const data = await getUserEstateHistory(value,30)
 
+        if (chart !== undefined)chart.destroy()
+
+        const data = await getUserEstateHistory(value,30)
         if (data.length <= 2){
             console.log("データ不足")
             return
@@ -28,7 +30,6 @@ const EstatePage : React.FC = () => {
         const ctx = chartRef.current.getContext('2d');
 
         if (ctx === null){return}
-        if (chart !== undefined)chart.destroy()
 
         // チャート用のデータを整形する
         const chartData = {
