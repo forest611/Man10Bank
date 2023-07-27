@@ -37,3 +37,20 @@ export async function getUUID(mcid : string) {
     return uuid
 }
 
+export async function getIdSuggest(mcid : string) {
+
+    if (mcid.length < 3) return []
+
+    try {
+        const response = await fetch(`${apiUrl+apiRoute}suggest?mcid=${mcid}`)
+        if (!response.ok){
+            throw new Error('Network response was not ok');
+        }
+
+        const array : string[] = await response.json()
+        return array
+    }catch (e) {
+        return []
+    }
+}
+

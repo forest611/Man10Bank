@@ -1,10 +1,11 @@
 import React, {useState} from "react";
-import {getUUID} from "../services/BankApi";
+import {getIdSuggest, getUUID} from "../services/BankApi";
 import {EstateData, getEstate} from "../services/EstateApi";
 import {formatDate} from "../App";
 const EstatePage : React.FC = () => {
 
     const [estate,setEstate] = useState<EstateData | null>(null)
+    const [suggest,setSuggest] = useState<string[]>([])
 
     const showResult = () => {
         if (estate === null)return '存在しないユーザーです'
@@ -25,6 +26,14 @@ const EstatePage : React.FC = () => {
         alignItems: 'center',
     }
 
+    const suggestStyle = {
+        padding: '10px',
+        listStyle: 'none',
+        borderRadius: '5px',
+        backgroundColor: 'antiquewhite',
+        fontSize: '20px',
+    }
+
     return (
         <div>
             <h1>資産状況の確認</h1>
@@ -36,10 +45,13 @@ const EstatePage : React.FC = () => {
                     onChange={async e => {
                         const value = e.target.value
 
-                        if (value.length <= 3) {
+                        if (value.length < 3) {
                             setEstate(null)
+                            setSuggest([])
                             return
                         }
+
+                        setSuggest(await getIdSuggest(value))
 
                         //uuid
                         if (value.length === 36) {
@@ -53,7 +65,11 @@ const EstatePage : React.FC = () => {
                     }}
                     placeholder="UUIDかMCIDを入力してください"
                 />
-
+                {suggest.length　> 0 && (
+                    <ul style={suggestStyle}>
+                        {suggest.map((s,index) => <li style={{backgroundColor:'antiquewhite'}} key={index}>{s}</li>)}
+                    </ul>
+                )}
                 <ul style={ulStyle}>
                     {showResult().split("\n")
                         .map((line,index) => <li style={{color: 'antiquewhite'}} key={index}>{line}</li>)}
