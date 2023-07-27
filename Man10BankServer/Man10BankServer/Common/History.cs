@@ -96,7 +96,7 @@ public static class History
             var record = new EstateTable
             {
                 uuid = uuid,
-                player = Utility.GetMinecraftId(uuid).Result
+                player = User.GetMinecraftId(uuid).Result
             };
 
             context.estate_tbl.Add(record);

@@ -295,7 +295,7 @@ public static class Bank
 
         BankContext.AddDatabaseJob(context =>
         {
-            var userName = Utility.GetMinecraftId(uuid).Result;
+            var userName = User.GetMinecraftId(uuid).Result;
 
             var log = new MoneyLog
             {

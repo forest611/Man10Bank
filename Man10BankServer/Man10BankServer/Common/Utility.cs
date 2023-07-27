@@ -7,8 +7,8 @@ public static class Utility
 {
     
     public static IConfiguration? Config { get; set; }
-    private static string SystemUrl { get; set; } = "";
-    private static readonly HttpClient Client = new();
+    public static string SystemUrl { get; set; } = "";
+    public static readonly HttpClient Client = new();
     
     
     public static void LoadConfig(IConfiguration config)
@@ -19,33 +19,7 @@ public static class Utility
         TryConnect();
     }
 
-    /// <summary>
-    /// MinecraftIDを取得する
-    /// </summary>
-    /// <param name="uuid"></param>
-    /// <returns></returns>
-    public static async Task<string> GetMinecraftId(string uuid)
-    {
-        var response = await Client.GetAsync($"{SystemUrl}/player/mcid?uuid={uuid}");
-        var body = await response.Content.ReadAsStringAsync();
-        response.Dispose();
-        return body;
-    }
 
-    /// <summary>
-    /// UUIDを取得する
-    /// </summary>
-    /// <param name="uuid"></param>
-    /// <returns></returns>
-    public static async Task<string> GetUUID(string mcid)
-    {
-        var response = await Client.GetAsync($"{SystemUrl}/player/uuid?minecraftId={mcid}");
-        var body = await response.Content.ReadAsStringAsync();
-        response.Dispose();
-        return body;
-    }
-
-    
     public static async Task<int?> GetScore(string uuid)
     {
         var response = await Client.GetAsync($"{SystemUrl}/Score/get?uuid={uuid}");

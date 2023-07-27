@@ -96,7 +96,7 @@ public static class ServerLoan
                     last_pay_date = DateTime.Now,
                     payment_amount = amount * DailyInterest * 2,
                     uuid = uuid,
-                    player = Utility.GetMinecraftId(uuid).Result
+                    player = User.GetMinecraftId(uuid).Result
                 };
 
                 context.server_loan_tbl.Add(insert);
