@@ -12,24 +12,35 @@ const App: React.FC = () => {
   loadConfig()
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+      <Router>
+        <div>
+          <h1>Man10BankWeb</h1>
+          <nav>
+            <ul>
+              <li>
+                <Link to="/">Home</Link>
+              </li>
+              <li>
+                <Link to="/balance">最新の銀行の残高をみる</Link>
+              </li>
+              <li>
+                <Link to="/uuid">mcidからuuidを取得する</Link>
+              </li>
+              <li>
+                <Link to="/estate">資産情報を見る</Link>
+              </li>
+            </ul>
+          </nav>
+
+          <Routes>
+            <Route path="/balance" element={<BalancePage />} />
+            <Route path="/uuid" element={<UuidPage />} />
+            <Route path="/estate" element={<EstatePage/>} />
+          </Routes>
+        </div>
+      </Router>
   );
-}
+};
 
 function loadConfig() {
   apiUrl = config.apiUrl

@@ -82,7 +82,7 @@ public class EstateTable
     public double cash { get; set; }
     public double estate { get; set; }
     public double loan { get; set; }
-    public double shop { get; set; }
+    // public double shop { get; set; }
     public double crypto { get; set; }
     public double total { get; set; }
 }
@@ -102,7 +102,7 @@ public class EstateHistoryTable
     public double cash { get; set; }
     public double estate { get; set; }
     public double loan { get; set; }
-    public double shop { get; set; }
+    // public double shop { get; set; }
     public double crypto { get; set; }
     public double total { get; set; }
 }
@@ -119,7 +119,7 @@ public class ServerEstateHistory
     public double cash { get; set; }
     public double estate { get; set; }
     public double loan { get; set; }
-    public double shop { get; set; }
+    // public double shop { get; set; }
     public double crypto { get; set; }
     public double total { get; set; }
     public int year { get; set; }

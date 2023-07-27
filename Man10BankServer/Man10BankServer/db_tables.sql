@@ -70,7 +70,7 @@ create table estate_tbl
     cash double default 0 null,
     estate double default 0 null,
     loan double default 0 null,
-    shop double default 0 null,
+--     shop double default 0 null,
     crypto double default 0 null,
     total double default 0 null,
     constraint estate_tbl_pk
@@ -93,7 +93,7 @@ create table estate_history_tbl
     cash double default 0 null,
     estate double default 0 null,
     loan double default 0 null,
-    shop double default 0 null,
+--     shop double default 0 null,
     crypto double default 0 null,
     total double default 0 null,
     constraint estate_history_tbl_pk
@@ -113,7 +113,7 @@ create table server_estate_history
     estate double default 0 null,
     loan double default 0 null,
     crypto double default 0 null,
-    shop double default 0 null,
+--     shop double default 0 null,
     total double default 0 null,
     year int null,
     month int null,
