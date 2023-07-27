@@ -80,6 +80,19 @@ public static class History
         return result;
     }
 
+    public static async Task<ServerEstateHistory[]> GetServerEstateHistory(int day)
+    {
+        var result = await Task.Run(() =>
+        {
+            var date = DateTime.Now.AddDays(-day);
+            var context = new BankContext();
+            var array = context.server_estate_history.Where(r => r.date >= date).ToArray();
+            context.Dispose();
+            return array;
+        });
+        return result;
+    }
+
     /// <summary>
     /// 新規資産レコード作成
     /// </summary>
@@ -192,6 +205,19 @@ public static class History
             return record;
         });
 
+        return result;
+    }
+
+    public static async Task<EstateHistoryTable[]> GetUserEstateHistory(string uuid,int day)
+    {
+        var result = await Task.Run(() =>
+        {
+            var date = DateTime.Now.AddDays(-day);
+            var context = new BankContext();
+            var array = context.estate_history_tbl.Where(r =>r.uuid==uuid && r.date >= date ).ToArray();
+            context.Dispose();
+            return array;
+        });
         return result;
     }
 

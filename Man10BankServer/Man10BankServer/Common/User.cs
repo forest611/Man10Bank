@@ -37,7 +37,7 @@ public static class User
         {
             var context = new BankContext();
             var list = context.user_bank.Where(r => r.player.StartsWith(mcid)).Select(r => r.player).ToArray();
-            
+            context.Dispose();
             return list;
         });
 
