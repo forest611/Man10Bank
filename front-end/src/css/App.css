@@ -1,0 +1,72 @@
+
+
+/*基本スタイル*/
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    background-color: #24252A;
+}
+
+h1 {
+    color: antiquewhite;
+    font-size: 45px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+h2, a,p, button {
+    color: antiquewhite;
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+/*bodyスタール*/
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ヘッダーのスタイル */
+header {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    width: 100%;
+}
+
+.header_link {
+    list-style: none;
+}
+
+.header_link li{
+    display: inline-block;
+    padding: 20px;
+}
+
+/*テキストボックスのスタイル*/
+.text-box-label,
+.text-box {
+    color: antiquewhite;
+}
+
+.text-box-label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 20px;
+}
+
+.text-box {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid navajowhite;
+    border-radius: 7px;
+    font-size: 1em;
+    line-height: 1.5;
+}
+
+.text-box::placeholder {
+    color: blanchedalmond;
+}

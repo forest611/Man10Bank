@@ -13,8 +13,9 @@ const UuidPage : React.FC = () =>{
         <div>
             <h1>UUIDを調べる</h1>
             <div>
-                <label htmlFor="mcidInput">MCIDを入力</label>
+                <label htmlFor="mcidInput"><span className='text-box-label'>MCIDを入力</span></label>
                 <input
+                    className='text-box'
                     type="text"
                     id="mcidInput"
                     onChange={async e => {

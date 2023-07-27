@@ -22,8 +22,9 @@ const EstatePage : React.FC = () => {
         <div>
             <h1>資産状況の確認</h1>
             <div>
-                <label htmlFor="input">UUIDかMCIDを入力:</label>
+                <label htmlFor="input"><span className='text-box-label'>UUIDかMCIDを入力</span></label>
                 <input
+                    className='text-box'
                     type="text"
                     id="input"
                     onChange={async e => {
