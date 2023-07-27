@@ -34,10 +34,10 @@ public class BankController : ControllerBase
         return Common.User.GetUUID(mcid).Result;
     }
 
-    [HttpGet("choice-mcid")]
-    public string[] GetIdChoice(string mcid)
+    [HttpGet("suggest")]
+    public string[] GetIdSuggest(string mcid)
     {
-        return Common.User.GetIdChoice(mcid).Result;
+        return Common.User.GetIdSuggest(mcid).Result;
     }
 
     [HttpGet("score")]

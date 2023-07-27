@@ -31,7 +31,7 @@ public static class User
         return body;
     }
 
-    public static async Task<string[]> GetIdChoice(string mcid)
+    public static async Task<string[]> GetIdSuggest(string mcid)
     {
         var result = await Task.Run(() =>
         {
