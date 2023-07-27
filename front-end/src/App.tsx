@@ -6,6 +6,7 @@ import EstatePage from "./components/EstatePage";
 import config from './config.json'
 import HomePage from "./components/HomePage";
 import './css/App.css'
+import './css/Header.css'
 
 export let apiUrl : string = ""
 
