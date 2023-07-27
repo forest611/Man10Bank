@@ -1,14 +1,16 @@
 import React, {useState} from "react";
 import {getUUID} from "../services/BankApi";
 import {EstateData, getEstate} from "../services/EstateApi";
+import {formatDate} from "../App";
 const EstatePage : React.FC = () => {
 
     const [estate,setEstate] = useState<EstateData | null>(null)
 
     const showResult = () => {
         if (estate === null)return '存在しないユーザーです'
-        return `        
-        更新日:${estate.date.toLocaleString()}\n
+        const date = new Date(estate.date)
+        return `
+        更新日:${formatDate(date)}\n
         ユーザー名:${estate.player}\n
         電子マネー:${estate.vault.toLocaleString()}円\n
         現金:${estate.cash.toLocaleString()}円\n
