@@ -23,7 +23,6 @@ const EstatePage : React.FC = () => {
         fontSize: '20px',
         justifyContent: 'center',
         alignItems: 'center',
-
     }
 
     return (
@@ -57,7 +56,7 @@ const EstatePage : React.FC = () => {
 
                 <ul style={ulStyle}>
                     {showResult().split("\n")
-                        .map((line,index) => <li key={index}>{line}</li>)}
+                        .map((line,index) => <li style={{color: 'antiquewhite'}} key={index}>{line}</li>)}
                 </ul>
             </div>
         </div>

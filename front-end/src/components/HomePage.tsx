@@ -11,7 +11,7 @@ const HomePage : React.FC = () =>{
 
     return(
         <div>
-            <h1>Man10BankWebシステム</h1>
+            <h1>Man10Bank</h1>
             <ul style={{fontSize: '30px',listStyle: 'none'}}>
                 <li><Link style={fontStyle} to="/">Home</Link></li>
                 <li><Link style={fontStyle} to="/balance">最新の銀行の残高をみる</Link></li>
