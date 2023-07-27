@@ -1,0 +1,11 @@
+.suggest {
+    padding: 10px;
+    list-style: none;
+    border-radius: 5px;
+    background-color: antiquewhite;
+    font-size: 20px;
+}
+
+.suggest li {
+    background-color: antiquewhite;
+}

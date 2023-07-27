@@ -1,9 +1,10 @@
 import React, {useState} from "react";
-import {getBalance, getUUID} from "../services/BankApi";
+import {getBalance, getIdSuggest, getUUID} from "../services/BankApi";
 
 const BalancePage : React.FC = () => {
 
     const [balance, setBalance] = useState(0)
+    const [suggest,setSuggest] = useState<string[]>([])
 
     const showResult = () =>{
         if (balance === -1){
@@ -23,10 +24,13 @@ const BalancePage : React.FC = () => {
                     onChange={async e => {
                         const value = e.target.value
 
-                        if (value.length <= 3) {
+                        if (value.length < 3) {
                             setBalance(-1)
+                            setSuggest([])
                             return
                         }
+
+                        setSuggest(await getIdSuggest(value))
 
                         //uuid
                         if (value.length === 36) {
@@ -40,7 +44,12 @@ const BalancePage : React.FC = () => {
                     }}
                     placeholder="UUIDかMCIDを入力してください"
                 />
-                <p>{showResult()}</p>
+                {suggest.length　> 0 && (
+                    <ul className='suggest'>
+                        {suggest.map((s,index) => <li key={index}>{s}</li>)}
+                    </ul>
+                )}
+                <p style={{fontSize:'20px'}}>{showResult()}</p>
             </div>
         </div>
     );

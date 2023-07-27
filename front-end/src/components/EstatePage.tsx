@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import {getIdSuggest, getUUID} from "../services/BankApi";
 import {EstateData, getEstate} from "../services/EstateApi";
 import {formatDate} from "../App";
+import '../css/SuggestStyle.css'
 const EstatePage : React.FC = () => {
 
     const [estate,setEstate] = useState<EstateData | null>(null)
@@ -24,14 +25,6 @@ const EstatePage : React.FC = () => {
         fontSize: '20px',
         justifyContent: 'center',
         alignItems: 'center',
-    }
-
-    const suggestStyle = {
-        padding: '10px',
-        listStyle: 'none',
-        borderRadius: '5px',
-        backgroundColor: 'antiquewhite',
-        fontSize: '20px',
     }
 
     return (
@@ -66,8 +59,8 @@ const EstatePage : React.FC = () => {
                     placeholder="UUIDかMCIDを入力してください"
                 />
                 {suggest.length　> 0 && (
-                    <ul style={suggestStyle}>
-                        {suggest.map((s,index) => <li style={{backgroundColor:'antiquewhite'}} key={index}>{s}</li>)}
+                    <ul className='suggest'>
+                        {suggest.map((s,index) => <li key={index}>{s}</li>)}
                     </ul>
                 )}
                 <ul style={ulStyle}>
