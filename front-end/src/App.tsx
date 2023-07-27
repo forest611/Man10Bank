@@ -17,31 +17,22 @@ const App: React.FC = () => {
   return (
       <div>
         <Router>
-          <div>
             <header>
               <ul className='header_link'>
-                <li>
-                  <Link to="/">Home</Link>
-                </li>
-                <li>
-                  <Link to="/balance">最新の銀行の残高をみる</Link>
-                </li>
-                <li>
-                  <Link to="/uuid">mcidからuuidを取得する</Link>
-                </li>
-                <li>
-                  <Link to="/estate">資産情報を見る</Link>
-                </li>
+                <li><Link to="/">Home</Link></li>
+                <li><Link to="/balance">最新の銀行の残高をみる</Link></li>
+                <li><Link to="/uuid">mcidからuuidを取得する</Link></li>
+                <li><Link to="/estate">資産情報を見る</Link></li>
               </ul>
             </header>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/balance" element={<BalancePage />} />
-              <Route path="/uuid" element={<UuidPage />} />
-              <Route path="/estate" element={<EstatePage/>} />
-            </Routes>
-
-          </div>
+            <body>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/balance" element={<BalancePage />} />
+                <Route path="/uuid" element={<UuidPage />} />
+                <Route path="/estate" element={<EstatePage/>} />
+              </Routes>
+            </body>
         </Router>
 
       </div>

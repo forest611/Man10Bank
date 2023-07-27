@@ -9,15 +9,21 @@ const EstatePage : React.FC = () => {
     const showResult = () => {
         if (estate === null)return '存在しないユーザーです'
         const date = new Date(estate.date)
-        return `
-        更新日:${formatDate(date)}\n
-        ユーザー名:${estate.player}\n
-        電子マネー:${estate.vault.toLocaleString()}円\n
-        現金:${estate.cash.toLocaleString()}円\n
-        銀行:${estate.bank.toLocaleString()}円\n
-        リボ:${estate.loan.toLocaleString()}円\n
-        総額${estate.total.toLocaleString()}円\n
-        `
+        return `更新日:${formatDate(date)}
+        ユーザー名:${estate.player}
+        電子マネー:${estate.vault.toLocaleString()}円
+        現金:${estate.cash.toLocaleString()}円
+        銀行:${estate.bank.toLocaleString()}円
+        リボ:${estate.loan.toLocaleString()}円
+        総額${estate.total.toLocaleString()}円`
+    }
+
+    const ulStyle = {
+        padding: '20px',
+        fontSize: '20px',
+        justifyContent: 'center',
+        alignItems: 'center',
+
     }
 
     return (
@@ -48,7 +54,11 @@ const EstatePage : React.FC = () => {
                     }}
                     placeholder="UUIDかMCIDを入力してください"
                 />
-                <pre>{showResult()}</pre>
+
+                <ul style={ulStyle}>
+                    {showResult().split("\n")
+                        .map((line,index) => <li key={index}>{line}</li>)}
+                </ul>
             </div>
         </div>
     );

@@ -5,11 +5,11 @@ header {
     width: 100%;
 }
 
-.header_link {
-    list-style: none;
-}
-
 .header_link li{
     display: inline-block;
     padding: 20px;
+}
+
+.header_link ul {
+    list-style: none;
 }
