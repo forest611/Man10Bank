@@ -1,8 +1,16 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Link, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import BalancePage from './components/BalancePage';
+import UuidPage from "./components/UuidPage";
+import EstatePage from "./components/EstatePage";
+import config from './config.json'
 
-function App() {
+export let apiUrl : string = ""
+
+const App: React.FC = () => {
+
+  loadConfig()
+
   return (
     <div className="App">
       <header className="App-header">
@@ -21,6 +29,10 @@ function App() {
       </header>
     </div>
   );
+}
+
+function loadConfig() {
+  apiUrl = config.apiUrl
 }
 
 export default App;
