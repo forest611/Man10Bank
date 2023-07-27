@@ -4,6 +4,7 @@ import {getBalance, getIdSuggest, getUUID} from "../services/BankApi";
 const BalancePage : React.FC = () => {
 
     const [balance, setBalance] = useState(0)
+    const [input,setInput] = useState('')
     const [suggest,setSuggest] = useState<string[]>([])
 
     const showResult = () =>{
@@ -21,8 +22,10 @@ const BalancePage : React.FC = () => {
                 <input
                     type="text"
                     id="input"
+                    value={input}
                     onChange={async e => {
                         const value = e.target.value
+                        setInput(value)
 
                         if (value.length < 3) {
                             setBalance(-1)
@@ -46,7 +49,7 @@ const BalancePage : React.FC = () => {
                 />
                 {suggest.length　> 0 && (
                     <ul className='suggest'>
-                        {suggest.map((s,index) => <li key={index}>{s}</li>)}
+                        {suggest.map((s,index) => <li　key={index} onClick={()=>{setInput(s)}}>{s}</li>)}
                     </ul>
                 )}
                 <p style={{fontSize:'20px'}}>{showResult()}</p>

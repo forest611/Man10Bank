@@ -6,6 +6,7 @@ import '../css/SuggestStyle.css'
 const EstatePage : React.FC = () => {
 
     const [estate,setEstate] = useState<EstateData | null>(null)
+    const [input,setInput] = useState('')
     const [suggest,setSuggest] = useState<string[]>([])
 
     const showResult = () => {
@@ -35,8 +36,10 @@ const EstatePage : React.FC = () => {
                 <input
                     type="text"
                     id="input"
+                    value={input}
                     onChange={async e => {
                         const value = e.target.value
+                        setInput(value)
 
                         if (value.length < 3) {
                             setEstate(null)
@@ -60,7 +63,7 @@ const EstatePage : React.FC = () => {
                 />
                 {suggest.length　> 0 && (
                     <ul className='suggest'>
-                        {suggest.map((s,index) => <li key={index}>{s}</li>)}
+                        {suggest.map((s,index) => <li　key={index} onClick={()=>{setInput(s)}}>{s}</li>)}
                     </ul>
                 )}
                 <ul style={ulStyle}>

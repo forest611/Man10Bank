@@ -3,9 +3,17 @@
     list-style: none;
     border-radius: 5px;
     background-color: antiquewhite;
-    font-size: 20px;
 }
 
-.suggest li {
+.suggest li button{
     background-color: antiquewhite;
+    color: black;
+    /*border: none;*/
+    font-size: 20px;
+    margin: 0;
+}
+.suggest li{
+    background-color: antiquewhite;
+    font-size: 20px;
+    margin: 0;
 }
