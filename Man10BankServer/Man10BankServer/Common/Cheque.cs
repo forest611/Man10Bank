@@ -23,7 +23,7 @@ public static class Cheque
                 amount = amount,
                 date = DateTime.Now,
                 note = note,
-                player = Utility.GetMinecraftId(uuid).Result,
+                player = User.GetMinecraftId(uuid).Result,
                 uuid = uuid,
                 used = false
             };

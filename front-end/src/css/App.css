@@ -1,0 +1,55 @@
+
+
+/*基本スタイル*/
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    background-color: #24252A;
+}
+
+h1 {
+    color: antiquewhite;
+    font-size: 45px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+h2, a,p,pre, button {
+    color: antiquewhite;
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+/*bodyスタール*/
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+/*テキストボックスのスタイル*/
+label{
+    display: block;
+    margin-bottom: 5px;
+    font-size: 20px;
+    color: antiquewhite;
+}
+
+input{
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid navajowhite;
+    border-radius: 7px;
+    font-size: 1em;
+    line-height: 1.5;
+    color: navajowhite;
+}
+input::placeholder {
+    color: blanchedalmond;
+}
+
+
+

@@ -47,7 +47,7 @@ public static class History
                 cash = estate.Sum(r => r.cash),
                 estate = estate.Sum(r => r.estate),
                 loan = estate.Sum(r => r.estate),
-                shop = estate.Sum(r=>r.shop),
+                // shop = estate.Sum(r=>r.shop),
                 crypto = 0,
                 date = DateTime.Now,
                 year = year,
@@ -80,6 +80,19 @@ public static class History
         return result;
     }
 
+    public static async Task<ServerEstateHistory[]> GetServerEstateHistory(int day)
+    {
+        var result = await Task.Run(() =>
+        {
+            var date = DateTime.Now.AddDays(-day);
+            var context = new BankContext();
+            var array = context.server_estate_history.Where(r => r.date >= date).ToArray();
+            context.Dispose();
+            return array;
+        });
+        return result;
+    }
+
     /// <summary>
     /// 新規資産レコード作成
     /// </summary>
@@ -96,7 +109,7 @@ public static class History
             var record = new EstateTable
             {
                 uuid = uuid,
-                player = Utility.GetMinecraftId(uuid).Result
+                player = User.GetMinecraftId(uuid).Result
             };
 
             context.estate_tbl.Add(record);
@@ -113,10 +126,13 @@ public static class History
     {
         BankContext.AddDatabaseJob(context =>
         {
+            
+            Console.WriteLine("1");
             var record = context.estate_tbl.FirstOrDefault(r => r.uuid == data.uuid);
 
             if (record == null)
             {
+                Console.WriteLine("Created");
                 CreateEstateRecord(data.uuid);
                 return;
             }
@@ -126,14 +142,15 @@ public static class History
             data.loan = ServerLoan.GetBorrowingInfo(data.uuid).Result?.borrow_amount ?? 0;
 
             var dataHasNotChanged = data.vault == record.vault &&
-                                     data.bank == record.bank &&
-                                     data.cash == record.cash &&
-                                     data.loan == record.loan &&
-                                     data.estate == record.estate &&
-                                     data.shop == record.shop;
+                                    data.bank == record.bank &&
+                                    data.cash == record.cash &&
+                                    data.loan == record.loan &&
+                                    data.estate == record.estate;
+                                     // data.shop == record.shop;
 
             if (dataHasNotChanged)
             {
+                Console.WriteLine("NotChange");
                 return; 
             }
 
@@ -142,8 +159,9 @@ public static class History
             record.cash = data.cash;
             record.loan = data.loan;
             record.estate = data.estate;
-            record.shop = data.shop;
-            record.total = data.vault + data.bank + data.cash + data.estate + data.shop + data.crypto;
+            // record.shop = data.shop;
+            // record.total = data.vault + data.bank + data.cash + data.estate + data.shop + data.crypto;
+            record.total = data.vault + data.bank + data.cash + data.estate + data.crypto;
             record.date = DateTime.Now;
             
             //ヒストリーを追加
@@ -154,7 +172,7 @@ public static class History
                 cash = data.cash,
                 loan = data.loan,
                 estate = data.estate,
-                shop = data.shop,
+                // shop = data.shop,
                 uuid = data.uuid,
                 player = data.player,
                 crypto = data.crypto,
@@ -164,6 +182,8 @@ public static class History
             context.estate_history_tbl.Add(history);
 
             context.SaveChanges();
+            Console.WriteLine("Changed");
+
         });
     }
 
@@ -185,6 +205,19 @@ public static class History
             return record;
         });
 
+        return result;
+    }
+
+    public static async Task<EstateHistoryTable[]> GetUserEstateHistory(string uuid,int day)
+    {
+        var result = await Task.Run(() =>
+        {
+            var date = DateTime.Now.AddDays(-day);
+            var context = new BankContext();
+            var array = context.estate_history_tbl.Where(r =>r.uuid==uuid && r.date >= date ).ToArray();
+            context.Dispose();
+            return array;
+        });
         return result;
     }
 

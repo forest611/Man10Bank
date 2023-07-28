@@ -31,7 +31,13 @@ public class BankController : ControllerBase
     [HttpGet("uuid")]
     public string GetUUID(string mcid)
     {
-        return Utility.GetUUID(mcid).Result;
+        return Common.User.GetUUID(mcid).Result;
+    }
+
+    [HttpGet("suggest")]
+    public string[] GetIdSuggest(string mcid)
+    {
+        return Common.User.GetIdSuggest(mcid).Result;
     }
 
     [HttpGet("score")]

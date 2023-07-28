@@ -1,53 +1,50 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Link, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import BalancePage from './components/BalancePage';
+import UuidPage from "./components/UuidPage";
+import EstatePage from "./components/EstatePage";
+import config from './config.json'
+import HomePage from "./components/HomePage";
+import './css/App.css'
+import './css/Header.css'
+
+export let apiUrl : string = ""
 
 const App: React.FC = () => {
-  const [uuid, setUuid] = useState<string>('');
-  const [balance, setBalance] = useState<string | null>(null);
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(event.target.value)
-    setUuid(event.target.value);
-  };
-
-  const fetchBalance = async () => {
-
-    console.log(encodeURIComponent(uuid))
-
-    try {
-      const response = await fetch(`http://cortex.jp:6110/bank/balance?uuid=${encodeURIComponent(uuid)}`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const data = await response.text();
-
-      console.log(`Balance:${data}`)
-      setBalance(data);
-    } catch (error) {
-      console.error('Error fetching balance:', error);
-    }
-  };
+  loadConfig()
 
   return (
       <div>
-        <h1>Get Balance</h1>
-        <div>
-          <label htmlFor="uuidInput">Enter UUID:</label>
-          <input
-              type="text"
-              id="uuidInput"
-              value={uuid}
-              onChange={handleInputChange}
-          />
-          <button onClick={fetchBalance}>Get Balance</button>
-        </div>
-        {balance !== null ? (
-            <div>
-              <p>Balance: {balance}</p>
-            </div>
-        ) : null}
+        <Router>
+            <header>
+              <ul className='header_link'>
+                <li><Link to="/">Home</Link></li>
+                <li><Link to="/balance">最新の銀行の残高をみる</Link></li>
+                <li><Link to="/uuid">mcidからuuidを取得する</Link></li>
+                <li><Link to="/estate">資産情報を見る</Link></li>
+              </ul>
+            </header>
+            <body>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/balance" element={<BalancePage />} />
+                <Route path="/uuid" element={<UuidPage />} />
+                <Route path="/estate" element={<EstatePage/>} />
+              </Routes>
+            </body>
+        </Router>
+
       </div>
   );
 };
+
+function loadConfig() {
+  apiUrl = config.apiUrl
+}
+
+export function formatDate(date: Date) {
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+}
 
 export default App;
