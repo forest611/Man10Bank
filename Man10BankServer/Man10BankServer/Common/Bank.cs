@@ -8,50 +8,6 @@ public static class Bank
 
     private static readonly BlockingCollection<Action<BankContext>> BankQueue = new();
     
-    public static void Setup()
-    {
-        //ブロッキングキューの起動
-        Task.Run(BlockingQueue);
-        ServerLoan.Async(Score.Config!);
-        History.AsyncServerEstateHistoryTask();
-    }
-    
-    public static void ConfigureServices(IServiceCollection services)
-    {
-        services.AddControllers();
-
-        // CORS設定
-        services.AddCors(options =>
-        {
-            options.AddPolicy("AllowOriginPolicy", builder =>
-            {
-                builder.AllowAnyOrigin() // すべてのオリジンからのリクエストを許可
-                    .AllowAnyMethod() // すべてのHTTPメソッドを許可 (GET、POST、PUT、DELETEなど)
-                    .AllowAnyHeader(); // すべてのヘッダーを許可
-            });
-        });
-    }
-
-    public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        if (env.IsDevelopment())
-        {
-            app.UseDeveloperExceptionPage();
-        }
-
-        app.UseRouting();
-
-        // CORSポリシーを有効にする
-        app.UseCors("AllowOriginPolicy");
-
-        app.UseAuthorization();
-
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapControllers();
-        });
-    }
-
     /// <summary>
     /// 接続確認処理
     /// </summary>
@@ -345,7 +301,7 @@ public static class Bank
     /// <summary>
     /// バンクのトランザクションを処理するキュー
     /// </summary>
-    private static void BlockingQueue()
+    public static void BlockingQueue()
     {
         Console.WriteLine("Man10Bankキューを起動");
 
