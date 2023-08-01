@@ -72,7 +72,7 @@ public static class History
         var result = await Task.Run(() =>
         {
             var context = new BankContext();
-            var record = context.server_estate_history.OrderBy(r => r.date).FirstOrDefault() ?? new ServerEstateHistory();
+            var record = context.server_estate_history.OrderByDescending(r => r.date).FirstOrDefault() ?? new ServerEstateHistory();
             context.Dispose();
             return record;
         });
