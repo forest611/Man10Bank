@@ -45,6 +45,6 @@ object BankEvent : Listener{
         val item = e.item!!
         if (ATM.getMoneyAmount(item) == 0.0)return
         e.isCancelled = true
-        p.performCommand("/atm")
+        p.performCommand("atm")
     }
 }
