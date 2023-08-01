@@ -34,6 +34,8 @@ commands:
     description: '個人間借金'
   mbaltop:
     description: '長者番付'
+  mloantop:
+    description: 'ダメ人間番付'
   estateinfo:
     description: '資産情報'
   bankstatus:

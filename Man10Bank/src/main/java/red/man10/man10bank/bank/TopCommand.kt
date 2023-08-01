@@ -14,7 +14,8 @@ object TopCommand : CommandExecutor{
         }
 
         if (label == "mloantop"){
-
+            val page = if (args.isNullOrEmpty()) 0 else args[0].toIntOrNull()?:0
+            EstateHistory.asyncShowLoanTop(sender,page)
         }
 
         if (label == "estateinfo"){

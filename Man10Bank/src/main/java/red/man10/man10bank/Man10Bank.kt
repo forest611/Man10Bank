@@ -77,6 +77,7 @@ class Man10Bank : JavaPlugin() {
         getCommand("atm")!!.setExecutor(ATM)
         getCommand("mlend")!!.setExecutor(LocalLoan)
         getCommand("mbaltop")!!.setExecutor(TopCommand)
+        getCommand("mloantop")!!.setExecutor(TopCommand)
         getCommand("estateinfo")!!.setExecutor(TopCommand)
         getCommand("bankstatus")!!.setExecutor(Status.status)
         getCommand("pay")!!.setExecutor(PayCommand)
