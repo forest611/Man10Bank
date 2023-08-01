@@ -75,7 +75,7 @@ object Cheque : CommandExecutor, Listener {
         lore.add(Component.text(""))
         lore.add(Component.text("§a§l発行者: ${if (isOP)"§c§l" else "§d§l"}${p.name}"))
         lore.add(Component.text("§a§l金額: ${format(fixedAmount)}円"))
-        if (note != "empty"){
+        if (note != "null"){
             lore.add(Component.text("§d§lメモ: $note"))
         }
         lore.add(Component.text(""))
@@ -101,7 +101,7 @@ object Cheque : CommandExecutor, Listener {
 
         val id = getChequeID(item)?:return
 
-        val amount = APICheque.use(id)
+        val amount = APICheque.use(id,p)
         //失敗
         if (amount < 0){
             msg(p,"§c§lこの小切手は使えません")
@@ -235,7 +235,7 @@ object Cheque : CommandExecutor, Listener {
             return true
         }
 
-        val note = if (args.size>=2) args[1] else "empty"
+        val note = if (args.size>=2) args[1] else "null"
 
         async.execute {
             create(sender,amount,isOp,note)

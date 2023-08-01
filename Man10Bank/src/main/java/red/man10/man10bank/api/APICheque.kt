@@ -1,5 +1,6 @@
 package red.man10.man10bank.api
 
+import org.bukkit.entity.Player
 import red.man10.man10bank.api.APIBase.getRequest
 import java.util.UUID
 
@@ -13,9 +14,9 @@ object APICheque {
         return result?.toIntOrNull() ?: -1
     }
 
-    fun use(id: Int):Double{
+    fun use(id: Int,p:Player):Double{
 
-        val result = getRequest("${apiRoute}try-use?id=${id}")
+        val result = getRequest("${apiRoute}try-use?id=${id}&player=${p.name}")
         return result?.toDoubleOrNull()?:-1.0
     }
 

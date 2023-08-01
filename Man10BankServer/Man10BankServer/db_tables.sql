@@ -136,6 +136,7 @@ create table cheque_tbl
     note varchar(128) null,
     date datetime null,
     use_date datetime null,
+    use_player varchar(16) null,
     used tinyint default 0 null,
     constraint cheque_tbl_pk
         primary key (id)

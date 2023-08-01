@@ -16,9 +16,9 @@ public class ChequeController : ControllerBase
     }
 
     [HttpGet("try-use")]
-    public double TryUse(int id)
+    public double TryUse(int id,string player)
     {
-        return Cheque.Use(id).Result;
+        return Cheque.Use(id,player).Result;
     }
 
     [HttpGet("amount")]

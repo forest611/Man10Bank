@@ -71,11 +71,10 @@ public static class Cheque
     /// </summary>
     /// <param name="id"></param>
     /// <returns>小切手の金額(使用不可能だった場合は-1)</returns>
-    public static async Task<double> Use(int id)
+    public static async Task<double> Use(int id,string player)
     {
         var result = await Task.Run(() =>
         {
-
             var context = new BankContext();
             var record = context.cheque_tbl.FirstOrDefault(r => r.id == id);
 
@@ -88,6 +87,7 @@ public static class Cheque
 
             record.used = true;
             record.use_date = DateTime.Now;
+            record.use_player = player;
 
             context.SaveChanges();
             context.Dispose();

@@ -140,10 +140,11 @@ public class ChequeTable
     public string player { get; set; }
     public string uuid { get; set; }
     public double amount { get; set; }
-    public string note { get; set; }
+    public string? note { get; set; }
     public DateTime date { get; set; }
-    public DateTime use_date { get; set; }
     public bool used { get; set; }
+    public DateTime? use_date { get; set; }
+    public string? use_player { get; set; }
 }
 
 
