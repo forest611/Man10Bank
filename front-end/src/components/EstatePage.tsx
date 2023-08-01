@@ -33,7 +33,7 @@ const EstatePage : React.FC = () => {
 
         // チャート用のデータを整形する
         const chartData = {
-            labels: data.map(item => formatDate(new Date())), // 横軸のラベル
+            labels: data.map(item => formatDate(new Date(item.date))), // 横軸のラベル
             datasets: [
                 {
                     label: '直近30日の資産推移', // データセットのラベル

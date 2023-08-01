@@ -7,6 +7,7 @@ import config from './config.json'
 import HomePage from "./components/HomePage";
 import './css/App.css'
 import './css/Header.css'
+import ServerEstatePage from "./components/ServerEstatePage";
 
 export let apiUrl : string = ""
 
@@ -31,6 +32,7 @@ const App: React.FC = () => {
                 <Route path="/balance" element={<BalancePage />} />
                 <Route path="/uuid" element={<UuidPage />} />
                 <Route path="/estate" element={<EstatePage/>} />
+                <Route path="/serverestate" element={<ServerEstatePage/>} />
               </Routes>
             </body>
         </Router>

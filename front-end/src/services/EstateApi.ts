@@ -18,7 +18,7 @@ export interface EstateData {
     total: number;
 }
 
-interface ServerEstateData {
+export interface ServerEstateData {
     id: number;
     vault: number;
     bank: number;
