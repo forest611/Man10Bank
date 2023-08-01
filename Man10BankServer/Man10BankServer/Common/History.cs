@@ -125,8 +125,6 @@ public static class History
     {
         BankContext.AddDatabaseJob(context =>
         {
-            
-            Console.WriteLine("1");
             var record = context.estate_tbl.FirstOrDefault(r => r.uuid == data.uuid);
 
             if (record == null)
