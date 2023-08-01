@@ -237,7 +237,7 @@ public class BankContext : DbContext
         {
             var context = new BankContext();
             Console.WriteLine("データベースキューを起動");
-            while (DbQueue.TryTake(out var job,-1))
+            while (DbQueue.TryTake(out var job,Timeout.Infinite))
             {
                 try
                 {

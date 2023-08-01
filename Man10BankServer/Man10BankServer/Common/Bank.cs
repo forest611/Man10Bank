@@ -351,7 +351,7 @@ public static class Bank
 
         var context = new BankContext();
         
-        while (BankQueue.TryTake(out var job,-1))
+        while (BankQueue.TryTake(out var job,Timeout.Infinite))
         {
             try
             {
