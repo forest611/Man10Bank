@@ -346,12 +346,13 @@ object BankCommand : CommandExecutor{
     private fun asyncShowBalanceSheet(uuid: UUID,sender: CommandSender){
         async.execute {
             val estate = APIHistory.getUserEstate(uuid)
-            val mcid = Bukkit.getOfflinePlayer(uuid).name
+            val p = Bukkit.getOfflinePlayer(uuid)
+            val mcid = p.name
 
             val vault = vault.getBalance(uuid)
             val bank = APIBank.getBalance(uuid)
             val items = estate?.estete?:0.0
-            val cash = estate?.cash?:0.0
+            val cash = if (p.isOnline) ATM.getCash(p.player!!) else estate?.cash?:0.0
             val serverLoan = APIServerLoan.getInfo(uuid)?.borrow_amount?:0.0
             val localLoan = APILocalLoan.totalLoan(uuid)
 
