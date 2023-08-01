@@ -333,6 +333,8 @@ public static class ServerLoan
                 }
             }
             context.SaveChanges();
+            
+            Console.WriteLine("リボの処理終了");
         }
     }
 }
