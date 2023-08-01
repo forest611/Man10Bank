@@ -211,7 +211,7 @@ public class BankContext : DbContext
     /// </summary>
     static BankContext()
     {
-        var config = Utility.Config!;
+        var config = Score.Config!;
         Host = config["BankDB:Host"] ?? "";
         Port = config["BankDB:Port"] ?? "";
         Pass = config["BankDB:Pass"] ?? "";

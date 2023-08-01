@@ -12,7 +12,7 @@ public static class Bank
     {
         //ブロッキングキューの起動
         Task.Run(BlockingQueue);
-        ServerLoan.Async(Utility.Config!);
+        ServerLoan.Async(Score.Config!);
         History.AsyncServerEstateHistoryTask();
     }
     

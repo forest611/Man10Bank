@@ -22,7 +22,7 @@ public static class ServerLoan
     {
         var result = await Task.Run(() =>
         {
-            var score = Utility.GetScore(uuid).Result ?? 0.0;
+            var score = Score.GetScore(uuid).Result ?? 0.0;
 
             var lastMonth = DateTime.Now.AddMonths(-1);
             var context = new BankContext();
@@ -224,7 +224,7 @@ public static class ServerLoan
         var result = await Task.Run(() =>
         {
 
-            var score = Utility.GetScore(uuid).Result;
+            var score = Score.GetScore(uuid).Result;
             var context = new BankContext();
             var record = context.server_loan_tbl.FirstOrDefault(r => r.uuid == uuid);
 
@@ -289,7 +289,7 @@ public static class ServerLoan
             foreach (var data in result)
             {
 
-                var score = Utility.GetScore(data.uuid).Result;
+                var score = Score.GetScore(data.uuid).Result;
 
                 //スコアが指定値以上なら金利追加
                 if (score>_stopInterestScore)
@@ -325,11 +325,11 @@ public static class ServerLoan
                 //基準スコア以上なら半減
                 if (score>_standardScore)
                 {
-                    var _ = Utility.TakeScore(data.uuid, (int)score/ 2,"まんじゅうリボの未払い");
+                    var _ = Score.TakeScore(data.uuid, (int)score/ 2,"まんじゅうリボの未払い");
                 }
                 else
                 {
-                    var _ = Utility.TakeScore(data.uuid, _penaltyScore,"まんじゅうリボの未払い");
+                    var _ = Score.TakeScore(data.uuid, _penaltyScore,"まんじゅうリボの未払い");
                 }
             }
             context.SaveChanges();

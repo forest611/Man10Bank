@@ -13,7 +13,7 @@ Bank.ConfigureServices(builder.Services);
 
 var app = builder.Build();
 
-Utility.LoadConfig(builder.Configuration);
+Score.LoadConfig(builder.Configuration);
 Bank.Configure(app,app.Environment);
 Bank.Setup();
 // Configure the HTTP request pipeline.

@@ -10,9 +10,9 @@ public static class LocalLoan
     public static double Fee { get; set; }
     public static void LoadProperty()
     {
-        MinimumInterest = double.Parse(Utility.Config?["LocalLoan:MinimumInterest"] ?? "0");
-        MaximumInterest = double.Parse(Utility.Config?["LocalLoan:MaximumInterest"] ?? "0");
-        Fee = double.Parse(Utility.Config?["LocalLoan:Fee"] ?? "0");
+        MinimumInterest = double.Parse(Score.Config?["LocalLoan:MinimumInterest"] ?? "0");
+        MaximumInterest = double.Parse(Score.Config?["LocalLoan:MaximumInterest"] ?? "0");
+        Fee = double.Parse(Score.Config?["LocalLoan:Fee"] ?? "0");
     }
 
     public static async Task<int> Create(LocalLoanTable data)

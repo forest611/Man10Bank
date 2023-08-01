@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace Man10BankServer.Common;
 
-public static class Utility
+public static class Score
 {
     
     public static IConfiguration? Config { get; set; }
@@ -19,6 +19,20 @@ public static class Utility
         TryConnect();
     }
 
+    private static async void TryConnect()
+    {
+        try
+        {
+            var result = await Client.GetAsync($"{SystemUrl}/score/try");
+            result.Dispose();
+            Console.WriteLine((int)result.StatusCode == 200 ? "Man10System接続成功" : "Man10System接続失敗");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Man10System接続失敗");
+            Console.WriteLine(e);
+        }
+    }
 
     public static async Task<int?> GetScore(string uuid)
     {
@@ -51,20 +65,7 @@ public static class Utility
         return (int)response.StatusCode == 200;
     }
 
-    private static async void TryConnect()
-    {
-        try
-        {
-            var result = await Client.GetAsync($"{SystemUrl}/score/try");
-            result.Dispose();
-            Console.WriteLine((int)result.StatusCode == 200 ? "Man10System接続成功" : "Man10System接続失敗");
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine($"Man10System接続失敗");
-            Console.WriteLine(e);
-        }
-    }
+
 
 }
 internal class ScoreData
