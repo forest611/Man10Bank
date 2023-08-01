@@ -96,7 +96,12 @@ const ServerEstatePage : React.FC = () =>{
     }
 
     useEffect(()=> {fetch().then()},[])
-    useEffect(()=>{drawChart()},[estate])
+    useEffect(()=>{
+        drawChart()
+        const cvs = chartRef.current!!
+        cvs.width = document.documentElement.clientWidth * 0.5
+        cvs.height = document.documentElement.clientHeight * 0.3
+    },[estate])
 
     return (
 
