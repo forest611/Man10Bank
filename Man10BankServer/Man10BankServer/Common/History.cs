@@ -14,7 +14,7 @@ public static class History
 
             while (true)
             {
-                Thread.Sleep(1000*60);
+                Thread.Sleep(1000*60*5);
                 AddServerEstateHistory();
             }
         });
@@ -113,7 +113,6 @@ public static class History
             };
 
             context.estate_tbl.Add(record);
-
             context.SaveChanges();
         });
     }
