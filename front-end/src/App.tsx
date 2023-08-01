@@ -20,19 +20,19 @@ const App: React.FC = () => {
         <Router>
             <header>
               <ul className='header_link'>
-                <li><Link to="/">Home</Link></li>
-                <li><Link to="/balance">最新の銀行の残高をみる</Link></li>
-                <li><Link to="/uuid">mcidからuuidを取得する</Link></li>
-                <li><Link to="/estate">資産情報を見る</Link></li>
+                <li><Link to="/bank/">Home</Link></li>
+                <li><Link to="/bank/balance">最新の銀行の残高をみる</Link></li>
+                <li><Link to="/bank/uuid">mcidからuuidを取得する</Link></li>
+                <li><Link to="/bank/estate">資産情報を見る</Link></li>
               </ul>
             </header>
             <body>
               <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/balance" element={<BalancePage />} />
-                <Route path="/uuid" element={<UuidPage />} />
-                <Route path="/estate" element={<EstatePage/>} />
-                <Route path="/serverestate" element={<ServerEstatePage/>} />
+                <Route path="/bank/" element={<HomePage />} />
+                <Route path="/bank/balance" element={<BalancePage />} />
+                <Route path="/bank/uuid" element={<UuidPage />} />
+                <Route path="/bank/estate" element={<EstatePage/>} />
+                <Route path="/bank/serverestate" element={<ServerEstatePage/>} />
               </Routes>
             </body>
         </Router>
