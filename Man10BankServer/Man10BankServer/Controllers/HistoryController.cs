@@ -15,6 +15,12 @@ public class HistoryController : ControllerBase
         return History.GetBalanceTop(record,skip).Result;
     }
 
+    [HttpGet("get-loan-top")]
+    public ServerLoanTable[] GetLoanTop(int record,int skip)
+    {
+        return History.GetLoanTop(record,skip).Result;
+    }
+
     [HttpGet("get-user-estate")]
     public EstateTable GetUserEstate(string uuid)
     {
