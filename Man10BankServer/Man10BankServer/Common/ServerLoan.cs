@@ -133,7 +133,7 @@ public static class ServerLoan
                 != 200) return false;
             //支払い成功した場合
             // data.last_pay_date = now;
-            data.borrow_amount -= data.payment_amount;
+            data.borrow_amount -= amount;
             if (data.borrow_amount < 0.0)
             {
                 data.borrow_amount = 0;
