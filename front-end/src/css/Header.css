@@ -13,3 +13,9 @@ header {
 .header_link ul {
     list-style: none;
 }
+
+@media screen {
+    header{
+        display: none;
+    }
+}

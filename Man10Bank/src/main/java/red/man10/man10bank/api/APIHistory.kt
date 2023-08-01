@@ -16,6 +16,11 @@ object APIHistory {
         return gson.fromJson(result,arrayOf<EstateTable>()::class.java)
     }
 
+    fun getLoanTop(record : Int, skip:Int):Array<APIServerLoan.ServerLoanTable>{
+        val result = getRequest("${apiRoute}get-loan-top?record=${record}&skip=${skip}")?:""
+        return gson.fromJson(result,arrayOf<APIServerLoan.ServerLoanTable>()::class.java)
+    }
+
     fun getUserEstate(uuid: UUID):EstateTable?{
         val result = getRequest("${apiRoute}get-user-estate?uuid=${uuid}")?:return null
         return gson.fromJson(result, EstateTable::class.java)

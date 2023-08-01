@@ -13,6 +13,10 @@ object TopCommand : CommandExecutor{
             EstateHistory.asyncShowBalanceTop(sender,page)
         }
 
+        if (label == "mloantop"){
+
+        }
+
         if (label == "estateinfo"){
             EstateHistory.asyncShowServerEstate(sender)
         }

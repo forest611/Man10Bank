@@ -236,16 +236,14 @@ public class BankContext : DbContext
         {
             var context = new BankContext();
             Console.WriteLine("データベースキューを起動");
-            while (true)
+            while (!DbQueue.TryTake(out var job,-1))
             {
-                if (!DbQueue.TryTake(out var job))continue;
                 try
                 {
-                    job.Invoke(context);
+                    job?.Invoke(context);
                 }
                 catch (Exception e)
                 {
-                    // ignored
                     Console.WriteLine(e.Message);
                 }
             }

@@ -14,7 +14,7 @@ public static class History
 
             while (true)
             {
-                Thread.Sleep(1000*60);
+                Thread.Sleep(1000*60*5);
                 AddServerEstateHistory();
             }
         });
@@ -113,7 +113,6 @@ public static class History
             };
 
             context.estate_tbl.Add(record);
-
             context.SaveChanges();
         });
     }
@@ -225,6 +224,7 @@ public static class History
     /// 資産トップを取得
     /// </summary>
     /// <param name="record">何位まで取得するか</param>
+    /// <param name="skip"></param>
     /// <returns></returns>
     public static async Task<EstateTable[]> GetBalanceTop(int record,int skip)
     {
@@ -234,6 +234,29 @@ public static class History
 
             var records = context.estate_tbl.OrderByDescending(r => r.total).Skip(skip).Take(record).ToArray();
             
+            context.Dispose();
+            
+            return records;
+        });
+
+        return result;
+    }
+
+    /// <summary>
+    /// 借金ランキング
+    /// </summary>
+    /// <param name="record">何位まで取得するか</param>
+    /// <param name="skip"></param>
+    /// <returns></returns>
+    public static async Task<ServerLoanTable[]> GetLoanTop(int record,int skip)
+    {
+        var result = await Task.Run(() =>
+        {
+            var context = new BankContext();
+
+            // var records = context.estate_tbl.OrderByDescending(r => r.total).Skip(skip).Take(record).ToArray();
+            var records = context.server_loan_tbl.OrderByDescending(r => r.borrow_amount).Skip(skip).Take(record)
+                .ToArray();
             context.Dispose();
             
             return records;

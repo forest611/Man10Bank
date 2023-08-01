@@ -20,11 +20,27 @@ object EstateHistory {
         Man10Bank.async.execute {
             val array = APIHistory.getBalanceTop(10,page*10)
 
-            msg(p,"§6§k§lXX§e§l富豪トップ${page*10}§6§k§lXX")
+            msg(p,"§6§k§lXX§e§l富豪トップ${(page+1)*10}§6§k§lXX")
 
             var i = (page+1)*10-9
             array.forEach {data ->
                 msg(p,"§7§l${i}.§b§l${data.player} : §e§l${format(data.total)}円")
+                i++
+            }
+
+        }
+    }
+
+    fun asyncShowLoanTop(p:CommandSender,page:Int){
+
+        Man10Bank.async.execute {
+            val array = APIHistory.getBalanceTop(10,page*10)
+
+            msg(p,"§6§k§lXX§c§l借金トップ${(page+1)*10}§6§k§lXX")
+
+            var i = (page+1)*10-9
+            array.forEach {data ->
+                msg(p,"§7§l${i}.§c§l${data.player} : §4§l${format(data.total)}円")
                 i++
             }
 

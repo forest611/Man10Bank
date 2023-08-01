@@ -230,7 +230,7 @@ object ServerLoan : CommandExecutor{
             }
 
             "payall" ->{
-                if (args.size != 2)return true
+                if (args.size != 1)return true
 
                 async.execute {
                     payAll(sender)
