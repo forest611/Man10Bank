@@ -97,7 +97,7 @@ object ServerLoan : CommandExecutor{
     private fun borrow(p: Player, amount:Double){
         val ret = APIServerLoan.borrow(p.uniqueId,amount)
 
-        if (ret != "Successful"){
+        if (ret != "Successful" && ret != "FirstSuccessful"){
             msg(p,"§c§lリボを借りるのに失敗しました！")
             return
         }
