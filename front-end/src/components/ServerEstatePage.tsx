@@ -33,6 +33,8 @@ const ServerEstatePage : React.FC = () =>{
         if (estate == null || estate.length <= 2)return
         if (chartRef.current === null)return;
 
+        console.log(estate.length)
+
         const ctx = chartRef.current.getContext('2d');
 
         if (ctx === null){return}
@@ -94,10 +96,7 @@ const ServerEstatePage : React.FC = () =>{
     }
 
     useEffect(()=> {fetch().then()},[])
-
-    useEffect(()=>{
-        drawChart()
-    },[estate])
+    useEffect(()=>{drawChart()},[estate])
 
     return (
 
@@ -108,7 +107,7 @@ const ServerEstatePage : React.FC = () =>{
                     {showEstate().split("\n")
                         .map((line,index) => <li style={{color: 'antiquewhite'}} key={index}>{line}</li>)}
                 </ul>
-                <canvas id='Chart' ref={chartRef} width="400" height="400"></canvas>
+                <canvas id='Chart' ref={chartRef} width="700" height="400"></canvas>
             </div>
         </div>
     )
