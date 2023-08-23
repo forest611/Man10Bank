@@ -97,6 +97,11 @@ class LoanData {
      */
     fun payback(p:Player) {
 
+        if (!Man10Bank.enableLocalLoan){
+            sendMsg(p,"§c§lこのエリアでは個人間借金の取引を行うことはできません。")
+            return
+        }
+
         val borrowPlayer = Bukkit.getOfflinePlayer(borrow)
         val isOnline = borrowPlayer.isOnline
 
@@ -141,17 +146,14 @@ class LoanData {
             Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.addItem(getNote()) })
 
         }else{
-
             sendMsg(p,"§e全額回収し終わりました！")
 
             if (isOnline){
                 sendMsg(borrowPlayer.player!!,"§e全額完済し終わりました！お疲れ様です！")
             }
-
         }
 
         save(debt)
-
     }
 
     fun getNote():ItemStack{

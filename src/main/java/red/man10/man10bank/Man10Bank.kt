@@ -60,6 +60,7 @@ class Man10Bank : JavaPlugin(),Listener {
         var loanFee : Double = 1.0
         var loanRate : Double = 1.0
         var loanMax : Double = 10000000.0
+        var enableLocalLoan : Boolean = false
 
         var paymentThread = false
         var loggingServerHistory = false
@@ -105,6 +106,7 @@ class Man10Bank : JavaPlugin(),Listener {
         loanFee = config.getDouble("mlendFee",0.1)
         loanMax = config.getDouble("mlendMax",10000000.0)
         loanRate = config.getDouble("mlendRate",1.0)
+        enableLocalLoan = config.getBoolean("enableLocalLoan",false)
 
         loggingServerHistory = config.getBoolean("loggingServerHistory",false)
         paymentThread = config.getBoolean("paymentThread",false)

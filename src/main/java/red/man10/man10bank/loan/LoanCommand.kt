@@ -32,6 +32,11 @@ class LoanCommand : CommandExecutor{
 
         if (sender !is Player)return true
 
+        if (!sender.hasPermission(OP) && !Man10Bank.enableLocalLoan){
+            sendMsg(sender,"§c§lこのエリアでは個人間借金の取引を行うことはできません。")
+            return true
+        }
+
         if (args.isEmpty()) {
 
             sendMsg(sender,"§a/mlend <プレイヤー> <金額> <期間(日)> <金利(0.0〜${loanRate})>")
