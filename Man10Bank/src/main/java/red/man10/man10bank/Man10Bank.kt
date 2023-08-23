@@ -17,7 +17,7 @@ class Man10Bank : JavaPlugin() {
         lateinit var instance : Man10Bank
         lateinit var vault : VaultManager
 
-        val async = Executors.newSingleThreadExecutor()
+        var async = Executors.newSingleThreadExecutor()
 
 //        private var bankOpen = true
 
@@ -40,6 +40,11 @@ class Man10Bank : JavaPlugin() {
         }
         //      システム起動
         fun systemSetup(){
+
+            if (async.isShutdown || async.isTerminated){
+                async = Executors.newSingleThreadExecutor()
+            }
+
             Config.load()
             canConnectServer = APIBase.setup()
             //接続に失敗したらこれ以降の読み込みをやめる
