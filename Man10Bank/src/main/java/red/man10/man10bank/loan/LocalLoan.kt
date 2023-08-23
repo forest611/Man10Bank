@@ -142,11 +142,12 @@ object LocalLoan: Listener,CommandExecutor{
 
         val p = e.player
 
+        //一旦手形を削除
         item.amount = 0
 
         async.execute {
 
-            //ここでnullが帰ってきたら小切手じゃないと判定
+            //ここでnullが帰ってきたら手形じゃないと判定
             val data = APILocalLoan.getInfo(id)?:return@execute
 
             if (!Status.status.enableLocalLoan){
