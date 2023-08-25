@@ -95,12 +95,24 @@ class LoanData {
     /**
      * @param p 手形の持ち主
      */
-    fun payback(p:Player) {
+    fun payback(p:Player,item:ItemStack) {
+
+        if (!enable){
+            sendMsg(p, "§a現在借金の貸し出しなどはできません！")
+            return
+        }
 
         if (!Man10Bank.enableLocalLoan){
             sendMsg(p,"§c§lこのエリアでは個人間借金の取引を行うことはできません。")
             return
         }
+
+        if (Date().before(paybackDate)){
+            sendMsg(p,"§cこの手形はまだ有効ではありません！")
+            return
+        }
+
+        Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.remove(item) })
 
         val borrowPlayer = Bukkit.getOfflinePlayer(borrow)
         val isOnline = borrowPlayer.isOnline

@@ -30,27 +30,13 @@ class Event : Listener{
         val p = e.player
 
         if (!item.hasItemMeta())return
-
-        val id = item.itemMeta.persistentDataContainer[NamespacedKey(Man10Bank.plugin,"id"), PersistentDataType.INTEGER]?:return
+        val id = item.itemMeta.persistentDataContainer[NamespacedKey(plugin,"id"), PersistentDataType.INTEGER]?:return
 
         e.isCancelled = true
 
-        if (!LoanData.enable){
-            Man10Bank.sendMsg(p, "§a現在借金の貸し出しなどはできません！")
-            return
-        }
-
         Thread{
             val data = LoanData.lendMap[id]?:LoanData().load(id)?:return@Thread
-
-            if (Date().before(data.paybackDate)){
-                Man10Bank.sendMsg(p,"§cこの手形はまだ有効ではありません！")
-                return@Thread
-            }
-
-            Bukkit.getScheduler().runTask(Man10Bank.plugin, Runnable { p.inventory.remove(item) })
-
-            data.payback(p)
+            data.payback(p,item)
         }.start()
 
     }
