@@ -16,6 +16,7 @@ import red.man10.man10bank.history.EstateData
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
+import kotlin.math.ceil
 import kotlin.math.floor
 
 object Bank {
@@ -184,7 +185,7 @@ object Bank {
 
 //        if (!hasAccount(uuid))return false
 
-        val finalAmount = floor(amount)
+        val finalAmount = ceil(amount)
         val balance = getBalanceQueue(uuid).first
 
         if (balance < finalAmount){ return 2 }
