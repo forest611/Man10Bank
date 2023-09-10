@@ -43,7 +43,7 @@ class MainMenu(p:Player) : MenuFramework(p,27,"§d§lMa§f§ln§a§l10§e§l[ATM
         withdrawButton.setClickAction{
             WithdrawMenu(p).open()
         }
-        withdrawButton.title("§9§l現金を電子マネーを現金にする")
+        withdrawButton.title("§9§l電子マネーを現金にする")
         withdrawButton.lore(mutableListOf("§e§l電子マネー:§b§l${format(vault.getBalance(p.uniqueId))}",))
 
         setButton(withdrawButton,14)
