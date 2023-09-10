@@ -300,7 +300,8 @@ public static class ServerLoan
                 }
                 
                 //支払日じゃなければコンティニュ
-                if (now.Day-data.last_pay_date.Day < PaymentInterval) continue;
+                var diff = now - data.last_pay_date;
+                if (diff.Days < PaymentInterval) continue;
 
                 var payment = data.payment_amount;
                 var failedFlag = false;
@@ -323,16 +324,12 @@ public static class ServerLoan
                     failedFlag = true;
                 }
 
+                //支払い成功時はここで終了
                 if (!failedFlag) continue;
+
                 //基準スコア以上なら半減
-                if (score>_standardScore)
-                {
-                    var _ = Score.TakeScore(data.uuid, (int)score/ 2,"まんじゅうリボの未払い");
-                }
-                else
-                {
-                    var _ = Score.TakeScore(data.uuid, _penaltyScore,"まんじゅうリボの未払い");
-                }
+                var penalty = score > _standardScore ? (int)score / 2 : _penaltyScore;
+                _ = Score.TakeScore(data.uuid, penalty,"まんじゅうリボの未払い");
             }
             context.SaveChanges();
             
