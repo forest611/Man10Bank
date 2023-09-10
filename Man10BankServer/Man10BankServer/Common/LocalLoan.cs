@@ -5,10 +5,14 @@ namespace Man10BankServer.Common;
 
 public static class LocalLoan
 {
-    public static double MinimumInterest { get; set; }
-    public static double MaximumInterest { get; set; }
-    public static double Fee { get; set; }
-    public static void LoadProperty()
+    public static double MinimumInterest { get; private set; }
+    public static double MaximumInterest { get; private set; }
+    public static double Fee { get; private set; }
+    
+    /// <summary>
+    /// 個人間借金の設定を読み込む
+    /// </summary>
+    public static void Load()
     {
         MinimumInterest = double.Parse(Score.Config?["LocalLoan:MinimumInterest"] ?? "0");
         MaximumInterest = double.Parse(Score.Config?["LocalLoan:MaximumInterest"] ?? "0");

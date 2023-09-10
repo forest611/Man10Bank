@@ -7,8 +7,9 @@ public abstract class Startup
     {
         //ブロッキングキューの起動
         Task.Run(Bank.BlockingQueue);
-        ServerLoan.Async(Score.Config!);
         History.AsyncServerEstateHistoryTask();
+        ServerLoan.Load();
+        LocalLoan.Load();
     }
     
 }

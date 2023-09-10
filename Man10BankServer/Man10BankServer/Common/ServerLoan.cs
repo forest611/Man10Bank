@@ -243,9 +243,11 @@ public static class ServerLoan
     /// <summary>
     /// リボの設定読み込み
     /// </summary>
-    /// <param name="config"></param>
-    public static void Async(IConfiguration config)
+    public static void Load()
     {
+
+        var config = Score.Config;
+        
         _lastTaskDate = config.GetValue<DateTime>("ServerLoan:LastTaskDate");
 
         DailyInterest = config.GetValue<double>("ServerLoan:DailyInterest");
