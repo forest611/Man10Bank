@@ -17,6 +17,7 @@ import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank.Companion.async
 import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.vault
+import red.man10.man10bank.Permissions
 import red.man10.man10bank.Status
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APILocalLoan
@@ -250,6 +251,19 @@ object LocalLoan: Listener,CommandExecutor{
             if (property.fee>0.0){
                 msg(sender,"§a貸出額の${format(property.fee,2)}%を貸出側から手数料としていただきます")
             }
+            return true
+        }
+
+        if (args[0] == "property"){
+
+            if (!sender.hasPermission(Permissions.BANK_OP_COMMAND)){
+                msg(sender,"§c§lあなたには権限がありません")
+                return true
+            }
+
+            msg(sender,"最小金利:${property.minimumInterest}")
+            msg(sender,"最大金利:${property.maximumInterest}")
+            msg(sender,"手数料:${property.fee}")
             return true
         }
 
