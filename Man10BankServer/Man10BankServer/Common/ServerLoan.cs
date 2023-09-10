@@ -300,7 +300,7 @@ public static class ServerLoan
                 }
                 
                 //支払日じゃなければコンティニュ
-                if (now.Day-data.last_pay_date.Day >= PaymentInterval) continue;
+                if (now.Day-data.last_pay_date.Day < PaymentInterval) continue;
 
                 var payment = data.payment_amount;
                 var failedFlag = false;
