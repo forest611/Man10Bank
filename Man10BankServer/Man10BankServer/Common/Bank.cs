@@ -252,6 +252,10 @@ public static class Bank
         BankContext.AddDatabaseJob(context =>
         {
             var userName = User.GetMinecraftId(uuid).Result;
+            if (note.Length >= 60)
+            {
+                note = note[..60];
+            }
 
             var log = new MoneyLog
             {
