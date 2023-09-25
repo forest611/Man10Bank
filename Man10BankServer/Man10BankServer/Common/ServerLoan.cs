@@ -103,7 +103,7 @@ public static class ServerLoan
                 // context.SaveChanges();
             }
 
-            if (ret=="Successful")
+            if (ret.Contains("Successful"))
             {
                 _ = Bank.SyncAddBalance(uuid, amount,"Man10Bank","BorrowFromMan10Revolving","リボの借金");
             }     
