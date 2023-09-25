@@ -248,7 +248,7 @@ public static class ServerLoan
 
         var config = Score.Config;
         
-        _lastTaskDate = config.GetValue<DateTime>("ServerLoan:LastTaskDate");
+        // _lastTaskDate = config.GetValue<DateTime>("ServerLoan:LastTaskDate");
 
         DailyInterest = config.GetValue<double>("ServerLoan:DailyInterest");
         PaymentInterval = config.GetValue<int>("ServerLoan:PaymentInterval");
