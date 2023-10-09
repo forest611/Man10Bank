@@ -18,6 +18,7 @@ create table money_log
     uuid varchar(36) not null,
     plugin_name varchar(16) null,
     amount double default 0 not null,
+    balance double default 0 not null,
     note varchar(64) null,
     display_note varchar(64) null,
     server varchar(16) null,

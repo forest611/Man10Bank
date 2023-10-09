@@ -30,6 +30,7 @@ public class MoneyLog
     public string uuid { get; set; }
     public string plugin_name { get; set; }
     public double amount { get; set; }
+    public double balance { get; set; }
     public string note { get; set; }
     public string display_note { get; set; }
     public string server { get; set; }

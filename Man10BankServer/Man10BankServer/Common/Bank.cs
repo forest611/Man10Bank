@@ -137,7 +137,7 @@ public static class Bank
             context.user_bank.Add(bank);
             context.SaveChanges();
             
-            PushBankLog(uuid,0,true,"Man10Bank","CreateAccount","口座を作成");
+            PushBankLog(uuid,0,bank.balance,true,"Man10Bank","CreateAccount","口座を作成");
         });
     }
 
@@ -167,7 +167,7 @@ public static class Bank
             result.balance = Math.Floor(result.balance+amount);
             context.SaveChanges();
             
-            PushBankLog(uuid,Math.Floor(amount),true,plugin,note,displayNote);
+            PushBankLog(uuid,Math.Floor(amount),result.balance,true,plugin,note,displayNote);
             
             callback?.Invoke(200);
         });
@@ -208,7 +208,7 @@ public static class Bank
             result.balance = Math.Floor(result.balance-amount);
             context.SaveChanges();
             
-            PushBankLog(uuid,Math.Floor(amount),false,plugin,note,displayNote);
+            PushBankLog(uuid,Math.Floor(amount),result.balance,false,plugin,note,displayNote);
             
             callback?.Invoke(200);
         });
@@ -233,7 +233,7 @@ public static class Bank
             }
             result.balance = Math.Floor(amount);
             context.SaveChanges();
-            PushBankLog(uuid,Math.Floor(amount),false,plugin,$"[Set]{note}",$"[Set]{displayNote}");
+            PushBankLog(uuid,Math.Floor(amount),result.balance,false,plugin,$"[Set]{note}",$"[Set]{displayNote}");
         });
     }
 
@@ -242,11 +242,12 @@ public static class Bank
     /// </summary>
     /// <param name="uuid"></param>
     /// <param name="amount"></param>
+    /// <param name="balance"></param>
     /// <param name="isDeposit"></param>
     /// <param name="plugin"></param>
     /// <param name="note"></param>
     /// <param name="displayNote"></param>
-    private static void PushBankLog(string uuid,double amount,bool isDeposit, string plugin, string note, string displayNote)
+    private static void PushBankLog(string uuid,double amount,double balance,bool isDeposit, string plugin, string note, string displayNote)
     {
 
         BankContext.AddDatabaseJob(context =>
@@ -262,6 +263,7 @@ public static class Bank
                 uuid = uuid,
                 player = userName,
                 amount = amount,
+                balance = balance,
                 deposit = isDeposit,
                 plugin_name = plugin,
                 server = "paper",
