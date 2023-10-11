@@ -27,22 +27,20 @@ public static class Bank
 
     /// <summary>
     /// ユーザーの所持金を取得する
-    /// 非同期のため、厳密な金額ではない可能性がある
     /// 口座がない場合は-1を返す
     /// </summary>
     /// <param name="uuid"></param>
     /// <returns></returns>
     public static async Task<double> SyncGetBalance(string uuid)
     {
-
-        var result = await Task.Run(() =>
+        var tcs = new TaskCompletionSource<double>();
+        
+        GetBalance(uuid, r =>
         {
-            using var context = new BankContext();
-            var balance = context.user_bank.FirstOrDefault(r => r.uuid == uuid)?.balance;
-            return balance;
+            tcs.SetResult(r);
         });
 
-        return result ?? -1;
+        return await tcs.Task;
     }
 
     /// <summary>
@@ -56,28 +54,14 @@ public static class Bank
     /// <returns></returns>
     public static async Task<int> SyncAddBalance(string uuid, double amount,string plugin,string note,string displayNote)
     {
-        var result = await Task.Run(() =>
+        var tcs = new TaskCompletionSource<int>();
+
+        AddBalance(uuid, amount, plugin, note, displayNote, r =>
         {
-            var ret = 550;
-            var lockObj = new object();
-
-            Monitor.Enter(lockObj);
-
-            AddBalance(uuid, amount, plugin, note, displayNote, r =>
-            {
-                Monitor.Enter(lockObj);
-                ret = r;
-                Monitor.PulseAll(lockObj);
-                Monitor.Exit(lockObj);
-            });
-
-            Monitor.Wait(lockObj);
-            Monitor.Exit(lockObj);
-            
-            return ret;
+            tcs.SetResult(r);
         });
 
-        return result;
+        return await tcs.Task;
     }
     
     /// <summary>
@@ -91,27 +75,27 @@ public static class Bank
     /// <returns></returns>
     public static async Task<int> SyncTakeBalance(string uuid, double amount,string plugin,string note,string displayNote)
     {
-        var result = await Task.Run(() =>
-        {
-            var ret = 550;
-            var lockObj = new object();
-            
-            Monitor.Enter(lockObj);
-            
-            TakeBalance(uuid, amount, plugin, note, displayNote, r => {
-                Monitor.Enter(lockObj);
-                ret = r;
-                Monitor.PulseAll(lockObj);
-                Monitor.Exit(lockObj);
-            });
+        var tcs = new TaskCompletionSource<int>();
 
-            Monitor.Wait(lockObj);
-            Monitor.Exit(lockObj);
-            return ret;
+        TakeBalance(uuid, amount, plugin, note, displayNote, r => {
+            tcs.SetResult(r);
         });
 
-        return result;
+        return await tcs.Task;
     }
+    
+    public static async Task<int> SyncSetBalance(string uuid, double amount,string plugin,string note,string displayNote)
+    {
+        var tcs = new TaskCompletionSource<int>();
+
+        SetBalance(uuid, amount, plugin, note, displayNote, r => {
+            tcs.SetResult(r);
+        });
+
+        return await tcs.Task;
+    }
+    
+    
 
     /// <summary>
     /// 口座を作る
@@ -139,6 +123,22 @@ public static class Bank
             
             PushBankLog(uuid,0,bank.balance,true,"Man10Bank","CreateAccount","口座を作成");
         });
+    }
+
+    private static void GetBalance(string uuid,Action<double>? callback = null)
+    {
+        BankQueue.TryAdd(context =>
+        {
+            var result = context.user_bank.FirstOrDefault(r => r.uuid == uuid);
+            //口座がない場合は-1を返す
+            if (result == null)
+            {
+                // Console.WriteLine("口座がありません");
+                callback?.Invoke(-1);
+                return;
+            }
+            callback?.Invoke(result.balance);
+        });        
     }
 
     /// <summary>
@@ -222,18 +222,24 @@ public static class Bank
     /// <param name="plugin"></param>
     /// <param name="note"></param>
     /// <param name="displayNote"></param>
-    public static void SetBalance(string uuid, double amount,string plugin,string note,string displayNote)
+    /// <param name="callback">
+    /// 200:成功
+    /// 550:口座なし
+    /// </param>
+    private static void SetBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<int>? callback = null)
     {
         BankQueue.TryAdd(context =>
         {
             var result = context.user_bank.FirstOrDefault(r => r.uuid == uuid);
             if (result == null)
             {
+                callback?.Invoke(550);
                 return;
             }
             result.balance = Math.Floor(amount);
             context.SaveChanges();
             PushBankLog(uuid,Math.Floor(amount),result.balance,false,plugin,$"[Set]{note}",$"[Set]{displayNote}");
+            callback?.Invoke(200);
         });
     }
 

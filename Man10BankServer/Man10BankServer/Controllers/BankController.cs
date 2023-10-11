@@ -74,7 +74,7 @@ public class BankController : ControllerBase
     [HttpPost("set")]
     public void SetBalance([FromBody]TransactionData data)
     {
-        Bank.SetBalance(data.UUID, data.Amount, data.Plugin, data.Note, data.DisplayNote);
+        _ = Bank.SyncSetBalance(data.UUID, data.Amount, data.Plugin, data.Note, data.DisplayNote).Result;
     }
 
     [HttpGet("create")]
