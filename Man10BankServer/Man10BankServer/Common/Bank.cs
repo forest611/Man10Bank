@@ -125,6 +125,11 @@ public static class Bank
         });
     }
 
+    /// <summary>
+    /// 残高取得(他のトランザクションから取得しないように)
+    /// </summary>
+    /// <param name="uuid"></param>
+    /// <param name="callback"></param>
     private static void GetBalance(string uuid,Action<double>? callback = null)
     {
         BankQueue.TryAdd(context =>
@@ -137,6 +142,16 @@ public static class Bank
                 callback?.Invoke(-1);
                 return;
             }
+
+            var log = context.money_log.LastOrDefault(r => r.uuid == uuid);
+
+            if (log!= null &&  Math.Abs(log.balance - result.balance) > 1)
+            {
+                // ログの値とのズレがあった場合
+                callback?.Invoke(-2);
+                return;
+            }
+            
             callback?.Invoke(result.balance);
         });        
     }
