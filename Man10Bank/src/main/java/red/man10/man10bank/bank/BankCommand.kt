@@ -279,7 +279,7 @@ object BankCommand : CommandExecutor{
             msg(sender," §b§l電子マネー:  §e§l${format(balance)}円")
             msg(sender," §b§l銀行:  §e§l${format(bankAmount)}円")
             if (bankAmount == -2.0){
-                msg(sender,"§c§l取引失敗を検知しました。運営に報告してください")
+                msg(sender," §c§l取引失敗を検知しました。運営に報告してください")
             }
             if (cash>0.0){ msg(sender," §b§l現金:  §e§l${format(cash)}円") }
             if (estate>0.0){ msg(sender," §b§lその他の資産:  §e§l${format(estate)}円") }

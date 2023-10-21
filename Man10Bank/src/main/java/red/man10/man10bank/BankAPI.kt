@@ -24,7 +24,7 @@ class BankAPI(private val plugin: JavaPlugin) {
     /**
      * 入金リクエストを送る
      */
-    fun deposit(uuid: UUID,amount:Double,note:String,displayNote:String) : Boolean{
+    fun deposit(uuid: UUID,amount:Double,note:String,displayNote:String){
         val result = APIBank.addBank(APIBank.TransactionData(
             uuid.toString(),
             amount,
@@ -33,12 +33,12 @@ class BankAPI(private val plugin: JavaPlugin) {
             displayNote
         ))
 
-        return result == APIBank.BankResult.SUCCESSFUL
+//        return result == APIBank.BankResult.SUCCESSFUL
     }
 
     @Deprecated("displayNoteが設定できない", ReplaceWith("DisplayNoteつき"),DeprecationLevel.WARNING)
-    fun deposit(uuid: UUID,amount: Double,note: String):Boolean{
-        return deposit(uuid,amount, note,note)
+    fun deposit(uuid: UUID,amount: Double,note: String){
+        deposit(uuid,amount, note,note)
     }
 
     @Deprecated("displayNoteが設定できない", ReplaceWith("DisplayNoteつき"),DeprecationLevel.WARNING)
