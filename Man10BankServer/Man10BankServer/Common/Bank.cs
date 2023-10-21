@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Man10BankServer.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace Man10BankServer.Common;
 
@@ -143,9 +144,9 @@ public static class Bank
                 return;
             }
 
-            var log = context.money_log.LastOrDefault(r => r.uuid == uuid);
+            var log = context.money_log.Where(r => r.uuid == uuid).OrderByDescending(r=>r.date).FirstOrDefault();
 
-            if (log!= null &&  Math.Abs(log.balance - result.balance) > 1)
+            if (log is { balance: > 0 } && Math.Abs(log.balance - result.balance) > 1)
             {
                 // ログの値とのズレがあった場合
                 callback?.Invoke(-2);
