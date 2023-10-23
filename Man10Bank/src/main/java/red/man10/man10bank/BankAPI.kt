@@ -51,6 +51,27 @@ class BankAPI(private val plugin: JavaPlugin) {
         return APIServerLoan.getInfo(uuid)?.borrow_amount?:0.0
     }
 
+    fun asyncDeposit(uuid: UUID,amount: Double,note: String,displayNote: String,callback:(Boolean)->Unit){
+        Man10Bank.async.execute {
+            val ret = deposit(uuid, amount, note, displayNote)
+            callback.invoke(ret)
+        }
+    }
+
+    fun asyncWithdraw(uuid: UUID,amount: Double,note: String,displayNote: String,callback:(Boolean)->Unit){
+        Man10Bank.async.execute {
+            val ret = withdraw(uuid, amount, note, displayNote)
+            callback.invoke(ret)
+        }
+    }
+
+    fun asyncGetBalance(uuid:UUID,callback: (Double)->Unit){
+        Man10Bank.async.execute {
+            callback.invoke(getBank(uuid))
+        }
+    }
+
+
 //    @Deprecated("displayNoteが設定できない", ReplaceWith("DisplayNoteつき"),DeprecationLevel.WARNING)
 //    fun deposit(uuid: UUID,amount: Double,note: String){
 //        deposit(uuid,amount, note,note)
