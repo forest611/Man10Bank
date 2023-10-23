@@ -1,0 +1,351 @@
+@startuml Man10Bank
+title Man10Bankコマンドシーケンス
+
+actor user
+participant Paper
+participant RESTFul
+participant Database
+
+== 銀行関連(全てのユーザーが利用可能) ==
+autonumber
+
+user -> Paper : /bal or /balance or /bank or /money コマンド
+    Paper -> RESTFul : Http Request        
+    alt ログと残高に不整合がある
+            RESTFul -> Paper : Response
+            Paper -> user : 不整合通知
+        else
+            alt 口座が存在しない
+                RESTFul -> Paper : 口座がない
+                Paper -> RESTFul : 口座作成 Request
+                RESTFul -> Database : user_bankにインサート
+                Paper -> user : 口座作成通知
+            else
+                RESTFul -> Database : 所持金、リボ残高など参照
+                    Database -> RESTFul : 所持金、リボ情報など取得
+                RESTFul->Paper : Http Response
+                Paper -> user : 所持金表示
+            end
+        end
+
+
+
+autonumber
+
+user -> Paper : /deposit <金額> コマンド
+    Paper -> RESTFul : Http Request
+        RESTFul -> Database : 所持金参照
+            note right                
+                所持金参照、金額追記
+            end note
+            Database -> RESTFul : 所持金取得
+            RESTFul -> Database : 入金後額をアップデート
+            RESTFul -> Database : ログを追加
+        RESTFul->Paper : Http Response
+    Paper -> user : 入金結果表示
+
+
+autonumber
+
+user -> Paper : /withdraw <金額> コマンド
+    Paper -> RESTFul : Http Request
+        RESTFul -> Database : 所持金参照
+            note right                
+                所持金参照、金額追記
+            end note
+            Database -> RESTFul : 所持金取得
+            alt 残高不足
+                RESTFul -> Paper : Http Response
+            else                RESTFul -> Database : 出金後額をアップデート
+                RESTFul -> Database : ログを追加
+            end
+        RESTFul->Paper : Http Response
+    Paper -> user : 出金結果表示
+
+
+autonumber
+
+user -> Paper : /bal help
+    Paper -> user : コマンド一覧表示
+
+autonumber
+
+user -> Paper : /bal log <pageNo>
+    note right
+        ページが未指定の場合0になる
+    end note
+    Paper -> RESTFul : Http request
+        RESTFul -> Database : money_logからログを取得
+            Database -> RESTFul : 取得
+        RESTFul -> Paper : Http response
+    Paper -> user : ログを表示
+
+autonumber
+
+user -> Paper : /bal bs
+    Paper -> RESTFul : Http request
+        RESTFul -> Database : 残高、リボ、個人間借金の情報取得
+            Database -> RESTFul : 値を返す
+        RESTFul -> Paper : Http response
+    Paper -> user : バランスシートを表示
+
+autonumber
+
+user -> Paper : /pay <user> <amount>
+    note right 
+        Vaultの送金コマンド
+    end note
+    Paper -> user : 確認メッセージを送信
+    user -> Paper : 確認/取消ボタンを押す
+    alt 確認ボタンを押した
+        Paper -> Paper : コマンド実行者の所持金を減らす
+        alt 送金相手がオンライン
+            Paper -> Paper : 送金相手のVaultに入金
+        else
+            Paper -> RESTFul : 送金相手の銀行に入金
+            RESTFul -> Paper : 結果通知
+        end
+        Paper -> user : 完了通知
+    else
+    end
+
+autonumber
+
+user -> Paper : /mpay <user> <amount>
+    note right
+        銀行の送金コマンド
+    end note
+    Paper -> user : 確認メッセージを送信
+    user -> Paper : 確認/取消ボタンを押す
+    alt 確認ボタンを押した
+        Paper -> RESTFul : 送金相手の銀行に入金
+        RESTFul -> Paper : 結果通知
+        Paper -> user : 完了通知
+    else
+    end
+
+
+== 銀行関連(GMのみ) ==
+
+autonumber
+
+user -> Paper : /bal user <user> 他人の所持金を見る
+    note right
+        表示ユーザーと取得データが違うだけで処理は/balと同じ
+    end note
+    Paper -> RESTFul : Http Request
+        alt ログと残高に不整合がある
+            RESTFul -> Paper : Response
+            Paper -> user : 不整合通知
+        else
+            alt 口座が存在しない
+                RESTFul -> Paper : 口座がない
+                Paper -> RESTFul : 口座作成 Request
+                RESTFul -> Database : user_bankにインサート
+                Paper -> user : 口座作成通知
+            else
+                RESTFul -> Database : 所持金、リボ残高など参照
+                    Database -> RESTFul : 所持金、リボ情報など取得
+                RESTFul->Paper : Http Response
+                Paper -> user : 指定ユーザーの所持金表示
+            end
+        end
+
+
+
+autonumber
+
+user -> Paper : /bal logop <user> <pageNo>
+    note right
+        上に同じ
+        ページが未指定の場合0になる
+    end note
+    Paper -> RESTFul : Http request
+        RESTFul -> Database : money_logからログを取得
+            Database -> RESTFul : 取得
+        RESTFul -> Paper : Http response
+    Paper -> user : 指定ユーザーのログを表示
+
+autonumber
+
+user -> Paper : /bal give <user> <amount>
+    Paper -> RESTFul : UUID取得
+        RESTFul -> Paper : response
+        alt ユーザーが見つからない
+            Paper -> user : ユーザー不明
+        else
+            Paper -> RESTFul : Http request
+            RESTFul -> Database : 増加分の残高を設定
+        end
+        RESTFul -> Paper : Http response
+    Paper -> user : 結果表示
+
+autonumber
+
+user -> Paper : /bal take <user> <amount>
+    Paper -> RESTFul : UUID取得
+        RESTFul -> Paper : response
+        alt ユーザーが見つからない
+            Paper -> user : ユーザー不明
+        else
+            Paper -> RESTFul : Http request
+            RESTFul -> Database : 減少分の残高を設定(マイナスになる場合は0にする)
+        end
+        RESTFul -> Paper : Http response
+    Paper -> user : 結果表示
+
+autonumber
+
+user -> Paper : /bal set <user> <amount>
+    Paper -> RESTFul : UUID取得
+        RESTFul -> Paper : response
+        alt ユーザーが見つからない
+            Paper -> user : ユーザー不明
+        else
+            Paper -> RESTFul : Http request
+            RESTFul -> Database : 設定値に変更
+        end
+        RESTFul -> Paper : Http response
+    Paper -> user : 結果表示
+
+autonumber
+
+user -> Paper : /bal reload
+    Paper -> Paper : スレッドプールの破棄、タイマーの停止
+    Paper -> Paper : スレッドプール起動、コンフィグ読み込み
+    Paper -> RESTFul : 接続確認
+    Paper -> Paper : ATM、リボ、個人間借金処理の起動
+    Paper -> user : 通知
+
+== TOPコマンドなど ==
+
+autonumber
+
+user -> Paper : /mbaltop 
+    Paper -> Database : estate_tblリクエスト
+    Database -> Paper : 取得
+    Paper -> user : ランキング表示
+
+autonumber
+
+user -> Paper : /mloantop 
+    Paper -> Database : server_loan_tblリクエスト
+    Database -> Paper : 取得
+    Paper -> user : ランキング表示
+
+autonumber
+
+user -> Paper : /estateinfo 
+    Paper -> Database : server_estate_historyリクエスト
+    Database -> Paper : 取得
+    Paper -> user : 値表示
+
+== 小切手 ==
+
+autonumber
+
+user -> Paper : /mcheque <金額> <メモ>
+    note right
+        運営用の/mchequeopではvaultが減らない
+    end note
+    alt 権限、金額などチェック
+        Paper -> RESTFul : 小切手作成リクエスト
+        RESTFul -> Database : 小切手情報記録
+        Database -> Paper : IDリターン
+        Paper -> user : 小切手発行、vault回収
+    else
+        Paper -> user : 失敗通知
+    end
+
+== 個人間借金 == 
+
+autonumber
+
+user -> Paper : /mlend <相手> <金額> <返済日> <金利(日)>
+    alt 金額、金利などチェック
+        Paper -> user : 貸出相手に条件提示
+        user -> Paper : 承認/拒否コマンド
+        alt 承認する
+            Paper -> RESTFul : 借金リクエスト
+            RESTFul -> Database : 記録
+            Database -> Paper : IDリターン
+            Paper -> user : コマンドセンダーに手形を発行
+        else
+            Paper -> user : 拒否通知
+        end
+    else
+        Paper -> user : 失敗通知
+    end
+
+== リボ ==
+
+autonumber
+
+user -> Paper : /mrevo
+    Paper -> user : ヘルプ表示
+
+autonumber
+
+user -> Paper : /mrevo check
+    Paper -> RESTFul : Http request
+    RESTFul -> user : http response 貸出上限表示
+
+autonumber
+
+user -> Paper : /mrevo borrow <amount>
+    note right
+        ランク制限を設ける予定
+    end note
+    Paper -> user : 確認メッセージ表示
+    user -> Paper : 確認ボタンを押す
+    Paper -> RESTFul : リボの借入処理
+    RESTFul -> RESTFul : 銀行に入金
+    RESTFul -> user : 結果表示
+
+autonumber
+
+user -> Paper : /mrevo pay <amount>
+    note right
+        新機能、指定金額返済
+    end note
+    Paper -> RESTFul : Http request
+    RESTFul -> RESTFul : 銀行残高を減らして返済に充てる
+    RESTFul -> user : 結果表示
+
+autonumber
+
+user -> Paper : /mrevo payall <amount>
+    Paper -> RESTFul : Http request
+    RESTFul -> RESTFul : 銀行残高を減らして全額返済
+    RESTFul -> user : 結果表示
+
+autonumber
+
+user -> Paper : /mrevo payment <amount>
+    note right
+        一回あたりの支払い金額を設定
+    end note
+    Paper -> RESTFul : Http request
+    RESTFul -> user : 結果表示
+
+== システムステータス(運営用) ==
+
+autonumber
+
+user -> Paper : /bankstatus 
+    Paper -> user :現在の稼働状況を表示
+
+autonumber
+
+user -> Paper : /bankstatus set <status> <true/false>
+    note right
+        all
+        enableDealBank
+        enableATM
+        enableCheque
+        enableLocalLoan
+        enableServerLoan
+    end note
+    Paper -> RESTFul : ステータスを送信
+    RESTFul -> Paper : 全てのPaper鯖がステータスを更新
+@enduml
