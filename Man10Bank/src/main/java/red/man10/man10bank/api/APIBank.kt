@@ -45,6 +45,7 @@ object APIBank {
         when(postRequest(apiRoute + "add", body)){
             200 -> return BankResult.SUCCESSFUL
             550 -> return BankResult.NOT_FOUND_ACCOUNT
+            551 -> return BankResult.FAILED
         }
         return BankResult.UNKNOWN_STATUS_CODE
     }
@@ -107,6 +108,7 @@ object APIBank {
         SUCCESSFUL,
         NOT_FOUND_ACCOUNT,
         NOT_ENOUGH_MONEY,
-        UNKNOWN_STATUS_CODE
+        UNKNOWN_STATUS_CODE,
+        FAILED
     }
 }

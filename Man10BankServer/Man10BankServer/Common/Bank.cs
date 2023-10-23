@@ -168,6 +168,7 @@ public static class Bank
     /// <param name="callback">
     /// 200:成功
     /// 550:口座なし
+    /// 551:失敗
     /// </param>
     private static void AddBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<int>? callback = null)
     {
@@ -180,6 +181,14 @@ public static class Bank
                 callback?.Invoke(550);
                 return;
             }
+            //入金失敗
+            var status = (BankStatus)Enum.Parse(typeof(BankStatus),result.status);
+            if (status == BankStatus.DISABLE)
+            {
+                callback?.Invoke(551);
+                return;
+            }
+            
             result.balance = Math.Floor(result.balance+amount);
             context.SaveChanges();
             
@@ -200,7 +209,7 @@ public static class Bank
     /// <param name="callback">
     /// 200:成功
     /// 550:口座なし
-    /// 551:残高不足
+    /// 551:残高不足or失敗
     /// </param>
     private static void TakeBalance(string uuid, double amount,string plugin,string note,string displayNote,Action<int>? callback = null)
     {
@@ -213,8 +222,9 @@ public static class Bank
                 callback?.Invoke(550);
                 return;
             }
-
-            if (result.balance<amount)
+            
+            var status = (BankStatus)Enum.Parse(typeof(BankStatus),result.status);
+            if (result.balance<amount || status == BankStatus.DISABLE)
             {
                 // Console.WriteLine("残高不足");
                 callback?.Invoke(551);
@@ -351,4 +361,11 @@ public static class Bank
     }
     
     #endregion
+
+
+    enum  BankStatus
+    {
+        ENABLE,
+        DISABLE
+    }
 }
