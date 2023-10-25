@@ -69,6 +69,7 @@ public static class ServerLoan
         {
             var context = new BankContext();
             var record = context.server_loan_tbl.FirstOrDefault(r => r.uuid == uuid);
+            var player = User.GetMinecraftId(uuid).Result;
             
             //借金がこれ以上できない場合
             if (amount + (record?.borrow_amount ?? 0.0) > CalculateLoanAmount(uuid).Result)
@@ -96,16 +97,24 @@ public static class ServerLoan
                     last_pay_date = DateTime.Now,
                     payment_amount = amount * DailyInterest * 2,
                     uuid = uuid,
-                    player = User.GetMinecraftId(uuid).Result
+                    player = player
                 };
 
                 context.server_loan_tbl.Add(insert);
                 // context.SaveChanges();
             }
 
+            //リボの借入成功したパターン
             if (ret.Contains("Successful"))
             {
                 _ = Bank.SyncAddBalance(uuid, amount,"Man10Bank","BorrowFromMan10Revolving","リボの借金");
+                context.server_loan_history.Add(new ServerLoanHistory
+                {
+                    player = player,
+                    uuid = uuid,
+                    type = ServerLoanType.BORROW.ToString(),
+                    amount = amount
+                });
             }     
 
             context.SaveChanges();
@@ -139,6 +148,15 @@ public static class ServerLoan
                 data.borrow_amount = 0;
                 data.failed_payment = 0;
             }
+            
+            //ヒストリー追記
+            context.server_loan_history.Add(new ServerLoanHistory
+            {
+                player = data.player,
+                uuid = data.uuid,
+                type = ServerLoanType.SELF_PAYMENT.ToString(),
+                amount = amount
+            });
 
             context.SaveChanges();
             context.Dispose();
@@ -317,23 +335,51 @@ public static class ServerLoan
                         data.borrow_amount = 0;
                         data.failed_payment = 0;
                     }
+                    
+                    //ヒストリー追記
+                    context.server_loan_history.Add(new ServerLoanHistory
+                    {
+                        player = data.player,
+                        uuid = data.uuid,
+                        type = ServerLoanType.SUCCESS_PAYMENT.ToString(),
+                        amount = payment
+                    });
+
                 }
-                else
+                else//支払い失敗
                 {
                     data.failed_payment++;
                     failedFlag = true;
+                    
+                    //ヒストリー追記
+                    context.server_loan_history.Add(new ServerLoanHistory
+                    {
+                        player = data.player,
+                        uuid = data.uuid,
+                        type = ServerLoanType.FAILED_PAYMENT.ToString(),
+                        amount = payment
+                    });
+                    //基準スコア以上なら半減
+                    var penalty = score > _standardScore ? (int)score / 2 : _penaltyScore;
+                    _ = Score.TakeScore(data.uuid, penalty,"まんじゅうリボの未払い");
+
                 }
 
-                //支払い成功時はここで終了
-                if (!failedFlag) continue;
+                // //支払い成功時はここで終了
+                // if (!failedFlag) continue;
 
-                //基準スコア以上なら半減
-                var penalty = score > _standardScore ? (int)score / 2 : _penaltyScore;
-                _ = Score.TakeScore(data.uuid, penalty,"まんじゅうリボの未払い");
             }
             context.SaveChanges();
             
             Console.WriteLine("リボの処理終了");
         }
+    }
+
+    enum ServerLoanType
+    {
+        BORROW,
+        SELF_PAYMENT,
+        SUCCESS_PAYMENT,
+        FAILED_PAYMENT
     }
 }
