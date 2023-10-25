@@ -132,6 +132,19 @@ public class ServerEstateHistory
     
 }
 
+public class ServerLoanHistory
+{
+    [Key]
+    public int id { get; set; }
+
+    public DateTime date { get; set; }
+    public string player { get; set; }
+    public string uuid { get; set; }
+    public string type { get; set; }
+    public double amount { get; set; }
+}
+
+
 /// <summary>
 /// 小切手のテーブル
 /// </summary>
@@ -199,6 +212,7 @@ public class BankContext : DbContext
     public DbSet<ServerEstateHistory> server_estate_history { get; set; }
     public DbSet<ChequeTable> cheque_tbl { get; set; }
     public DbSet<ServerLoanTable> server_loan_tbl { get; set; }
+    public DbSet<ServerLoanHistory> server_loan_history { get; set; }
     public DbSet<VaultLog> vault_log { get; set; }
 
     private static readonly BlockingCollection<Action<BankContext>> DbQueue = new();

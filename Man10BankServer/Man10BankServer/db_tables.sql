@@ -164,3 +164,19 @@ create table server_loan_tbl
 create index server_loan_tbl_uuid_borrow_amount_index
     on server_loan_tbl (uuid, borrow_amount);
 
+
+create table server_loan_history
+(
+    id     int auto_increment,
+    date   datetime default now() null,
+    player varchar(16)            null,
+    uuid   varchar(36)            null,
+    type   varchar(16)            null,
+    amount double                 null,
+    constraint server_loan_history_pk
+        primary key (id)
+);
+
+create index server_loan_history_type_index
+    on server_loan_history (type);
+
