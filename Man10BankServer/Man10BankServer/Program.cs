@@ -1,6 +1,4 @@
-using System.Net;
 using Man10BankServer.Common;
-using Man10BankServer.Model;
 
 var builder = WebApplication.CreateBuilder(args);
 

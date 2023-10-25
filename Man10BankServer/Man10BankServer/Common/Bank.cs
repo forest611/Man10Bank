@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using Man10BankServer.Model;
-using Microsoft.EntityFrameworkCore;
 
 namespace Man10BankServer.Common;
 

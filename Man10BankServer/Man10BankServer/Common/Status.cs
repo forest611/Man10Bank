@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 namespace Man10BankServer.Common;
 
 public class Status
