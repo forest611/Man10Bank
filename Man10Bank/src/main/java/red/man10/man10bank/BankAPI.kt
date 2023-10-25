@@ -51,6 +51,39 @@ class BankAPI(private val plugin: JavaPlugin) {
         return APIServerLoan.getInfo(uuid)?.borrow_amount?:0.0
     }
 
+    /**
+     * 非同期で入金する
+     * 入金完了するとコールバックが呼ばれる
+     */
+    fun asyncDeposit(uuid: UUID,amount: Double,note: String,displayNote: String,callback:(Boolean)->Unit){
+        Man10Bank.async.execute {
+            val ret = deposit(uuid, amount, note, displayNote)
+            callback.invoke(ret)
+        }
+    }
+
+    /**
+     * 非同期で出勤する
+     * 出金完了するとコールバックが呼ばれる
+     */
+    fun asyncWithdraw(uuid: UUID,amount: Double,note: String,displayNote: String,callback:(Boolean)->Unit){
+        Man10Bank.async.execute {
+            val ret = withdraw(uuid, amount, note, displayNote)
+            callback.invoke(ret)
+        }
+    }
+
+    /**
+     * 非同期で所持金を取得
+     * 取得した結果はコールバック関数で取得
+     */
+    fun asyncGetBalance(uuid:UUID,callback: (Double)->Unit){
+        Man10Bank.async.execute {
+            callback.invoke(getBank(uuid))
+        }
+    }
+
+
 //    @Deprecated("displayNoteが設定できない", ReplaceWith("DisplayNoteつき"),DeprecationLevel.WARNING)
 //    fun deposit(uuid: UUID,amount: Double,note: String){
 //        deposit(uuid,amount, note,note)
