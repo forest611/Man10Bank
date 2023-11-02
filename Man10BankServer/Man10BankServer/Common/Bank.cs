@@ -145,7 +145,7 @@ public static class Bank
 
             var log = context.money_log.Where(r => r.uuid == uuid).OrderByDescending(r=>r.date).FirstOrDefault();
 
-            if (log is { balance: > 0 } && Math.Abs(log.balance - result.balance) > 1)
+            if (log is { balance: > 1 } && Math.Abs(log.balance - result.balance) > 1)
             {
                 // ログの値とのズレがあった場合
                 callback?.Invoke(-2);
