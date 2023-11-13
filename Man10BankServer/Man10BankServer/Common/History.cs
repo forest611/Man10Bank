@@ -49,7 +49,6 @@ public static class History
                 loan = estate.Sum(r => r.estate),
                 // shop = estate.Sum(r=>r.shop),
                 crypto = 0,
-                date = DateTime.Now,
                 year = year,
                 month = month,
                 day = day,
@@ -159,7 +158,6 @@ public static class History
             // record.shop = data.shop;
             // record.total = data.vault + data.bank + data.cash + data.estate + data.shop + data.crypto;
             record.total = data.vault + data.bank + data.cash + data.estate + data.crypto;
-            record.date = DateTime.Now;
             
             //ヒストリーを追加
             var history = new EstateHistoryTable

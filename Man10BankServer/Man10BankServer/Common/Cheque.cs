@@ -21,7 +21,6 @@ public static class Cheque
             var record = new ChequeTable
             {
                 amount = amount,
-                date = DateTime.Now,
                 note = note,
                 player = User.GetMinecraftId(uuid).Result,
                 uuid = uuid,
