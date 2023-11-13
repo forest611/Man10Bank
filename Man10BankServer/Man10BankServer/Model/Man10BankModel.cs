@@ -243,8 +243,8 @@ public class BankContext : DbContext
     {
         var connectionString = $"server='{Host}';port='{Port}';user='{User}';password='{Pass}';Database='{DatabaseName}'";
         var serverVersion = new MySqlServerVersion(new Version(8, 0, 30));
-        optionsBuilder.UseMySql(connectionString, serverVersion)
-            .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+        optionsBuilder.UseMySql(connectionString, serverVersion);
+        // .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
     }
 
 

@@ -143,14 +143,14 @@ public static class Bank
                 return;
             }
 
-            var log = context.money_log.Where(r => r.uuid == uuid).OrderByDescending(r=>r.date).FirstOrDefault();
-
-            if (log is { balance: > 1 } && Math.Abs(log.balance - result.balance) > 1)
-            {
-                // ログの値とのズレがあった場合
-                callback?.Invoke(-2);
-                return;
-            }
+            // var log = context.money_log.Where(r => r.uuid == uuid).OrderByDescending(r=>r.date).FirstOrDefault();
+            //
+            // if (log is { balance: > 1 } && Math.Abs(log.balance - result.balance) > 1)
+            // {
+            //     // ログの値とのズレがあった場合
+            //     callback?.Invoke(-2);
+            //     return;
+            // }
             
             callback?.Invoke(result.balance);
         });        
