@@ -39,7 +39,7 @@ class Man10Bank : JavaPlugin() {
             return canConnectServer
         }
         //      システム起動
-        fun systemSetup(){
+        fun systemSetup():Boolean{
 
             if (async.isShutdown || async.isTerminated){
                 async = Executors.newSingleThreadExecutor()
@@ -48,12 +48,13 @@ class Man10Bank : JavaPlugin() {
             Config.load()
             canConnectServer = APIBase.setup()
             //接続に失敗したらこれ以降の読み込みをやめる
-            if (!canConnectServer){ return }
+            if (!canConnectServer){ return false }
 
             Status.startStatusTimer()
             ATM.load()
             ServerLoan.setup()
             LocalLoan.setup()
+            return true
         }
 
         //      システム終了

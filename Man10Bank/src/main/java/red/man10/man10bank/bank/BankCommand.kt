@@ -235,7 +235,9 @@ object BankCommand : CommandExecutor{
                     msg(sender,"§c§lシステム終了・・・")
                     Man10Bank.systemClose()
                     msg(sender,"§c§lシステム起動・・・")
-                    Man10Bank.systemSetup()
+                    if (!Man10Bank.systemSetup()){
+                        msg(sender,"§c§l§nAPIサーバーへの接続に失敗")
+                    }
                     msg(sender,"§c§lシステムリロード完了")
 //                    Man10Bank.open()
                 }.start()
