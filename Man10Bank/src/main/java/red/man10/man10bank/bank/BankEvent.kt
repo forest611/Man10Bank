@@ -1,5 +1,6 @@
 package red.man10.man10bank.bank
 
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -10,6 +11,8 @@ import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Permissions
 import red.man10.man10bank.history.EstateHistory
 
 object BankEvent : Listener{
@@ -21,6 +24,13 @@ object BankEvent : Listener{
         Thread{
             Thread.sleep(3000)
             BankCommand.asyncShowBalance(p, p.uniqueId)
+
+            //OPに対しては、ログイン時に稼働状況を表示
+            if (e.player.hasPermission(Permissions.BANK_OP_COMMAND)){
+                Bukkit.getScheduler().runTask(Man10Bank.instance, Runnable {
+                    e.player.performCommand("bankstatus")
+                })
+            }
         }.start()
     }
 
