@@ -4,6 +4,7 @@ import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
+import org.bukkit.entity.Player
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.util.Utility.msg
 
@@ -34,12 +35,14 @@ class Status : CommandExecutor{
         fun startStatusTimer(){
             timerThread = Thread{
                 Bukkit.getLogger().info("ステータスチェク処理を走らせます")
-                try {
-                    getStatus()
-                    Thread.sleep(1000L * Config.statusCheckSeconds)
-                }catch (e:InterruptedException){
-                    Bukkit.getLogger().info("ステータスチェック処理を終了")
-                    return@Thread
+                while (true){
+                    try {
+                        getStatus()
+                        Thread.sleep(1000L * Config.statusCheckSeconds)
+                    }catch (e:InterruptedException){
+                        Bukkit.getLogger().info("ステータスチェック処理を中断")
+                        return@Thread
+                    }
                 }
             }
             timerThread.start()
@@ -56,13 +59,16 @@ class Status : CommandExecutor{
         if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return false
         if (args.isNullOrEmpty()){
             msg(sender,"現在の稼働状況")
-            msg(sender,"Man10BankServer:${Man10Bank.isEnableServer()}")
-
-            msg(sender,"enableDealBank:$enableDealBank")
-            msg(sender,"enableATM:$enableATM")
-            msg(sender,"enableCheque:$enableCheque")
-            msg(sender,"enableServerLoan:$enableServerLoan")
-            msg(sender,"enableLocalLoan:$enableLocalLoan")
+            msg(sender,"APIServer:${Man10Bank.isEnableServer()}")
+            msg(sender,"===================================")
+            msg(sender,"${StatusName.DEAL_BANK.name}:$enableDealBank")
+            msg(sender,"${StatusName.ATM.name}:$enableATM")
+            msg(sender,"${StatusName.CHEQUE.name}:$enableCheque")
+            msg(sender,"${StatusName.SERVER_LOAN.name}:$enableServerLoan")
+            msg(sender,"${StatusName.LOCAL_LOAN.name}:$enableLocalLoan")
+            msg(sender,"===================================")
+            msg(sender,"APIServerは/man10bank reload で再接続")
+            msg(sender,"各機能は/bankstatus set <上記名> <true/false> でon/off切り替え")
 
             return true
         }
@@ -72,22 +78,22 @@ class Status : CommandExecutor{
 
                 val value = args[2].toBoolean()
 
-                when(args[1]){
-                    "all" -> {
+                when(StatusName.valueOf(args[1])){
+                    StatusName.ALL -> {
                         enableDealBank = value
                         enableATM = value
                         enableCheque = value
                         enableLocalLoan = value
                         enableServerLoan = value
                     }
-                    "enableDealBank" -> enableDealBank = value
-                    "enableATM" -> enableATM = value
-                    "enableCheque" -> enableCheque = value
-                    "enableLocalLoan" -> enableLocalLoan = value
-                    "enableServerLoan" -> enableServerLoan = value
-                    else ->{
-                        msg(sender,"無効なステータス")
-                    }
+                    StatusName.DEAL_BANK -> enableDealBank = value
+                    StatusName.ATM -> enableATM = value
+                    StatusName.CHEQUE -> enableCheque = value
+                    StatusName.LOCAL_LOAN -> enableLocalLoan = value
+                    StatusName.SERVER_LOAN -> enableServerLoan = value
+//                    else ->{
+//                        msg(sender,"無効なステータス")
+//                    }
                 }
 
                 asyncSendStatus()
@@ -98,6 +104,16 @@ class Status : CommandExecutor{
         }
 
         return true
+    }
+
+
+    enum class StatusName(string: String){
+        ALL("all"),
+        DEAL_BANK("enableDealBank"),
+        ATM("enableATM"),
+        CHEQUE("enableCheque"),
+        LOCAL_LOAN("enableLocalLoan"),
+        SERVER_LOAN("enableServerLoan")
     }
 
 }
