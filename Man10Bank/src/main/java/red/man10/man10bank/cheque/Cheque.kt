@@ -1,7 +1,6 @@
 package red.man10.man10bank.cheque
 
 import net.kyori.adventure.text.Component
-import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.command.Command
@@ -17,7 +16,7 @@ import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank
-import red.man10.man10bank.Man10Bank.Companion.async
+import red.man10.man10bank.Man10Bank.Companion.threadPool
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.Status
 import red.man10.man10bank.api.APICheque
@@ -192,7 +191,7 @@ object Cheque : CommandExecutor, Listener {
             return
         }
 
-        async.execute {
+        threadPool.execute {
             use(p,item)
         }
 
@@ -237,7 +236,7 @@ object Cheque : CommandExecutor, Listener {
 
         val note = if (args.size>=2) args[1] else "null"
 
-        async.execute {
+        threadPool.execute {
             create(sender,amount,isOp,note)
         }
 

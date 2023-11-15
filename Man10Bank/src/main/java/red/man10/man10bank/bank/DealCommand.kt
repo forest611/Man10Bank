@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.instance
-import red.man10.man10bank.Man10Bank.Companion.async
+import red.man10.man10bank.Man10Bank.Companion.threadPool
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.Status
 import red.man10.man10bank.api.APIBank
@@ -51,7 +51,7 @@ object DealCommand : CommandExecutor{
                 return true
             }
 
-            async.execute {
+            threadPool.execute {
                 val result = APIBank.addBank(APIBank.TransactionData(
                     sender.uniqueId.toString(),
                     fixedAmount,
@@ -76,7 +76,7 @@ object DealCommand : CommandExecutor{
                 return true
             }
 
-            async.execute {
+            threadPool.execute {
 
                 val amount = if (args[0] == "all") APIBank.getBalance(sender.uniqueId) else Utility.fixedPerse(args[0])
 

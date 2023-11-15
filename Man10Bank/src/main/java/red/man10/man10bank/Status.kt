@@ -4,7 +4,6 @@ import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.util.Utility.msg
 
@@ -23,7 +22,7 @@ class Status : CommandExecutor{
         private var timerThread = Thread()
 
         private fun asyncSendStatus(){
-            Man10Bank.async.execute {
+            Man10Bank.threadPool.execute {
                 APIBank.setStatus(status)
             }
         }

@@ -8,7 +8,7 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
-import red.man10.man10bank.Man10Bank.Companion.async
+import red.man10.man10bank.Man10Bank.Companion.threadPool
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APIBank
@@ -65,7 +65,7 @@ object BankCommand : CommandExecutor{
             "user" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
-                async.execute {
+                threadPool.execute {
                     val uuid = APIBank.getUUID(args[1])
                     if (uuid == null){
                         msg(sender,"ログイン履歴がない可能性があります")
@@ -79,7 +79,7 @@ object BankCommand : CommandExecutor{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
                 val page  = if (args.size == 2) 0 else args[2].toIntOrNull()?:0
-                async.execute {
+                threadPool.execute {
                     val uuid = APIBank.getUUID(args[1])
                     if (uuid == null){
                         msg(sender,"プレイヤーが見つかりません")
@@ -115,7 +115,7 @@ object BankCommand : CommandExecutor{
                     return true
                 }
 
-                async.execute {
+                threadPool.execute {
                     val result = APIBank.addBank(APIBank.TransactionData(
                         uuid.toString(),
                         amount,
@@ -158,7 +158,7 @@ object BankCommand : CommandExecutor{
                     return true
                 }
 
-                async.execute {
+                threadPool.execute {
                     val result = APIBank.takeBank(APIBank.TransactionData(
                         uuid.toString(),
                         amount,
@@ -201,7 +201,7 @@ object BankCommand : CommandExecutor{
                     return true
                 }
 
-                async.execute {
+                threadPool.execute {
                     APIBank.setBank(APIBank.TransactionData(
                         uuid.toString(),
                         amount,
@@ -250,7 +250,7 @@ object BankCommand : CommandExecutor{
 
     fun asyncShowBalance(sender: CommandSender, uuid:UUID){
 
-        async.execute {
+        threadPool.execute {
             val p = Bukkit.getPlayer(uuid)
 
             if (p == null){
@@ -322,7 +322,7 @@ object BankCommand : CommandExecutor{
 
     private fun asyncShowLog(uuid:UUID, sender:CommandSender, page:Int){
 
-        async.execute {
+        threadPool.execute {
             val skip = page*10
             val log = APIBank.getBankLog(uuid,10,skip)
             val mcid = Bukkit.getOfflinePlayer(uuid).name
@@ -350,7 +350,7 @@ object BankCommand : CommandExecutor{
     }
 
     private fun asyncShowBalanceSheet(uuid: UUID,sender: CommandSender){
-        async.execute {
+        threadPool.execute {
             val estate = APIHistory.getUserEstate(uuid)
             val p = Bukkit.getOfflinePlayer(uuid)
             val mcid = p.name

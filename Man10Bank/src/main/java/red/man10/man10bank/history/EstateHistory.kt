@@ -17,7 +17,7 @@ object EstateHistory {
 
     fun asyncShowBalanceTop(p: CommandSender, page:Int){
 
-        Man10Bank.async.execute {
+        Man10Bank.threadPool.execute {
             val array = APIHistory.getBalanceTop(10,page*10)
 
             msg(p,"§6§k§lXX§e§l富豪トップ${(page+1)*10}§6§k§lXX")
@@ -33,7 +33,7 @@ object EstateHistory {
 
     fun asyncShowLoanTop(p:CommandSender,page:Int){
 
-        Man10Bank.async.execute {
+        Man10Bank.threadPool.execute {
             val array = APIHistory.getLoanTop(10,page*10)
 
             msg(p,"§6§k§lXX§c§l借金トップ${(page+1)*10}§6§k§lXX")
@@ -48,7 +48,7 @@ object EstateHistory {
 
     fun asyncShowEstate(p:CommandSender,uuid:UUID){
 
-        Man10Bank.async.execute {
+        Man10Bank.threadPool.execute {
             val data = APIHistory.getUserEstate(uuid)
             val nextDate = APIServerLoan.nextPayDate(uuid)
             val revoInfo = APIServerLoan.getInfo(uuid)
@@ -76,7 +76,7 @@ object EstateHistory {
 
     fun asyncShowServerEstate(p:CommandSender){
 
-        Man10Bank.async.execute {
+        Man10Bank.threadPool.execute {
             val data = APIHistory.getServerEstate()
 
             if (data == null){
@@ -96,7 +96,7 @@ object EstateHistory {
 
     fun asyncAddEstate(p:Player){
 
-        Man10Bank.async.execute {
+        Man10Bank.threadPool.execute {
             val uuid = p.uniqueId
             //銀行、ローン、トータルは鯖側で計算する
             val data = APIHistory.EstateTable(

@@ -63,7 +63,7 @@ class BankAPI(private val plugin: JavaPlugin) {
      * 入金完了するとコールバックが呼ばれる
      */
     fun asyncDeposit(uuid: UUID,amount: Double,note: String,displayNote: String,callback:(Boolean)->Unit){
-        Man10Bank.async.execute {
+        Man10Bank.threadPool.execute {
             val ret = deposit(uuid, amount, note, displayNote)
             callback.invoke(ret)
         }
@@ -74,7 +74,7 @@ class BankAPI(private val plugin: JavaPlugin) {
      * 出金完了するとコールバックが呼ばれる
      */
     fun asyncWithdraw(uuid: UUID,amount: Double,note: String,displayNote: String,callback:(Boolean)->Unit){
-        Man10Bank.async.execute {
+        Man10Bank.threadPool.execute {
             val ret = withdraw(uuid, amount, note, displayNote)
             callback.invoke(ret)
         }
@@ -85,7 +85,7 @@ class BankAPI(private val plugin: JavaPlugin) {
      * 取得した結果はコールバック関数で取得
      */
     fun asyncGetBalance(uuid:UUID,callback: (Double)->Unit){
-        Man10Bank.async.execute {
+        Man10Bank.threadPool.execute {
             callback.invoke(getBank(uuid))
         }
     }

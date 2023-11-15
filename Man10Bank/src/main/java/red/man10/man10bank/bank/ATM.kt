@@ -9,7 +9,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank.Companion.instance
-import red.man10.man10bank.Man10Bank.Companion.async
+import red.man10.man10bank.Man10Bank.Companion.threadPool
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.Status
 import red.man10.man10bank.api.APIHistory
@@ -72,7 +72,7 @@ object ATM :CommandExecutor{
             itemStack.amount = 0
             vault.deposit(p.uniqueId,amount)
 
-            async.execute {
+            threadPool.execute {
                 APIHistory.addATMLog(APIHistory.ATMLog(0,p.name,p.uniqueId.toString(),amount,true, LocalDateTime.now()))
             }
         }

@@ -9,7 +9,7 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
-import red.man10.man10bank.Man10Bank.Companion.async
+import red.man10.man10bank.Man10Bank.Companion.threadPool
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.util.Utility
@@ -76,7 +76,7 @@ object PayCommand : CommandExecutor {
             if (p == null){
                 msg(sender,"§a送金先のプレイヤーがオフラインのため、相手の銀行口座に入金します")
 
-                async.execute {
+                threadPool.execute {
                     val uuid = APIBank.getUUID(mcid)
 
                     if (uuid == null){
@@ -129,7 +129,7 @@ object PayCommand : CommandExecutor {
             val amount = Utility.fixedPerse(args[2])?:return true
 
             //送金処理
-            async.execute {
+            threadPool.execute {
 
                 val uuid = APIBank.getUUID(mcid)
 

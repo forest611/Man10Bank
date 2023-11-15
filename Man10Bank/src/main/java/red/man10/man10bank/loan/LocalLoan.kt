@@ -14,7 +14,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import red.man10.man10bank.Man10Bank.Companion.async
+import red.man10.man10bank.Man10Bank.Companion.threadPool
 import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.Permissions
@@ -146,7 +146,7 @@ object LocalLoan: Listener,CommandExecutor{
         //一旦手形を削除
         item.amount = 0
 
-        async.execute {
+        threadPool.execute {
 
             //ここでnullが帰ってきたら手形じゃないと判定
             val data = APILocalLoan.getInfo(id)?:return@execute
@@ -278,7 +278,7 @@ object LocalLoan: Listener,CommandExecutor{
             }
 
             map.remove(sender.uniqueId)
-            async.execute {
+            threadPool.execute {
                 create(lendP,sender,data.amount,data.interest,data.due)
             }
 

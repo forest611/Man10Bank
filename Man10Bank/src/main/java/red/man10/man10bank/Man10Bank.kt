@@ -7,7 +7,6 @@ import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.loan.LocalLoan
 import red.man10.man10bank.loan.ServerLoan
 import red.man10.man10bank.util.MenuFramework
-import red.man10.man10bank.util.Utility
 import java.util.concurrent.Executors
 
 class Man10Bank : JavaPlugin() {
@@ -17,7 +16,7 @@ class Man10Bank : JavaPlugin() {
         lateinit var instance : Man10Bank
         lateinit var vault : VaultManager
 
-        var async = Executors.newSingleThreadExecutor()
+        var threadPool = Executors.newSingleThreadExecutor()
 
 //        private var bankOpen = true
 
@@ -41,8 +40,8 @@ class Man10Bank : JavaPlugin() {
         //      システム起動
         fun systemSetup():Boolean{
 
-            if (async.isShutdown || async.isTerminated){
-                async = Executors.newSingleThreadExecutor()
+            if (threadPool.isShutdown || threadPool.isTerminated){
+                threadPool = Executors.newSingleThreadExecutor()
             }
 
             Config.load()
@@ -59,7 +58,7 @@ class Man10Bank : JavaPlugin() {
 
         //      システム終了
         fun systemClose(){
-            async.shutdownNow()
+            threadPool.shutdownNow()
             Status.stopStatusTimer()
         }
 

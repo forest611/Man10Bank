@@ -6,7 +6,7 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import red.man10.man10bank.Man10Bank.Companion.async
+import red.man10.man10bank.Man10Bank.Companion.threadPool
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.Status
 import red.man10.man10bank.api.APIBank
@@ -54,6 +54,13 @@ object ServerLoan : CommandExecutor{
     }
 
     private fun showBorrowMessage(p:Player,amount:Double){
+
+        if (!Status.status.enableServerLoan){
+            msg(p,"現在新規貸し出しは行っておりません。")
+            return
+        }
+
+
         if (amount <= 0.0){
             msg(p,"1円以上を入力してください")
             return
@@ -95,6 +102,12 @@ object ServerLoan : CommandExecutor{
     }
 
     private fun borrow(p: Player, amount:Double){
+
+        if (!Status.status.enableServerLoan){
+            msg(p,"現在新規貸し出しは行っておりません。")
+            return
+        }
+
         val ret = APIServerLoan.borrow(p.uniqueId,amount)
 
         if (ret != "Successful" && ret != "FirstSuccessful"){
@@ -148,7 +161,7 @@ object ServerLoan : CommandExecutor{
         when(args[0]){
 
             "check" ->{
-                async.execute {
+                threadPool.execute {
                     checkAmount(sender)
                 }
             }
@@ -184,27 +197,18 @@ object ServerLoan : CommandExecutor{
                     return true
                 }
 
-                if (!Status.status.enableServerLoan){
-                    msg(sender,"現在新規貸し出しは行っておりません。返済は可能です。")
-                    return true
-                }
-
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                async.execute {
+                threadPool.execute {
                     showBorrowMessage(sender,amount)
                 }
             }
 
             "confirm" ->{
-                if (!Status.status.enableServerLoan){
-                    msg(sender,"現在新規貸し出しは行っておりません。返済は可能です。")
-                    return true
-                }
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                async.execute { borrow(sender,amount) }
+                threadPool.execute { borrow(sender,amount) }
             }
 
             "payment" ->{
@@ -213,26 +217,28 @@ object ServerLoan : CommandExecutor{
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                async.execute {
+                threadPool.execute {
                     setPayment(sender,amount)
                 }
 
             }
 
+            //一部支払い
             "pay" ->{
                 if (args.size != 2)return true
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                async.execute {
+                threadPool.execute {
                     pay(sender,amount)
                 }
             }
 
+            //全額支払い
             "payall" ->{
                 if (args.size != 1)return true
 
-                async.execute {
+                threadPool.execute {
                     payAll(sender)
                 }
             }
