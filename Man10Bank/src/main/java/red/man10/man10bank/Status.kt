@@ -72,6 +72,21 @@ class Status : CommandExecutor{
             return true
         }
 
+        if (args[0] == "reload"){
+            if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
+
+            Thread{
+                msg(sender,"§c§lシステム終了・・・")
+                Man10Bank.systemClose()
+                msg(sender,"§c§lシステム起動・・・")
+                if (!Man10Bank.systemSetup()){
+                    msg(sender,"§c§l§nAPIサーバーへの接続に失敗")
+                }
+                msg(sender,"§c§lシステムリロード完了")
+//                    Man10Bank.open()
+            }.start()
+        }
+
         if (args[0] == "set" && args.size == 3){
             try {
 
