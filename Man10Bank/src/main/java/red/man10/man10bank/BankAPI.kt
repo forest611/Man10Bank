@@ -8,6 +8,13 @@ import java.util.*
 class BankAPI(private val plugin: JavaPlugin) {
 
     /**
+     * APIサーバーに接続できているかどうか
+     */
+    fun canConnect():Boolean{
+        return Man10Bank.isEnableServer()
+    }
+
+    /**
      * 出金リクエストを送る
      */
     fun withdraw(uuid: UUID,amount:Double,note:String,displayNote:String):Boolean{
