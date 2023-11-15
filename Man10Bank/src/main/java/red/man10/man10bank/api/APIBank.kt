@@ -2,12 +2,12 @@ package red.man10.man10bank.api
 
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.bukkit.Bukkit
-import org.bukkit.entity.Player
-import red.man10.man10bank.Status
+import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.api.APIBase.getRequest
 import red.man10.man10bank.api.APIBase.gson
 import red.man10.man10bank.api.APIBase.mediaType
 import red.man10.man10bank.api.APIBase.postRequest
+import red.man10.man10bank.status.Status
 import java.time.LocalDateTime
 import java.util.*
 
@@ -74,12 +74,12 @@ object APIBank {
         getRequest("${apiRoute}create?uuid=${p.uniqueId}&mcid=${p.name}")
     }
 
-    fun getStatus():Status{
+    fun getStatus(): Status {
         val result = getRequest("${apiRoute}get-status")
-        return gson.fromJson(result,Status::class.java)
+        return gson.fromJson(result, Status::class.java)
     }
 
-    fun setStatus(data:Status){
+    fun setStatus(data: Status){
         postRequest("${apiRoute}set-status", gson.toJson(data).toRequestBody(mediaType))
     }
 

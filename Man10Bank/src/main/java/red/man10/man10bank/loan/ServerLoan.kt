@@ -8,7 +8,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank.Companion.threadPool
 import red.man10.man10bank.Permissions
-import red.man10.man10bank.Status
+import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APIServerLoan
 import red.man10.man10bank.api.APIServerLoan.ServerLoanProperty
@@ -55,7 +55,7 @@ object ServerLoan : CommandExecutor{
 
     private fun showBorrowMessage(p:Player,amount:Double){
 
-        if (!Status.status.enableServerLoan){
+        if (!StatusManager.status.enableServerLoan){
             msg(p,"現在新規貸し出しは行っておりません。")
             return
         }
@@ -103,7 +103,7 @@ object ServerLoan : CommandExecutor{
 
     private fun borrow(p: Player, amount:Double){
 
-        if (!Status.status.enableServerLoan){
+        if (!StatusManager.status.enableServerLoan){
             msg(p,"現在新規貸し出しは行っておりません。")
             return
         }

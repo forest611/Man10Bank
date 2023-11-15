@@ -18,7 +18,7 @@ import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.threadPool
 import red.man10.man10bank.Permissions
-import red.man10.man10bank.Status
+import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.api.APICheque
 import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.format
@@ -186,7 +186,7 @@ object Cheque : CommandExecutor, Listener {
             return
         }
 
-        if (!Status.status.enableCheque){
+        if (!StatusManager.status.enableCheque){
             msg(p,"現在メンテナンスにより小切手は使えません")
             return
         }
@@ -203,7 +203,7 @@ object Cheque : CommandExecutor, Listener {
             return false
         }
 
-        if (!Status.status.enableCheque){
+        if (!StatusManager.status.enableCheque){
             msg(sender,"現在メンテナンスにより小切手は使えません")
             return false
         }

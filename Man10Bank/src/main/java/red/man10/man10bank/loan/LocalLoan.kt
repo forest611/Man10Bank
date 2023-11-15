@@ -18,7 +18,7 @@ import red.man10.man10bank.Man10Bank.Companion.threadPool
 import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.Permissions
-import red.man10.man10bank.Status
+import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APILocalLoan
 import red.man10.man10bank.util.Utility.format
@@ -151,7 +151,7 @@ object LocalLoan: Listener,CommandExecutor{
             //ここでnullが帰ってきたら手形じゃないと判定
             val data = APILocalLoan.getInfo(id)?:return@execute
 
-            if (!Status.status.enableLocalLoan){
+            if (!StatusManager.status.enableLocalLoan){
                 msg(p,"現在メンテナンスにより個人間借金は行えません")
                 return@execute
             }
@@ -240,7 +240,7 @@ object LocalLoan: Listener,CommandExecutor{
 
         if (sender !is Player)return true
 
-        if (!Status.status.enableLocalLoan){
+        if (!StatusManager.status.enableLocalLoan){
             msg(sender,"現在メンテナンスにより個人間借金は行えません")
             return false
         }

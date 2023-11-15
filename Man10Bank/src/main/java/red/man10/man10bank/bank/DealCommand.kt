@@ -8,7 +8,7 @@ import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.threadPool
 import red.man10.man10bank.Man10Bank.Companion.vault
-import red.man10.man10bank.Status
+import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.msg
@@ -25,7 +25,7 @@ object DealCommand : CommandExecutor{
 
         if (sender !is Player)return true
 
-        if (!Man10Bank.isEnableServer() || !Status.status.enableDealBank){
+        if (!Man10Bank.isEnableServer() || !StatusManager.status.enableDealBank){
             msg(sender,"§c§l現在銀行はメンテナンス中です")
             return true
         }

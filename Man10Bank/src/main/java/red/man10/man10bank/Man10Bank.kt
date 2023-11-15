@@ -6,6 +6,7 @@ import red.man10.man10bank.bank.*
 import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.loan.LocalLoan
 import red.man10.man10bank.loan.ServerLoan
+import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.util.MenuFramework
 import java.util.concurrent.Executors
 
@@ -49,7 +50,7 @@ class Man10Bank : JavaPlugin() {
             //接続に失敗したらこれ以降の読み込みをやめる
             if (!canConnectServer){ return false }
 
-            Status.startStatusTimer()
+            StatusManager.startStatusTimer()
             ATM.load()
             ServerLoan.setup()
             LocalLoan.setup()
@@ -59,7 +60,7 @@ class Man10Bank : JavaPlugin() {
         //      システム終了
         fun systemClose(){
             threadPool.shutdownNow()
-            Status.stopStatusTimer()
+            StatusManager.stopStatusTimer()
         }
 
     }
@@ -84,7 +85,7 @@ class Man10Bank : JavaPlugin() {
         getCommand("mbaltop")!!.setExecutor(TopCommand)
         getCommand("mloantop")!!.setExecutor(TopCommand)
         getCommand("estateinfo")!!.setExecutor(TopCommand)
-        getCommand("bankstatus")!!.setExecutor(Status.status)
+        getCommand("bankstatus")!!.setExecutor(StatusManager)
         getCommand("pay")!!.setExecutor(PayCommand)
         getCommand("mpay")!!.setExecutor(PayCommand)
         BankCommand.labels.forEach { getCommand(it)!!.setExecutor(BankCommand) }

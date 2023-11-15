@@ -11,7 +11,7 @@ import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.threadPool
 import red.man10.man10bank.Man10Bank.Companion.vault
-import red.man10.man10bank.Status
+import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.api.APIHistory
 import red.man10.man10bank.util.Utility.getBundleItem
 import red.man10.man10bank.util.Utility.getShulkerItem
@@ -150,7 +150,7 @@ object ATM :CommandExecutor{
 
         if (sender !is Player)return true
 
-        if (!Status.status.enableATM){
+        if (!StatusManager.status.enableATM){
             msg(sender,"現在ATMはメンテナンス中です")
             return true
         }

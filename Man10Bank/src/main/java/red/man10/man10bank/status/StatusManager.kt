@@ -1,56 +1,51 @@
-package red.man10.man10bank
+package red.man10.man10bank.status
 
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
+import red.man10.man10bank.Config
+import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.util.Utility.msg
 
 //サーバーの接続状況や各機能のon/offを確認するクラス
-class Status : CommandExecutor{
 
-    var enableDealBank = false
-    var enableATM = false
-    var enableCheque = false
-    var enableLocalLoan = false
-    var enableServerLoan = false
+object StatusManager : CommandExecutor{
 
-    companion object{
-        var status = Status()
+    var status = Status()
 
-        private var timerThread = Thread()
+    private var timerThread = Thread()
 
-        private fun asyncSendStatus(){
-            Man10Bank.threadPool.execute {
-                APIBank.setStatus(status)
-            }
+    private fun asyncSendStatus(){
+        Man10Bank.threadPool.execute {
+            APIBank.setStatus(status)
         }
+    }
 
-        private fun getStatus(){
-            status = APIBank.getStatus()
-        }
+    private fun getStatus(){
+        status = APIBank.getStatus()
+    }
 
-        fun startStatusTimer(){
-            timerThread = Thread{
-                Bukkit.getLogger().info("ステータスチェク処理を走らせます")
-                while (true){
-                    try {
-                        getStatus()
-                        Thread.sleep(1000L * Config.statusCheckSeconds)
-                    }catch (e:InterruptedException){
-                        Bukkit.getLogger().info("ステータスチェック処理を中断")
-                        return@Thread
-                    }
+    fun startStatusTimer(){
+        timerThread = Thread{
+            Bukkit.getLogger().info("ステータスチェク処理を走らせます")
+            while (true){
+                try {
+                    getStatus()
+                    Thread.sleep(1000L * Config.statusCheckSeconds)
+                }catch (e:InterruptedException){
+                    Bukkit.getLogger().info("ステータスチェック処理を中断")
+                    return@Thread
                 }
             }
-            timerThread.start()
         }
+        timerThread.start()
+    }
 
-        fun stopStatusTimer(){
-            timerThread.interrupt()
-        }
-
+    fun stopStatusTimer(){
+        timerThread.interrupt()
     }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
@@ -60,11 +55,11 @@ class Status : CommandExecutor{
             msg(sender,"現在の稼働状況")
             msg(sender,"APIServer:${Man10Bank.isEnableServer()}")
             msg(sender,"===================================")
-            msg(sender,"${StatusName.DEAL_BANK.name}:$enableDealBank")
-            msg(sender,"${StatusName.ATM.name}:$enableATM")
-            msg(sender,"${StatusName.CHEQUE.name}:$enableCheque")
-            msg(sender,"${StatusName.SERVER_LOAN.name}:$enableServerLoan")
-            msg(sender,"${StatusName.LOCAL_LOAN.name}:$enableLocalLoan")
+            msg(sender,"${StatusName.DEAL_BANK.name}:${status.enableDealBank}")
+            msg(sender,"${StatusName.ATM.name}:${status.enableATM}")
+            msg(sender,"${StatusName.CHEQUE.name}:${status.enableCheque}")
+            msg(sender,"${StatusName.SERVER_LOAN.name}:${status.enableServerLoan}")
+            msg(sender,"${StatusName.LOCAL_LOAN.name}:${status.enableLocalLoan}")
             msg(sender,"===================================")
             msg(sender,"APIServerは/man10bank reload で再接続")
             msg(sender,"各機能は/bankstatus set <上記名> <true/false> でon/off切り替え")
@@ -94,17 +89,17 @@ class Status : CommandExecutor{
 
                 when(StatusName.valueOf(args[1])){
                     StatusName.ALL -> {
-                        enableDealBank = value
-                        enableATM = value
-                        enableCheque = value
-                        enableLocalLoan = value
-                        enableServerLoan = value
+                        status.enableDealBank = value
+                        status.enableATM = value
+                        status.enableCheque = value
+                        status.enableLocalLoan = value
+                        status.enableServerLoan = value
                     }
-                    StatusName.DEAL_BANK -> enableDealBank = value
-                    StatusName.ATM -> enableATM = value
-                    StatusName.CHEQUE -> enableCheque = value
-                    StatusName.LOCAL_LOAN -> enableLocalLoan = value
-                    StatusName.SERVER_LOAN -> enableServerLoan = value
+                    StatusName.DEAL_BANK -> status.enableDealBank = value
+                    StatusName.ATM -> status.enableATM = value
+                    StatusName.CHEQUE -> status.enableCheque = value
+                    StatusName.LOCAL_LOAN -> status.enableLocalLoan = value
+                    StatusName.SERVER_LOAN -> status.enableServerLoan = value
 //                    else ->{
 //                        msg(sender,"無効なステータス")
 //                    }
@@ -120,7 +115,6 @@ class Status : CommandExecutor{
 
         return true
     }
-
 
     enum class StatusName{
         ALL,
