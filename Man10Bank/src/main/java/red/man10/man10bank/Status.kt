@@ -113,6 +113,7 @@ class Status : CommandExecutor{
                 asyncSendStatus()
                 msg(sender,"設定完了")
             }catch (e:Exception){
+                msg(sender,e.message?:"")
                 msg(sender,"引数に問題あり")
             }
         }
@@ -121,13 +122,13 @@ class Status : CommandExecutor{
     }
 
 
-    enum class StatusName(string: String){
-        ALL("all"),
-        DEAL_BANK("enableDealBank"),
-        ATM("enableATM"),
-        CHEQUE("enableCheque"),
-        LOCAL_LOAN("enableLocalLoan"),
-        SERVER_LOAN("enableServerLoan")
+    enum class StatusName{
+        ALL,
+        DEAL_BANK,
+        ATM,
+        CHEQUE,
+        LOCAL_LOAN,
+        SERVER_LOAN
     }
 
 }
