@@ -196,8 +196,8 @@ object BankCommand : CommandExecutor{
                     return true
                 }
 
-                if (amount < 1){
-                    msg(sender,"§c§l1円以上を入力してください！")
+                if (amount < 0){
+                    msg(sender,"§c§l0円以上を入力してください！")
                     return true
                 }
 
