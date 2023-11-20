@@ -15,8 +15,11 @@ import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.msg
 import red.man10.man10bank.util.Utility.prefix
+import java.util.UUID
 
 object PayCommand : CommandExecutor {
+
+    val confirmList = mutableListOf<UUID>()
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
 
@@ -30,7 +33,7 @@ object PayCommand : CommandExecutor {
 
         val cmd = args[0]
 
-        //ユーザー入力
+        //初期入力
         if (args.size == 2){
 
             val amount = Utility.fixedPerse(args[1])
@@ -40,29 +43,34 @@ object PayCommand : CommandExecutor {
                 return true
             }
 
+            val random = UUID.randomUUID()
+            confirmList.add(random)
+
             msg(sender,"§6§l送金相手:${cmd} 金額:${Utility.format(amount)}円")
             sender.sendMessage(text(prefix)
                 .append(text(" §a§l§n[確定] ")
                     .hoverEvent(HoverEvent.showText(text("§c§l確定を押すと取消はできません！")))
-                    .clickEvent(ClickEvent.runCommand("/$label confirm $cmd $amount")))
+                    .clickEvent(ClickEvent.runCommand("/$label confirm $cmd $amount $random")))
                 .append(text(" §c§l§n[取消] ")
-                    .clickEvent(ClickEvent.runCommand("/$label cancel"))))
+                    .clickEvent(ClickEvent.runCommand("/$label cancel $random"))))
             return true
         }
 
         if (label == "pay"){
 
-            if (args.size != 3)return true
+//            if (args.size != 3)return true
 
-            //取り消しを押した場合
+            //取り消しを押した場合    /pay cancel random
             if (cmd == "cancel"){
                 msg(sender,"§a§l送金を取り消しました")
+                confirmList.remove(UUID.fromString(args[1]))
                 return true
             }
 
-            //確定を押した場合はここを抜ける
             if (cmd != "confirm")return false
 
+            //確定した場合    /pay confirm player amount random
+            confirmList.remove(UUID.fromString(args[3]))
             val mcid = args[1]
             val p = Bukkit.getPlayer(mcid)
             val amount = Utility.fixedPerse(args[2])?:return true
@@ -114,17 +122,19 @@ object PayCommand : CommandExecutor {
         }
 
         if (label == "mpay"){
-            if (args.size != 3)return true
+//            if (args.size != 3)return true
 
             //取り消しを押した場合
             if (cmd == "cancel"){
                 msg(sender,"§a§l送金を取り消しました")
+                confirmList.remove(UUID.fromString(args[1]))
                 return true
             }
 
-            //確定を押した場合はここを抜ける
             if (cmd != "confirm")return false
 
+            //確定した場合
+            confirmList.remove(UUID.fromString(args[3]))
             val mcid = args[1]
             val amount = Utility.fixedPerse(args[2])?:return true
 

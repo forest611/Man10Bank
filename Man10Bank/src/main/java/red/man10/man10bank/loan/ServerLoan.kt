@@ -43,7 +43,7 @@ object ServerLoan : CommandExecutor{
             return
         }
         data.payment_amount = amount
-
+//TODO:確認
         val ret = APIServerLoan.setInfo(data)
 
         if (ret == APIBank.BankResult.SUCCESSFUL){
