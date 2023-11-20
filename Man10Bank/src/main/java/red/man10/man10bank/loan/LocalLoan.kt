@@ -247,7 +247,7 @@ object LocalLoan: Listener,CommandExecutor{
 
         if (args.isNullOrEmpty()){
             msg(sender,"§a/mlend <貸す相手> <金額> <返済日(日)> " +
-                    "<金利(日)${format(property.minimumInterest,1)}〜${format(property.maximumInterest,1)}>")
+                    "<金利(1日ごと)${format(property.minimumInterest,1)}〜${format(property.maximumInterest,1)}>")
             if (property.fee>0.0){
                 msg(sender,"§a貸出額の${format(property.fee,2)}%を貸出側から手数料としていただきます")
             }
@@ -301,7 +301,7 @@ object LocalLoan: Listener,CommandExecutor{
 
         if (args.size != 4){
             msg(sender,"§a/mlend <貸す相手> <金額> <返済日(日)> " +
-                    "<金利(日)${format(property.minimumInterest,1)}〜${format(property.maximumInterest,1)}>")
+                    "<金利(1日ごと)${format(property.minimumInterest,1)}〜${format(property.maximumInterest,1)}>")
             if (property.fee>0.0){
                 msg(sender,"§a貸出額の${format(property.fee,2)}%を貸出側から手数料としていただきます")
             }
