@@ -52,7 +52,7 @@ object PayCommand : CommandExecutor {
                     .hoverEvent(HoverEvent.showText(text("§c§l確定を押すと取消はできません！")))
                     .clickEvent(ClickEvent.runCommand("/$label confirm $cmd $amount $random")))
                 .append(text(" §c§l§n[取消] ")
-                    .clickEvent(ClickEvent.runCommand("/$label cancel $random"))))
+                    .clickEvent(ClickEvent.runCommand("/$label cancel $random a"))))
             return true
         }
 
@@ -69,8 +69,15 @@ object PayCommand : CommandExecutor {
 
             if (cmd != "confirm")return false
 
+            val key = UUID.fromString(args[3])
+
+            if (!confirmList.contains(key)){
+                msg(sender,"§c§lこのpayは無効です")
+                return true
+            }
+
             //確定した場合    /pay confirm player amount random
-            confirmList.remove(UUID.fromString(args[3]))
+            confirmList.remove(key)
             val mcid = args[1]
             val p = Bukkit.getPlayer(mcid)
             val amount = Utility.fixedPerse(args[2])?:return true
@@ -133,8 +140,15 @@ object PayCommand : CommandExecutor {
 
             if (cmd != "confirm")return false
 
-            //確定した場合
-            confirmList.remove(UUID.fromString(args[3]))
+            val key = UUID.fromString(args[3])
+
+            if (!confirmList.contains(key)){
+                msg(sender,"§c§lこのpayは無効です")
+                return true
+            }
+
+            //確定した場合    /pay confirm player amount random
+            confirmList.remove(key)
             val mcid = args[1]
             val amount = Utility.fixedPerse(args[2])?:return true
 
