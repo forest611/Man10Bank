@@ -111,7 +111,7 @@ object ServerLoan : CommandExecutor{
         val ret = APIServerLoan.borrow(p.uniqueId,amount)
 
         if (ret != "Successful" && ret != "FirstSuccessful"){
-            msg(p,"§c§lリボを借りるのに失敗しました！")
+            msg(p,"§c§lリボの借入に失敗しました！")
             return
         }
 
