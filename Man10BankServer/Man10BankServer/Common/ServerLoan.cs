@@ -18,45 +18,51 @@ public static class ServerLoan
     public static double MaximumAmount { get; private set; } = 10000000;
 
     //（無条件で借りられる額）+〔(一カ月の残高中央値*(スコア/基準スコア))×3.55］＝貸出可能金額
+    // 12/5 スコア0未満はリボの使用不可に変更。とりあえず一律10万に
     public static async Task<double> CalculateLoanAmount(string uuid)
     {
         var result = await Task.Run(() =>
         {
             var score = Score.GetScore(uuid).Result ?? 0.0;
 
-            var lastMonth = DateTime.Now.AddMonths(-1);
-            var context = new BankContext();
-            var history = context.estate_history_tbl
-                .Where(r => r.uuid == uuid && r.date > lastMonth).OrderBy(r => r.total).ToList();
+            //スコアがマイナスなら借入不可
+            return score < 0 ? 0.0 : MinimumAmount;
 
-            context.Dispose();
-            
-            if (history.Count == 0)
-            {
-                return 0.0;
-            }
-            
-            double median;
-            
-            if (history.Count % 2 == 0)
-            {
-                var i = history[(history.Count - 1) / 2].total;
-                var j = history[history.Count / 2].total;
-
-                median = (i + j) / 2;
-            }
-            else
-            {
-                median = history[history.Count / 2].total;
-            }
-            
-            var scoreParam = score / _standardScore;
-
-            if (scoreParam>1) { scoreParam = 1; }
-
-            var borrowableAmount = median * scoreParam * _baseParameter + MinimumAmount;
-
-            return borrowableAmount>MaximumAmount ? MaximumAmount : borrowableAmount;
+            // var score = Score.GetScore(uuid).Result ?? 0.0;
+            //
+            // var lastMonth = DateTime.Now.AddMonths(-1);
+            // var context = new BankContext();
+            // var history = context.estate_history_tbl
+            //     .Where(r => r.uuid == uuid && r.date > lastMonth).OrderBy(r => r.total).ToList();
+            //
+            // context.Dispose();
+            //
+            // if (history.Count == 0)
+            // {
+            //     return 0.0;
+            // }
+            //
+            // double median;
+            //
+            // if (history.Count % 2 == 0)
+            // {
+            //     var i = history[(history.Count - 1) / 2].total;
+            //     var j = history[history.Count / 2].total;
+            //
+            //     median = (i + j) / 2;
+            // }
+            // else
+            // {
+            //     median = history[history.Count / 2].total;
+            // }
+            //
+            // var scoreParam = score / _standardScore;
+            //
+            // if (scoreParam>1) { scoreParam = 1; }
+            //
+            // var borrowableAmount = median * scoreParam * _baseParameter + MinimumAmount;
+            //
+            // return borrowableAmount>MaximumAmount ? MaximumAmount : borrowableAmount;
         });
 
         return result;
