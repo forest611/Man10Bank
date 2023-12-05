@@ -70,7 +70,7 @@ object DealCommand : CommandExecutor{
 
         }
 
-        if (label == "w" || label == "withdraw"){
+        if (label == "withdraw"){
             if (args.isNullOrEmpty()){
                 msg(sender,"§c§l/withdraw <金額/all> : 銀行から電子マネーを引き出す")
                 return true
