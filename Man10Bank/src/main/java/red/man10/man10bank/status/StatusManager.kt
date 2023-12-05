@@ -61,7 +61,7 @@ object StatusManager : CommandExecutor{
             msg(sender,"${StatusName.SERVER_LOAN.name}:${status.enableServerLoan}")
             msg(sender,"${StatusName.LOCAL_LOAN.name}:${status.enableLocalLoan}")
             msg(sender,"===================================")
-            msg(sender,"APIServerは/man10bank reload で再接続")
+            msg(sender,"APIServerは/bankstatus reload で再接続")
             msg(sender,"各機能は/bankstatus set <上記名> <true/false> でon/off切り替え")
 
             return true
