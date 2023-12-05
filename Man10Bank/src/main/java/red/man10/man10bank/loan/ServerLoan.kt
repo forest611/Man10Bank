@@ -155,6 +155,15 @@ object ServerLoan : CommandExecutor{
                 /mrevo payall : 一括返済する
             """.trimIndent())
 
+            if (sender.hasPermission(Permissions.BANK_OP_COMMAND)){
+                msg(sender,"""
+                §c支払い期間:${property.paymentInterval}
+                §c一日あたりの利息:${property.dailyInterest}
+                §c最小貸出可能額:${property.minimumAmount}
+                §c最大貸出可能額:${property.maximumAmount}                    
+                """.trimIndent())
+            }
+
             return true
         }
 
