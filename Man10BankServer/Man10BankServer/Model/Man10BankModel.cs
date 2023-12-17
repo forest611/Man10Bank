@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Man10BankServer.Common;
 using Microsoft.EntityFrameworkCore;
@@ -36,7 +37,7 @@ public class MoneyLog
     public string display_note { get; set; }
     public string server { get; set; }
     public bool deposit { get; set; }
-    public DateTime date { get; } = DateTime.Now;
+    public DateTime date { get; set; }
 }
 
 /// <summary>
@@ -50,7 +51,7 @@ public class ATMLog
     public string uuid { get; set; }
     public double amount { get; set; }
     public bool deposit { get; set; }
-    public DateTime date { get;  } = DateTime.Now;
+    public DateTime date { get; set; }
 }
 
 /// <summary>
@@ -78,7 +79,7 @@ public class EstateTable
     public int id { get; set; }
     public string player { get; set; }
     public string uuid { get; set; }
-    public DateTime date { get;  } = DateTime.Now;
+    public DateTime date { get; set; }
     public double vault { get; set; }
     public double bank { get; set; }
     public double cash { get; set; }
@@ -98,7 +99,7 @@ public class EstateHistoryTable
     public int id { get; set; }
     public string player { get; set; }
     public string uuid { get; set; }
-    public DateTime date { get;  } = DateTime.Now;
+    public DateTime date { get; set; }
     public double vault { get; set; }
     public double bank { get; set; }
     public double cash { get; set; }
@@ -128,7 +129,7 @@ public class ServerEstateHistory
     public int month { get; set; }
     public int day { get; set; }
     public int hour { get; set; }
-    public DateTime date { get;  } = DateTime.Now;
+    public DateTime date { get; set;}
     
 }
 
@@ -144,7 +145,7 @@ public class ChequeTable
     public string uuid { get; set; }
     public double amount { get; set; }
     public string? note { get; set; }
-    public DateTime date { get;  } = DateTime.Now;
+    public DateTime date { get; set; } 
     public bool used { get; set; }
     public DateTime? use_date { get; set; }
     public string? use_player { get; set; }
@@ -173,7 +174,7 @@ public class ServerLoanHistory
     [Key]
     public int id { get; set; }
 
-    public DateTime date { get; } = DateTime.Now;
+    public DateTime date { get; set; } 
     public string player { get; set; }
     public string uuid { get; set; }
     public string type { get; set; }
