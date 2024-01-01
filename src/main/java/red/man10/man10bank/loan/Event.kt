@@ -36,6 +36,7 @@ class Event : Listener{
 
         Thread{
             val data = LoanData.lendMap[id]?:LoanData().load(id)?:return@Thread
+            Bukkit.getLogger().info("${p.name}が${id}の手形を使用しました")
             data.payback(p,item)
         }.start()
 
