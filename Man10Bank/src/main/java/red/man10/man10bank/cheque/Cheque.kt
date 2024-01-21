@@ -114,7 +114,7 @@ object Cheque : CommandExecutor, Listener {
         msg(p,"§e§l${format(amount)}円の小切手を電子マネーに変えた！")
     }
 
-    //スレッドで呼ぶ
+    //インベとecにある小切手を数える。スレッドで呼ぶ
     fun getChequeInInventory(p:Player):Double{
         var amount = 0.0
 

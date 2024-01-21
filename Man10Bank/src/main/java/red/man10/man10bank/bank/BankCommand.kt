@@ -15,6 +15,7 @@ import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APIHistory
 import red.man10.man10bank.api.APILocalLoan
 import red.man10.man10bank.api.APIServerLoan
+import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.history.EstateHistory
 import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.format
@@ -260,7 +261,8 @@ object BankCommand : CommandExecutor{
             val score = APIBank.getScore(p.uniqueId)
             val balance = vault.getBalance(p.uniqueId)
             val cash = ATM.getCash(p)
-            val estate = APIHistory.getUserEstate(p.uniqueId)?.estete?:0.0
+//            val estate = APIHistory.getUserEstate(p.uniqueId)?.estete?:0.0
+            val estate = Cheque.getChequeInInventory(p)
 
             msg(sender,"§e§l==========${p.name}のお金==========")
             msg(sender," §b§l電子マネー:  §e§l${format(balance)}円")
