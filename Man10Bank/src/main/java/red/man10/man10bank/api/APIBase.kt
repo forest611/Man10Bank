@@ -176,28 +176,26 @@ object APIBase {
     private fun setupGson(){
         gson = GsonBuilder()
             .registerTypeHierarchyAdapter(LocalDateTime::class.java,LocalDateTimeSerializer())
-            .registerTypeHierarchyAdapter(LocalDateTime::class.java,LocalDateTimeDeserializer())
             .create()
     }
 
     //  C#DateTime->KotlinLocalDateTime
-    class LocalDateTimeDeserializer : JsonDeserializer<LocalDateTime> {
-        private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+//    2023-12-17T20:13:45.1087216+09:00
+    class LocalDateTimeSerializer : JsonSerializer<LocalDateTime>,JsonDeserializer<LocalDateTime> {
+        private val deserializeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        private val serializeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
 
         override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): LocalDateTime {
-            val dateString = json?.asString?.replace("T"," ")
-            return LocalDateTime.parse(dateString, formatter)
+            val dateString = json?.asString?.replace("T"," ")?.replace("+9:00","")
+            Bukkit.getLogger().info("JsonToLocalDateTime:${dateString}")
+            return LocalDateTime.parse(dateString, deserializeFormatter)
         }
-    }
-
-    //  KotlinLocalDateTIme->C#DateTime
-    class LocalDateTimeSerializer : JsonSerializer<LocalDateTime> {
-        private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
 
         override fun serialize(src: LocalDateTime?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
-            val dateString = src?.format(formatter)
+            val dateString = src?.format(serializeFormatter)
             return JsonPrimitive(dateString)
         }
     }
+
 
 }
