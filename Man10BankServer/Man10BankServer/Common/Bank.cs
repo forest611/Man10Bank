@@ -300,6 +300,7 @@ public static class Bank
                 server = "paper",
                 note = note,
                 display_note = displayNote,
+                date = DateTime.Now
             };
 
             context.money_log.Add(log);

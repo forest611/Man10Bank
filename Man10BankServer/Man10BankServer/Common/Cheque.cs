@@ -24,7 +24,8 @@ public static class Cheque
                 note = note,
                 player = User.GetMinecraftId(uuid).Result,
                 uuid = uuid,
-                used = false
+                used = false,
+                date = DateTime.Now
             };
 
             context.cheque_tbl.Add(record);

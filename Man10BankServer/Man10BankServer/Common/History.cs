@@ -49,6 +49,7 @@ public static class History
                 loan = estate.Sum(r => r.estate),
                 // shop = estate.Sum(r=>r.shop),
                 crypto = 0,
+                date = DateTime.Now,
                 year = year,
                 month = month,
                 day = day,
@@ -168,10 +169,11 @@ public static class History
                 loan = data.loan,
                 estate = data.estate,
                 // shop = data.shop,
+                date = DateTime.Now,
                 uuid = data.uuid,
                 player = data.player,
                 crypto = data.crypto,
-                total = data.total
+                total = data.total,
             };
 
             context.estate_history_tbl.Add(history);
