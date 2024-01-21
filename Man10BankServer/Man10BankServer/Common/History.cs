@@ -125,9 +125,11 @@ public static class History
     {
         BankContext.AddDatabaseJob(context =>
         {
-            var record = context.estate_tbl.FirstOrDefault(r => r.uuid == data.uuid);
+            
+            //最新の資産情報の更新
+            var estateRecord = context.estate_tbl.FirstOrDefault(r => r.uuid == data.uuid);
 
-            if (record == null)
+            if (estateRecord == null)
             {
                 Console.WriteLine("Created");
                 CreateEstateRecord(data.uuid);
@@ -138,11 +140,11 @@ public static class History
             data.bank = Bank.SyncGetBalance(data.uuid).Result;
             data.loan = ServerLoan.GetBorrowingInfo(data.uuid).Result?.borrow_amount ?? 0;
 
-            var dataHasNotChanged = data.vault == record.vault &&
-                                    data.bank == record.bank &&
-                                    data.cash == record.cash &&
-                                    data.loan == record.loan &&
-                                    data.estate == record.estate;
+            var dataHasNotChanged = data.vault == estateRecord.vault &&
+                                    data.bank == estateRecord.bank &&
+                                    data.cash == estateRecord.cash &&
+                                    data.loan == estateRecord.loan &&
+                                    data.estate == estateRecord.estate;
                                      // data.shop == record.shop;
 
             if (dataHasNotChanged)
@@ -151,14 +153,17 @@ public static class History
                 return; 
             }
 
-            record.vault = data.vault;
-            record.bank = data.bank;
-            record.cash = data.cash;
-            record.loan = data.loan;
-            record.estate = data.estate;
+            estateRecord.vault = data.vault;
+            estateRecord.bank = data.bank;
+            estateRecord.cash = data.cash;
+            estateRecord.loan = data.loan;
+            estateRecord.estate = data.estate;
+            estateRecord.date = DateTime.Now;
             // record.shop = data.shop;
             // record.total = data.vault + data.bank + data.cash + data.estate + data.shop + data.crypto;
-            record.total = data.vault + data.bank + data.cash + data.estate + data.crypto;
+            estateRecord.total = data.vault + data.bank + data.cash + data.estate + data.crypto;
+            
+            ///////////////////
             
             //ヒストリーを追加
             var history = new EstateHistoryTable
