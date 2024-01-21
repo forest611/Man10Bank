@@ -43,11 +43,10 @@ object ServerLoan : CommandExecutor{
             return
         }
         data.payment_amount = amount
-//TODO:確認
         val ret = APIServerLoan.setInfo(data)
 
         if (ret == APIBank.BankResult.SUCCESSFUL){
-            msg(p,"§e§l支払額を${format(amount)}円に変更しました")
+            msg(p,"§e§l支払額を${format(data.payment_amount)}円に変更しました")
             return
         }
         msg(p,"§e§l変更失敗。時間をおいてやり直してください")

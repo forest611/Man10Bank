@@ -212,6 +212,7 @@ public static class ServerLoan
             }
             
             context.server_loan_tbl.Update(data);
+            context.SaveChanges();
             ret = 200;
             context.Dispose();
             
