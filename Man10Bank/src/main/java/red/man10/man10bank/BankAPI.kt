@@ -31,8 +31,9 @@ class BankAPI(private val plugin: JavaPlugin) {
 
     /**
      * 入金リクエストを送る
+     * @param ver オーバーロードのための仮引数
      */
-    fun deposit(uuid: UUID,amount:Double,note:String,displayNote:String):Boolean{
+    fun deposit(uuid: UUID,amount:Double,note:String,displayNote:String,ver:Int = 1):Boolean{
         val result = APIBank.addBank(APIBank.TransactionData(
             uuid.toString(),
             amount,
@@ -43,6 +44,21 @@ class BankAPI(private val plugin: JavaPlugin) {
 
         return result == APIBank.BankResult.SUCCESSFUL
     }
+
+    /**
+     * 旧バージョン対応モデル
+     */
+    @Deprecated("リターン値のあるバージョンを使用すること")
+    fun deposit(uuid: UUID,amount:Double,note:String,displayNote:String){
+        APIBank.addBank(APIBank.TransactionData(
+            uuid.toString(),
+            amount,
+            plugin.name,
+            note,
+            displayNote
+        ))
+    }
+
 
     /**
      * 銀行金額を取得する
@@ -64,7 +80,7 @@ class BankAPI(private val plugin: JavaPlugin) {
      */
     fun asyncDeposit(uuid: UUID,amount: Double,note: String,displayNote: String,callback:(Boolean)->Unit){
         Man10Bank.threadPool.execute {
-            val ret = deposit(uuid, amount, note, displayNote)
+            val ret = deposit(uuid, amount, note, displayNote,1)
             callback.invoke(ret)
         }
     }

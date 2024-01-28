@@ -298,7 +298,7 @@ public static class Bank
                 deposit = isDeposit,
                 plugin_name = plugin,
                 server = "paper",
-                note = note,
+                note = $"[2.0]{note}",
                 display_note = displayNote,
                 date = DateTime.Now
             };
