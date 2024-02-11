@@ -119,7 +119,8 @@ public static class ServerLoan
                     player = player,
                     uuid = uuid,
                     type = ServerLoanType.BORROW.ToString(),
-                    amount = amount
+                    amount = amount,
+                    date = DateTime.Now
                 });
             }     
 
@@ -161,7 +162,8 @@ public static class ServerLoan
                 player = data.player,
                 uuid = data.uuid,
                 type = ServerLoanType.SELF_PAYMENT.ToString(),
-                amount = amount
+                amount = amount,
+                date = DateTime.Now
             });
 
             context.SaveChanges();
@@ -209,6 +211,12 @@ public static class ServerLoan
                 context.Dispose();
                 ret = 550;
                 return ret;
+            }
+
+            //支払額>貸出額の場合、=になおす
+            if (data.payment_amount>data.borrow_amount)
+            {
+                data.payment_amount = data.borrow_amount;
             }
             
             context.server_loan_tbl.Update(data);
@@ -349,7 +357,8 @@ public static class ServerLoan
                         player = data.player,
                         uuid = data.uuid,
                         type = ServerLoanType.SUCCESS_PAYMENT.ToString(),
-                        amount = payment
+                        amount = payment,
+                        date = DateTime.Now
                     });
 
                 }
@@ -364,7 +373,8 @@ public static class ServerLoan
                         player = data.player,
                         uuid = data.uuid,
                         type = ServerLoanType.FAILED_PAYMENT.ToString(),
-                        amount = payment
+                        amount = payment,
+                        date = DateTime.Now
                     });
                     //基準スコア以上なら半減
                     var penalty = score > _standardScore ? (int)score / 2 : _penaltyScore;
