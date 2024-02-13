@@ -11,7 +11,9 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank.Companion.threadPool
@@ -108,12 +110,14 @@ object LocalLoan: Listener,CommandExecutor{
 
         meta.setCustomModelData(2)
 
+        Bukkit.getLogger().info("Player:${Bukkit.getOfflinePlayer(data.borrow_uuid).name} UUID${data.borrow_uuid}")
+
         meta.displayName(text("§c§l約束手形 §7§l(Promissory Note)"))
         meta.lore = mutableListOf(
             "§4§l========[Man10Bank]========",
             "   §7§l債務者:  ${Bukkit.getOfflinePlayer(data.borrow_uuid).name}",
             "   §8§l有効日:  ${data.payback_date.format(DateTimeFormatter.ISO_LOCAL_DATE)}",
-            "   §7§l支払額:  ${format(data.amount)}",
+            "   §7§l支払額:  ${format(data.amount)}円",
             "§4§l==========================")
 
         meta.persistentDataContainer.set(NamespacedKey(instance,"id"), PersistentDataType.INTEGER,id)
@@ -135,16 +139,13 @@ object LocalLoan: Listener,CommandExecutor{
     fun asyncUseNote(e:PlayerInteractEvent){
 
         if (!e.hasItem() || !e.action.isRightClick)return
+        if (e.hand != EquipmentSlot.HAND)return
 
         val item = e.item?:return
         val meta = item.itemMeta?:return
 
         val id = meta.persistentDataContainer[NamespacedKey(instance,"id"), PersistentDataType.INTEGER]?:return
-
-        val p = e.player
-
-        //一旦手形を削除
-        item.amount = 0
+        val user = e.player
 
         threadPool.execute {
 
@@ -152,71 +153,69 @@ object LocalLoan: Listener,CommandExecutor{
             val data = APILocalLoan.getInfo(id)?:return@execute
 
             if (!StatusManager.status.enableLocalLoan){
-                msg(p,"現在メンテナンスにより個人間借金は行えません")
+                msg(user,"現在メンテナンスにより個人間借金は行えません")
                 return@execute
             }
 
-            val uuid = UUID.fromString(data.borrow_uuid)
-
-            val vaultMoney = vault.getBalance(uuid)
-            val bankMoney = APIBank.getBalance(uuid)
+            val borrowUUID = UUID.fromString(data.borrow_uuid)
+            val vaultMoney = vault.getBalance(borrowUUID)
+            val bankMoney = APIBank.getBalance(borrowUUID)
 
             var paidMoney = 0.0
 
+            val takeFromVault = if (vaultMoney>data.amount) data.amount else vaultMoney
+
+            //電子マネー
+            if (vault.withdraw(borrowUUID,takeFromVault)){
+                paidMoney += takeFromVault
+            }
+
+            val takeFromBank = if (bankMoney>data.amount-paidMoney) data.amount-paidMoney else bankMoney
+
             //銀行
-            if (APIBank.takeBank(APIBank.TransactionData(uuid.toString(),
-                    bankMoney,
+            if (APIBank.takeBank(APIBank.TransactionData(borrowUUID.toString(),
+                    takeFromBank,
                     instance.name,
                     "paybackmoney",
                     "借金の返済")) == APIBank.BankResult.SUCCESSFUL){
-                paidMoney += bankMoney
+                paidMoney += takeFromBank
             }
 
-            //電子マネー
-            if (vault.withdraw(uuid,vaultMoney)){
-                paidMoney += vaultMoney
-            }
+            val borrow = Bukkit.getPlayer(borrowUUID)
 
             when(APILocalLoan.pay(id,paidMoney)){
                 "Paid"->{
-                    msg(p,"${data.borrow_player}から${format(paidMoney)}円の回収を行いました")
-                    vault.deposit(p.uniqueId,paidMoney)
+                    msg(user,"${data.borrow_player}から${format(paidMoney)}円の回収を行いました")
+                    vault.deposit(user.uniqueId,paidMoney)
 
                     //債務者への通知
-                    val b = Bukkit.getPlayer(uuid)
-                    if (b!=null){
-                        msg(b,"${format(paidMoney)}円の個人間借金の回収を行いました")
+                    if (borrow!=null){
+                        msg(borrow,"${format(paidMoney)}円の個人間借金の回収を行いました")
                     }
                 }
 
                 "AllPaid"->{
                     val diff = paidMoney - data.amount
 
-                    msg(p,"${data.borrow_player}から${format(paidMoney-diff)}円の回収を行いました")
-                    msg(p,"全額回収完了")
-                    vault.deposit(p.uniqueId,paidMoney-diff)
-
-                    APIBank.addBank(
-                        APIBank.TransactionData(
-                            uuid.toString(),
-                            diff,
-                            instance.name,
-                            "PaybackDifference",
-                            "差額の返金"
-                        ))
-
-                    //債務者への通知
-                    val b = Bukkit.getPlayer(uuid)
-                    if (b!=null){
-                        msg(b,"${format(paidMoney)}円の個人間借金の回収を行いました")
-                        msg(b,"完済し終わりました！お疲れ様です！")
+                    if (borrow != null) {
+                        msg(borrow,"${data.borrow_player}から${format(paidMoney)}円の回収を行いました")
                     }
+                    msg(user,"全額回収完了")
+                    vault.deposit(user.uniqueId,paidMoney-diff)
+
+                    borrow?.let { msg(it,"完済し終わりました！お疲れ様でした！") }
+                    msg(user,"${format(paidMoney)}円の個人間借金の回収を行いました")
+
+                }
+
+                "Already" ->{
+                    msg(user,"この借金は回収済みです")
                 }
 
                 else ->{
                     APIBank.addBank(
                         APIBank.TransactionData(
-                            uuid.toString(),
+                            borrowUUID.toString(),
                             paidMoney,
                             instance.name,
                             "Payback",
@@ -224,11 +223,15 @@ object LocalLoan: Listener,CommandExecutor{
                         )
                     )
 
-                    msg(p,"借金の回収に失敗しました")
+                    msg(user,"借金の回収に失敗しました")
                 }
             }
 
-            p.inventory.addItem(getNote(id)!!)
+            Bukkit.getScheduler().runTask(instance, Runnable {
+                item.amount = 0
+                user.inventory.addItem(getNote(id)!!)
+            })
+
         }
     }
 

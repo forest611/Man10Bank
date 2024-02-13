@@ -22,7 +22,7 @@ object APILocalLoan {
     }
 
     fun getInfo(id:Int):LocalLoanTable?{
-        val result = getRequest("${apiRoute}get-info?uuid=${id}")?:return null
+        val result = getRequest("${apiRoute}get-info?id=${id}")?:return null
         return gson.fromJson(result,LocalLoanTable::class.java)
     }
 

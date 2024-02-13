@@ -96,6 +96,7 @@ class Man10Bank : JavaPlugin() {
         server.pluginManager.registerEvents(Cheque,this)
         server.pluginManager.registerEvents(MenuFramework.MenuListener,this)
         server.pluginManager.registerEvents(BankEvent,this)
+        server.pluginManager.registerEvents(LocalLoan,this)
 
     }
 
