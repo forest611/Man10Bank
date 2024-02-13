@@ -19,6 +19,11 @@ public static class LocalLoan
         Fee = double.Parse(Score.Config?["LocalLoan:Fee"] ?? "0");
     }
 
+    /// <summary>
+    /// 借金の作成
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
     public static async Task<int> Create(LocalLoanTable data)
     {
         var result = await Task.Run(() =>
@@ -47,6 +52,11 @@ public static class LocalLoan
             if (data == null)
             {
                 return "DataNotFound";
+            }
+
+            if (data.amount<=0)
+            {
+                return "Already";
             }
 
             data.amount -= amount;

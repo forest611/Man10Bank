@@ -392,7 +392,7 @@ public static class ServerLoan
         }
     }
 
-    enum ServerLoanType
+    private enum ServerLoanType
     {
         BORROW,
         SELF_PAYMENT,
