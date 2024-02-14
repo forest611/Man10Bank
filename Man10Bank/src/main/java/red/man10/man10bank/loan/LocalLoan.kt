@@ -28,6 +28,7 @@ import red.man10.man10bank.util.Utility.loggerInfo
 import red.man10.man10bank.util.Utility.msg
 import red.man10.man10bank.util.Utility.prefix
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.math.floor
@@ -154,6 +155,11 @@ object LocalLoan: Listener,CommandExecutor{
 
             if (!StatusManager.status.enableLocalLoan){
                 msg(user,"現在メンテナンスにより個人間借金は行えません")
+                return@execute
+            }
+
+            if (data.payback_date.isAfter(LocalDateTime.now())){
+                msg(user,"この手形はまだ有効になっていません")
                 return@execute
             }
 
