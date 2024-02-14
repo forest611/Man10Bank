@@ -54,13 +54,20 @@ public static class LocalLoan
                 return "DataNotFound";
             }
 
+            //返済日になってなかった場合
+            if (data.payback_date>=DateTime.Now)
+            {
+                return "DateError";
+            }
+
+            //すでに全額返済していた場合
             if (data.amount<=0)
             {
                 return "Already";
             }
 
             data.amount -= amount;
-
+            
             if (data.amount < 0)
             {
                 data.amount = 0;
