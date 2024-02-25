@@ -1,101 +1,73 @@
+using Man10BankServer.Data;
 using Man10BankServer.Model;
 
 namespace Man10BankServer.Common;
 
 public static class Cheque
 {
+    private static readonly BankContext Context = new();
+    private static readonly SemaphoreSlim Semaphore = new(1, 1);
 
-    /// <summary>
-    /// 新規小切手を発行
-    /// </summary>
-    /// <param name="uuid"></param>
-    /// <param name="amount"></param>
-    /// <param name="note"></param>
-    /// <param name="isOp"></param>
-    /// <returns>小切手のID</returns>
-    public static async Task<int> Create(string uuid, double amount, string note, bool isOp)
+    public static async Task<bool> TryUse(Player player,int id)
     {
-        var result = await Task.Run(() =>
+        await Semaphore.WaitAsync();
+
+        try
         {
-            var context = new BankContext();
-            var record = new ChequeTable
+            var record = Context.cheque_tbl.FirstOrDefault(r => r.id == id);
+            if (record == null || record.used)
             {
-                amount = amount,
-                note = note,
-                player = User.GetMinecraftId(uuid).Result,
-                uuid = uuid,
-                used = false,
-                date = DateTime.Now
-            };
-
-            context.cheque_tbl.Add(record);
-            context.SaveChanges();
-
-            var id = record.id;
-            context.Dispose();
-            
-            return id;
-        });
-
-        return result;
-    }
-
-    /// <summary>
-    /// 価格を取得する
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    public static async Task<double> Amount(int id)
-    {
-        var result = await Task.Run(()=>
-        {
-            var context = new BankContext();
-            var record = context.cheque_tbl.FirstOrDefault(r => r.id == id);
-
-            if (record==null || record.used)
-            {
-                context.Dispose();
-                return -1;
+                Semaphore.Release();
+                return false;
             }
-            var amount = record.amount;
-            context.Dispose();
-
-            return amount;
-        });
-
-        return result;
-    }
-
-    /// <summary>
-    /// 小切手を使用する
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns>小切手の金額(使用不可能だった場合は-1)</returns>
-    public static async Task<double> Use(int id,string player)
-    {
-        var result = await Task.Run(() =>
-        {
-            var context = new BankContext();
-            var record = context.cheque_tbl.FirstOrDefault(r => r.id == id);
-
-            if (record==null || record.used)
-            {
-                context.Dispose();
-                return -1;
-            }
-            var amount = record.amount;
 
             record.used = true;
             record.use_date = DateTime.Now;
-            record.use_player = player;
+            record.use_player = player.Name;
 
-            context.SaveChanges();
-            context.Dispose();
-            
-            return amount;
-        });
+            await Context.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
 
-        return result;
+        return true;
+    }
+
+    public static async Task<int> Create(Player creator,Money amount, string note)
+    {
+        var record = new ChequeTable
+        {
+            amount = amount.Amount,
+            note = note,
+            player = creator.Name,
+            uuid = creator.Uuid,
+            used = false,
+            date = DateTime.Now
+        };
+
+        await Semaphore.WaitAsync();
+
+        try
+        {
+            Context.cheque_tbl.Add(record);
+            await Context.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+        
+        return record.id;
     }
     
 }
