@@ -18,13 +18,22 @@ public class Player
 
     public static async Task<Player> GetFromUuid(string uuid)
     {
-        var response = await Client.GetAsync($"{Configuration.Man10SystemUrl}/player/mcid?uuid={uuid}");
+        using var response = await Client.GetAsync($"{Configuration.Man10SystemUrl}/player/mcid?uuid={uuid}");
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            throw new Exception("プレイヤーが存在しません");
+        }
         var body = await response.Content.ReadAsStringAsync();
         return new Player(body, uuid);
     } 
     public static async Task<Player> GetFromName(string name)
     {
-        var response = await Client.GetAsync($"{Configuration.Man10SystemUrl}/player/uuid?minecraftId={name}");
+        using var response = await Client.GetAsync($"{Configuration.Man10SystemUrl}/player/uuid?minecraftId={name}");
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            throw new Exception("プレイヤーが存在しません");
+        }
         var body = await response.Content.ReadAsStringAsync();
         return new Player(name, body);
     }

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
 
@@ -5,40 +6,12 @@ namespace Man10BankServer.Common;
 
 public static class Score
 {
+    private static readonly HttpClient Client = new();
     
-    public static IConfiguration? Config { get; set; }
-    public static string SystemUrl { get; set; } = "";
-    public static readonly HttpClient Client = new();
-    
-    
-    public static void LoadConfig(IConfiguration config)
-    {
-        Config = config;
-        SystemUrl = Config["Man10SystemUrl"]!;
-        Thread.Sleep(1000);
-        TryConnect();
-    }
-
-    private static async void TryConnect()
-    {
-        try
-        {
-            var result = await Client.GetAsync($"{SystemUrl}/score/try");
-            result.Dispose();
-            Console.WriteLine((int)result.StatusCode == 200 ? "Man10System接続成功" : "Man10System接続失敗");
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine($"Man10System接続失敗");
-            Console.WriteLine(e);
-        }
-    }
-
     public static async Task<int?> GetScore(string uuid)
     {
-        var response = await Client.GetAsync($"{SystemUrl}/Score/get?uuid={uuid}");
+        using var response = await Client.GetAsync($"{Configuration.Man10SystemUrl}/Score/get?uuid={uuid}");
         var body = await response.Content.ReadAsStringAsync();
-        response.Dispose();
         return int.Parse(body);
     }
 
@@ -59,10 +32,9 @@ public static class Score
             issuer = "CONSOLE"
         };
         
-        var content = new StringContent(JsonSerializer.Serialize(data),Encoding.UTF8);
-        var response = await Client.PostAsync($"{SystemUrl}/Score/take",content);
-        response.Dispose();
-        return (int)response.StatusCode == 200;
+        using var content = new StringContent(JsonSerializer.Serialize(data),Encoding.UTF8);
+        var response = await Client.PostAsync($"{Configuration.Man10SystemUrl}/Score/take",content);
+        return response.StatusCode == HttpStatusCode.OK;
     }
 
 
