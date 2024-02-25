@@ -8,7 +8,7 @@ public static class Score
 {
     private static readonly HttpClient Client = new();
     
-    public static async Task<int?> GetScore(string uuid)
+    public static async Task<int> GetScore(string uuid)
     {
         using var response = await Client.GetAsync($"{Configuration.Man10SystemUrl}/Score/get?uuid={uuid}");
         var body = await response.Content.ReadAsStringAsync();

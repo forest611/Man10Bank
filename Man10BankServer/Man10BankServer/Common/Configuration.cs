@@ -13,5 +13,6 @@ public static class Configuration
         
         BankContext.LoadConfig(config);
         LocalLoan.LoadConfig(config);
+        ServerLoan.LoadConfig(config);
     }
 }

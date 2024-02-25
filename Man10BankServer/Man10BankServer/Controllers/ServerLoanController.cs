@@ -1,4 +1,5 @@
 using Man10BankServer.Common;
+using Man10BankServer.Data;
 using Man10BankServer.Model;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,45 +11,60 @@ public class ServerLoanController : ControllerBase
 {
 
     [HttpGet("borrowable-amount")]
-    public double BorrowableAmount(string uuid)
+    public async Task<IActionResult> BorrowableAmount(string uuid)
     {
-        return ServerLoan.CalculateLoanAmount(uuid).Result;
+        var player = await Player.GetFromUuid(uuid);
+        var loan = new ServerLoan(player);
+        return Ok(loan.GetBorrowableAmount().Amount);
     }
 
     [HttpGet("is-loser")]
-    public bool IsLoser(string uuid)
+    public async Task<IActionResult> IsLoser(string uuid)
     {
-        return ServerLoan.IsLoser(uuid).Result;
+        var player = await Player.GetFromUuid(uuid);
+        var loan = new ServerLoan(player);
+        var result = await loan.IsLoser();
+        return Ok(result);
     }
 
-    [HttpGet("get-info")]
-    public ServerLoanTable? GetInfo(string uuid)
+    [HttpPost("borrow")]
+    public async Task<IActionResult> Borrow(string uuid, double amount)
     {
-        return ServerLoan.GetBorrowingInfo(uuid).Result;
-    }
-
-    [HttpPost("set-info")]
-    public IActionResult SetInfo([FromBody] ServerLoanTable info)
-    {
-        return StatusCode(ServerLoan.SetBorrowingInfo(info).Result);
-    }
-
-    [HttpGet("try-borrow")]
-    public string TryBorrow(string uuid, double amount)
-    {
-        return ServerLoan.Borrow(uuid, amount).Result;
+        var player = await Player.GetFromUuid(uuid);
+        var loan = new ServerLoan(player);
+        var result = await loan.Borrow(new Money(amount));
+        return Ok(result.ToString());
     }
     
     [HttpGet("pay")]
-    public bool Pay(string uuid, double amount)
+    public async Task<IActionResult> Pay(string uuid, double amount)
     {
-        return ServerLoan.Pay(uuid,amount).Result;
+        var player = await Player.GetFromUuid(uuid);
+        var loan = new ServerLoan(player);
+        var result = await loan.Pay(new Money(amount),true);
+        return Ok(result.ToString());
+    }
+
+    [HttpPost("set-payment")]
+    public async void SetPaymentAmount(string uuid, double amount)
+    {
+        var player = await Player.GetFromUuid(uuid);
+        var loan = new ServerLoan(player);
+        loan.SetPaymentAmount(new Money(amount));
     }
 
     [HttpGet("next-pay")]
-    public DateTime? NextPay(string uuid)
+    public async Task<IActionResult> NextPay(string uuid)
     {
-        return ServerLoan.GetNextPayDate(uuid).Result;
+        var player = await Player.GetFromUuid(uuid);
+        var loan = new ServerLoan(player);
+        var data = await loan.GetInfo();
+        if (data == null)
+        {
+            return NotFound();
+        }
+        var nextPayDate = data.last_pay_date.AddDays(ServerLoan.PaymentInterval);
+        return Ok(nextPayDate);
     }
 
     [HttpGet("property")]
