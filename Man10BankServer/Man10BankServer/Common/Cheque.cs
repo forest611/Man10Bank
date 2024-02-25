@@ -8,23 +8,25 @@ public static class Cheque
     private static readonly BankContext Context = new();
     private static readonly SemaphoreSlim Semaphore = new(1, 1);
 
-    public static async Task<bool> TryUse(Player player,int id)
+    public static async Task<Money> Use(Player player,int id)
     {
         await Semaphore.WaitAsync();
 
+        var amount = new Money(0);
+        
         try
         {
             var record = Context.cheque_tbl.FirstOrDefault(r => r.id == id);
             if (record == null || record.used)
             {
                 Semaphore.Release();
-                return false;
+                return amount;
             }
 
             record.used = true;
             record.use_date = DateTime.Now;
             record.use_player = player.Name;
-
+            amount = new Money(record.amount);
             await Context.SaveChangesAsync();
         }
         catch (Exception e)
@@ -36,7 +38,7 @@ public static class Cheque
             Semaphore.Release();
         }
 
-        return true;
+        return amount;
     }
 
     public static async Task<int> Create(Player creator,Money amount, string note)

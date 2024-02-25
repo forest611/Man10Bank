@@ -20,7 +20,6 @@ public class Bank
     private Bank(Player player)
     {
         Player = player;
-        _ = GetBalance();
     }
 
     /// <summary>
@@ -31,10 +30,11 @@ public class Bank
         Task.Run(RunQueueTasks);
     }
     
-    public static Bank GetBank(Player player)
+    public static async Task<Bank> GetBank(Player player)
     {
         if (BankDictionary.TryGetValue(player, out var bank)) return bank;
         bank = new Bank(player);
+        await bank.GetBalance();
         BankDictionary[player] = bank;
         return bank;
     }

@@ -1,4 +1,5 @@
 using Man10BankServer.Common;
+using Man10BankServer.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Man10BankServer.Controllers;
@@ -8,22 +9,19 @@ namespace Man10BankServer.Controllers;
 public class ChequeController : ControllerBase
 {
     
-    
     [HttpGet("create")]
-    public int Create(string uuid,double amount,string note,bool isOp)
+    public async Task<int> Create(string uuid,double amount,string note,bool isOp)
     {
-        return Cheque.Create(uuid,amount,note,isOp).Result;
+        var p = await Player.GetFromUuid(uuid);
+        return await Cheque.Create(p,new Money(amount),note);
     }
 
-    [HttpGet("try-use")]
-    public double TryUse(int id,string player)
+    [HttpGet("use")]
+    public async Task<IActionResult> Use(string uuid,int id)
     {
-        return Cheque.Use(id,player).Result;
-    }
-
-    [HttpGet("amount")]
-    public double Amount(int id)
-    {
-        return Cheque.Amount(id).Result;
+        var p = await Player.GetFromUuid(uuid);
+        var result = await Cheque.Use(p, id);
+        var amount = result.Amount;
+        return amount != 0 ? Ok(amount) : NoContent();
     }
 }
