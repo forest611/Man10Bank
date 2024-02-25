@@ -1,4 +1,5 @@
 
+using Man10BankServer.Data;
 using Man10BankServer.Model;
 
 namespace Man10BankServer.Common;
@@ -8,15 +9,18 @@ public static class LocalLoan
     public static double MinimumInterest { get; private set; }
     public static double MaximumInterest { get; private set; }
     public static double Fee { get; private set; }
+
+    private static readonly BankContext Context = new();
+    private static readonly SemaphoreSlim Semaphore = new(1, 1);
     
     /// <summary>
     /// 個人間借金の設定を読み込む
     /// </summary>
-    public static void Load()
+    public static void LoadConfig(IConfiguration config)
     {
-        MinimumInterest = double.Parse(Score.Config?["LocalLoan:MinimumInterest"] ?? "0");
-        MaximumInterest = double.Parse(Score.Config?["LocalLoan:MaximumInterest"] ?? "0");
-        Fee = double.Parse(Score.Config?["LocalLoan:Fee"] ?? "0");
+        MinimumInterest = double.Parse(config["LocalLoan:MinimumInterest"] ?? "0");
+        MaximumInterest = double.Parse(config["LocalLoan:MaximumInterest"] ?? "0");
+        Fee = double.Parse(config["LocalLoan:Fee"] ?? "0");
     }
 
     /// <summary>
@@ -26,14 +30,23 @@ public static class LocalLoan
     /// <returns></returns>
     public static async Task<int> Create(LocalLoanTable data)
     {
-        var result = await Task.Run(() =>
+        await Semaphore.WaitAsync();
+        try
         {
-            var context = new BankContext();
-            context.loan_table.Add(data);
-            context.SaveChanges();
+            Context.loan_table.Add(data);
+            await Context.SaveChangesAsync();
             return data.id;
-        });
-        return result;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+
+        return 0;
     }
 
     /// <summary>
@@ -42,12 +55,12 @@ public static class LocalLoan
     /// <param name="id"></param>
     /// <param name="amount"></param>
     /// <returns></returns>
-    public static async Task<string> Pay(int id,double amount)
+    public static async Task<string> Pay(int id,Money amount)
     {
-        var result = await Task.Run(() =>
+        await Semaphore.WaitAsync();
+        try
         {
-            var context = new BankContext();
-            var data = context.loan_table.FirstOrDefault(r => r.id == id);
+            var data = Context.loan_table.FirstOrDefault(r => r.id == id);
 
             if (data == null)
             {
@@ -66,45 +79,68 @@ public static class LocalLoan
                 return "Already";
             }
 
-            data.amount -= amount;
+            data.amount -= amount.Amount;
             
             if (data.amount < 0)
             {
                 data.amount = 0;
-                context.SaveChanges();
+                await Context.SaveChangesAsync();
                 return "AllPaid";
             }
 
-            context.SaveChanges();
+            await Context.SaveChangesAsync();
 
             return "Paid";
-        });
 
-        return result;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+
+        return "DataNotFound";
     }
 
-    public static async Task<LocalLoanTable> GetInfo(int id)
+    public static async Task<LocalLoanTable?> GetInfo(int id)
     {
-        var result = await Task.Run(() =>
+        await Semaphore.WaitAsync();
+        try
         {
-            var context = new BankContext();
-            var record = context.loan_table.FirstOrDefault(r => r.id == id);
-            
-            context.Dispose();
-            return record ?? new LocalLoanTable();
-        });
-
-        return result;
+            var record = Context.loan_table.FirstOrDefault(r => r.id == id);
+            return record;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+        return null;
     }
 
-    public static async Task<double> GetTotalLoan(string uuid)
+    public static async Task<Money> GetTotalLoan(string uuid)
     {
-        var result = await Task.Run(() =>
+        await Semaphore.WaitAsync();
+        try
         {
-            var context = new BankContext();
-            var total = context.loan_table.Where(r => r.borrow_uuid == uuid).Sum(r => r.amount);
-            return total;
-        });
-        return result;
+            var total = Context.loan_table.Where(r => r.borrow_uuid == uuid).Sum(r => r.amount);
+            return new Money(total);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+
+        return new Money(0);
     }
 }

@@ -1,4 +1,5 @@
 using Man10BankServer.Common;
+using Man10BankServer.Data;
 using Man10BankServer.Model;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,24 +11,24 @@ public class LocalLoanController : ControllerBase
 {
     
     [HttpPost("create")]
-    public IActionResult CreateLoan([FromBody] LocalLoanTable data)
+    public async Task<IActionResult> CreateLoan([FromBody] LocalLoanTable data)
     {
-        var result = LocalLoan.Create(data);
-        return Ok(result.Result);
+        var result = await LocalLoan.Create(data);
+        return result != 0 ? Ok(result) : StatusCode(500,"Server Error");
     }
 
     [HttpGet("pay")]
-    public string Pay(int id, double amount)
+    public async Task<IActionResult> Pay(int id, double amount)
     {
-        var result = LocalLoan.Pay(id, amount);
-        return result.Result;
+        var result = await LocalLoan.Pay(id, new Money(amount));
+        return Ok(result);
     }
 
     [HttpGet("get-info")]
-    public LocalLoanTable GetInfo(int id)
+    public async Task<IActionResult> GetInfo(int id)
     {
-        var result = LocalLoan.GetInfo(id);
-        return result.Result;
+        var result = await LocalLoan.GetInfo(id);
+        return result != null ? Ok(result) : NotFound();
     }
 
     [HttpGet("property")]
@@ -37,9 +38,10 @@ public class LocalLoanController : ControllerBase
     }
 
     [HttpGet("total-loan")]
-    public double GetTotalLoan(string uuid)
+    public async Task<double> GetTotalLoan(string uuid)
     {
-        return LocalLoan.GetTotalLoan(uuid).Result;
+        var result = await LocalLoan.GetTotalLoan(uuid);
+        return result.Amount;
     }
 }
 

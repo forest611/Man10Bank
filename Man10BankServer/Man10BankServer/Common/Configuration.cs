@@ -12,5 +12,6 @@ public static class Configuration
         Man10SystemUrl = config["Man10SystemURL"] ?? "";
         
         BankContext.LoadConfig(config);
+        LocalLoan.LoadConfig(config);
     }
 }
