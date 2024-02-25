@@ -23,7 +23,6 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 Score.LoadConfig(builder.Configuration);
-Startup.Setup();
 
 app.UseSwagger();
 app.UseSwaggerUI();
