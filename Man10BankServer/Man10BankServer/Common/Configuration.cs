@@ -1,3 +1,5 @@
+using Man10BankServer.Model;
+
 namespace Man10BankServer.Common;
 
 public static class Configuration
@@ -8,5 +10,7 @@ public static class Configuration
     public static void LoadConfiguration(IConfiguration config)
     {
         Man10SystemUrl = config["Man10SystemURL"] ?? "";
+        
+        BankContext.LoadConfig(config);
     }
 }

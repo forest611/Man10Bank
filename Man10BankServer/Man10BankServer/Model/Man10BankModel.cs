@@ -218,18 +218,17 @@ public class BankContext : DbContext
 
     private static readonly BlockingCollection<Action<BankContext>> DbQueue = new();
 
-    private static string Host { get; set; }
-    private static string Port { get; set; }
-    private static string Pass { get; set; }
-    private static string User { get; set; }
-    private static string DatabaseName { get; set; }
+    private static string Host { get; set; } = "";
+    private static string Port { get; set; } = "";
+    private static string Pass { get; set; } = "";
+    private static string User { get; set; } = "";
+    private static string DatabaseName { get; set; } = "";
 
     /// <summary>
     /// DBの接続設定を読み込む
     /// </summary>
-    static BankContext()
+    public static void LoadConfig(IConfiguration config)
     {
-        var config = Score.Config!;
         Host = config["BankDB:Host"] ?? "";
         Port = config["BankDB:Port"] ?? "";
         Pass = config["BankDB:Pass"] ?? "";
