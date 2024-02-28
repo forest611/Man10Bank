@@ -16,7 +16,6 @@ public class UserBank
     public string player { get; set; }
     public string uuid { get; set; }
     public double balance { get; set; }
-    public string status { get; set; }
 
 }
 
