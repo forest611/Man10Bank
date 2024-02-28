@@ -27,6 +27,15 @@ public class ServerLoanController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("info")]
+    public async Task<IActionResult> GetInfo(string uuid)
+    {
+        var player = await Player.GetFromUuid(uuid);
+        var loan = new ServerLoan(player);
+        var result = await loan.GetInfo();
+        return result != null ? Ok(result) : NotFound();
+    }
+
     [HttpPost("borrow")]
     public async Task<IActionResult> Borrow(string uuid, double amount)
     {
