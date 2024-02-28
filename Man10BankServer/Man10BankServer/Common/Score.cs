@@ -7,6 +7,7 @@ namespace Man10BankServer.Common;
 public static class Score
 {
     private static readonly HttpClient Client = new();
+    private const string ConsoleIssuer = "CONSOLE";
     
     public static async Task<int> GetScore(string uuid)
     {
@@ -22,19 +23,18 @@ public static class Score
     /// <param name="amount"></param>
     /// <param name="note"></param>
     /// <returns></returns>
-    public static async Task<bool> TakeScore(string uuid, int amount,string note)
+    public static async Task TakeScore(string uuid, int amount, string note)
     {
         var data = new ScoreData
         {
             uuid = uuid,
             amount = amount,
             note = note,
-            issuer = "CONSOLE"
+            issuer = ConsoleIssuer
         };
         
         using var content = new StringContent(JsonSerializer.Serialize(data),Encoding.UTF8);
-        var response = await Client.PostAsync($"{Configuration.Man10SystemUrl}/Score/take",content);
-        return response.StatusCode == HttpStatusCode.OK;
+        await Client.PostAsync($"{Configuration.Man10SystemUrl}/Score/take",content);
     }
 
 
