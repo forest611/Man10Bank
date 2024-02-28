@@ -20,4 +20,12 @@
         </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\Man10BankServer\Man10BankServer\Man10BankServer.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Controller\" />
+    </ItemGroup>
+
 </Project>
