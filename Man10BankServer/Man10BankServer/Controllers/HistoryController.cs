@@ -10,56 +10,65 @@ public class HistoryController : ControllerBase
 {
 
     [HttpGet("get-balance-top")]
-    public EstateTable[] GetBalanceTop(int record,int skip)
+    public async Task<IActionResult> GetBalanceTop(int record,int skip)
     {
-        return History.GetBalanceTop(record,skip).Result;
+        var result = await History.GetBalanceTop(record, skip);
+        return Ok(result);
     }
 
     [HttpGet("get-loan-top")]
-    public ServerLoanTable[] GetLoanTop(int record,int skip)
+    public async Task<IActionResult> GetLoanTop(int record,int skip)
     {
-        return History.GetLoanTop(record,skip).Result;
+        var result = await History.GetLoanTop(record,skip);
+        return Ok(result);
     }
 
     [HttpGet("get-user-estate")]
-    public EstateTable GetUserEstate(string uuid)
+    public async Task<IActionResult> GetUserEstate(string uuid)
     {
-        return History.GetUserEstate(uuid).Result;
+        var result = await History.GetUserEstate(uuid);
+        return Ok(result);
     }
 
     [HttpGet("get-user-estate-history")]
-    public EstateHistoryTable[] GetUserEstateHistory(string uuid,int day)
+    public async Task<IActionResult> GetUserEstateHistory(string uuid,int day)
     {
-        return History.GetUserEstateHistory(uuid, day).Result;
+        var result = await History.GetUserEstateHistory(uuid, day);
+        return Ok(result);
     }
 
     [HttpGet("get-server-estate")]
-    public ServerEstateHistory GetServerEstate()
+    public async Task<IActionResult> GetServerEstate()
     {
-        return History.GetServerEstate().Result;
+        var result = await History.GetServerEstate();
+        return Ok(result);
     }
 
     [HttpGet("get-server-estate-history")]
-    public ServerEstateHistory[] GetServerEstateHistory(int day)
+    public async Task<IActionResult> GetServerEstateHistory(int day)
     {
-        return History.GetServerEstateHistory(day).Result;
+        var result = await History.GetServerEstateHistory(day);
+        return Ok(result);
     }
     
     [HttpPost("add-user-estate")]
-    public void AddUserEstate([FromBody] EstateTable data)
+    public IActionResult AddUserEstate([FromBody] EstateTable data)
     {
         History.AddUserEstateHistory(data);
+        return Ok();
     }
 
     [HttpPost("add-vault-log")]
-    public void AddVaultLog([FromBody] VaultLog data)
+    public IActionResult AddVaultLog([FromBody] VaultLog data)
     {
         History.AddVaultLog(data);
+        return Ok();
     }
 
     [HttpPost("add-atm-log")]
-    public void AddATMLog([FromBody] ATMLog log)
+    public IActionResult AddATMLog([FromBody] ATMLog log)
     {
         History.AddAtmLog(log);
+        return Ok();
     }
 }

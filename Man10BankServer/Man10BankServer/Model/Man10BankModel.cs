@@ -215,9 +215,7 @@ public class BankContext : DbContext
     public DbSet<ServerLoanTable> server_loan_tbl { get; set; }
     public DbSet<ServerLoanHistory> server_loan_history { get; set; }
     public DbSet<VaultLog> vault_log { get; set; }
-
-    private static readonly BlockingCollection<Action<BankContext>> DbQueue = new();
-
+    
     private static string Host { get; set; } = "";
     private static string Port { get; set; } = "";
     private static string Pass { get; set; } = "";
@@ -236,7 +234,6 @@ public class BankContext : DbContext
         DatabaseName = config["BankDB:DatabaseName"] ?? "";
         var connect = new BankContext().Database.CanConnect();
         Console.WriteLine(connect? "MySQLの接続成功" : "MySQLの接続失敗");
-        AsyncRunDatabaseQueue();
     }
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -245,34 +242,5 @@ public class BankContext : DbContext
         var serverVersion = new MySqlServerVersion(new Version(8, 0, 30));
         optionsBuilder.UseMySql(connectionString, serverVersion);
         // .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-    }
-
-
-    private static void AsyncRunDatabaseQueue()
-    {
-        Task.Run(() =>
-        {
-            var context = new BankContext();
-            Console.WriteLine("データベースキューを起動");
-            while (DbQueue.TryTake(out var job,Timeout.Infinite))
-            {
-                try
-                {
-                    job?.Invoke(context);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
-            }
-        });
-    }
-
-    /// <summary>
-    /// ログなどの即効性を求めないクエリを投げるためのキュー
-    /// </summary>
-    public static void AddDatabaseJob(Action<BankContext> job)
-    {
-        DbQueue.Add(job);
     }
 }

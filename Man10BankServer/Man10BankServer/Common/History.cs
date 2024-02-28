@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using Man10BankServer.Data;
 using Man10BankServer.Model;
 
 namespace Man10BankServer.Common;
@@ -5,9 +7,14 @@ namespace Man10BankServer.Common;
 public static class History
 {
 
-    public static void AsyncServerEstateHistoryTask()
+    static History()
     {
-
+        RunDatabaseTask();
+        RunServerEstateHistoryTask();
+    }
+    
+    private static void RunServerEstateHistoryTask()
+    {
         Task.Run(() =>
         {
             Console.WriteLine("サーバー全体資産の履歴をとるタスクを開始");
@@ -25,7 +32,7 @@ public static class History
     /// </summary>
     private static void AddServerEstateHistory()
     {
-        BankContext.AddDatabaseJob(context =>
+        DbQueue.Add(context =>
         {
             var year = DateTime.Now.Year;
             var month = DateTime.Now.Month;
@@ -69,47 +76,39 @@ public static class History
     /// <returns></returns>
     public static async Task<ServerEstateHistory> GetServerEstate()
     {
-        var result = await Task.Run(() =>
-        {
-            var context = new BankContext();
-            var record = context.server_estate_history.OrderByDescending(r => r.date).FirstOrDefault() ?? new ServerEstateHistory();
-            context.Dispose();
-            return record;
-        });
-        
-        return result;
+        var context = new BankContext();
+        var record = context.server_estate_history.OrderByDescending(r => r.date).FirstOrDefault() ?? new ServerEstateHistory();
+        await context.DisposeAsync();
+
+        return record;
     }
 
     public static async Task<ServerEstateHistory[]> GetServerEstateHistory(int day)
     {
-        var result = await Task.Run(() =>
-        {
-            var date = DateTime.Now.AddDays(-day);
-            var context = new BankContext();
-            var array = context.server_estate_history.Where(r => r.date >= date).ToArray();
-            context.Dispose();
-            return array;
-        });
-        return result;
+        var date = DateTime.Now.AddDays(-day);
+        var context = new BankContext();
+        var array = context.server_estate_history.Where(r => r.date >= date).ToArray();
+        await context.DisposeAsync();
+
+        return array;
     }
 
     /// <summary>
     /// 新規資産レコード作成
     /// </summary>
-    /// <param name="uuid"></param>
-    private static void CreateEstateRecord(string uuid)
+    private static void CreateEstateRecord(Player player)
     {
-        BankContext.AddDatabaseJob(context =>
+        DbQueue.Add(context =>
         {
-            if (context.estate_tbl.Any(r => r.uuid==uuid))
+            if (context.estate_tbl.Any(r => r.uuid==player.Uuid))
             {
                 return;                
             }
 
             var record = new EstateTable
             {
-                uuid = uuid,
-                player = User.GetMinecraftId(uuid).Result
+                uuid = player.Uuid,
+                player = player.Name
             };
 
             context.estate_tbl.Add(record);
@@ -123,22 +122,25 @@ public static class History
     /// <param name="data"></param>
     public static void AddUserEstateHistory(EstateTable data)
     {
-        BankContext.AddDatabaseJob(context =>
+        DbQueue.Add(context =>
         {
             
             //最新の資産情報の更新
             var estateRecord = context.estate_tbl.FirstOrDefault(r => r.uuid == data.uuid);
+            var player = Player.GetFromUuid(data.uuid).Result;
 
             if (estateRecord == null)
             {
-                Console.WriteLine("Created");
-                CreateEstateRecord(data.uuid);
+                Console.WriteLine($"Created Estate Record : {data.player}");
+                CreateEstateRecord(player);
                 return;
             }
 
             //銀行とローンはこっちで取得する
-            data.bank = Bank.SyncGetBalance(data.uuid).Result;
-            data.loan = ServerLoan.GetBorrowingInfo(data.uuid).Result?.borrow_amount ?? 0;
+            var bank = Bank.GetBank(player).Result;
+            var loan = new ServerLoan(player);
+            data.bank = bank.GetBalance().Result.Amount;
+            data.loan = loan.GetInfo().Result?.borrow_amount ?? 0;
 
             var dataHasNotChanged = data.vault == estateRecord.vault &&
                                     data.bank == estateRecord.bank &&
@@ -149,7 +151,6 @@ public static class History
 
             if (dataHasNotChanged)
             {
-                Console.WriteLine("NotChange");
                 return; 
             }
 
@@ -196,31 +197,19 @@ public static class History
     /// <returns></returns>
     public static async Task<EstateTable> GetUserEstate(string uuid)
     {
-        var result = await Task.Run(() =>
-        {
-            var context = new BankContext();
-
-            var record = context.estate_tbl.FirstOrDefault(r => r.uuid==uuid) ?? new EstateTable();
-            
-            context.Dispose();
-            
-            return record;
-        });
-
-        return result;
+        var context = new BankContext();
+        var record = context.estate_tbl.FirstOrDefault(r => r.uuid==uuid) ?? new EstateTable();         
+        await context.DisposeAsync();
+        return record;
     }
 
     public static async Task<EstateHistoryTable[]> GetUserEstateHistory(string uuid,int day)
     {
-        var result = await Task.Run(() =>
-        {
-            var date = DateTime.Now.AddDays(-day);
-            var context = new BankContext();
-            var array = context.estate_history_tbl.Where(r =>r.uuid==uuid && r.date >= date ).ToArray();
-            context.Dispose();
-            return array;
-        });
-        return result;
+        var date = DateTime.Now.AddDays(-day);
+        var context = new BankContext();
+        var array = context.estate_history_tbl.Where(r =>r.uuid==uuid && r.date >= date ).ToArray();
+        await context.DisposeAsync();
+        return array;
     }
 
     /// <summary>
@@ -231,18 +220,10 @@ public static class History
     /// <returns></returns>
     public static async Task<EstateTable[]> GetBalanceTop(int record,int skip)
     {
-        var result = await Task.Run(() =>
-        {
-            var context = new BankContext();
-
-            var records = context.estate_tbl.OrderByDescending(r => r.total).Skip(skip).Take(record).ToArray();
-            
-            context.Dispose();
-            
-            return records;
-        });
-
-        return result;
+        var context = new BankContext();
+        var records = context.estate_tbl.OrderByDescending(r => r.total).Skip(skip).Take(record).ToArray();
+        await context.DisposeAsync();
+        return records;
     }
 
     /// <summary>
@@ -253,19 +234,11 @@ public static class History
     /// <returns></returns>
     public static async Task<ServerLoanTable[]> GetLoanTop(int record,int skip)
     {
-        var result = await Task.Run(() =>
-        {
-            var context = new BankContext();
-
-            // var records = context.estate_tbl.OrderByDescending(r => r.total).Skip(skip).Take(record).ToArray();
-            var records = context.server_loan_tbl.OrderByDescending(r => r.borrow_amount).Skip(skip).Take(record)
-                .ToArray();
-            context.Dispose();
-            
-            return records;
-        });
-
-        return result;
+        var context = new BankContext();
+        var records = context.server_loan_tbl.OrderByDescending(r => r.borrow_amount).Skip(skip).Take(record)
+            .ToArray();
+        await context.DisposeAsync();
+        return records;
     }
 
     /// <summary>
@@ -273,7 +246,7 @@ public static class History
     /// </summary>
     public static void AddVaultLog(VaultLog log)
     {
-        BankContext.AddDatabaseJob(context =>
+        DbQueue.Add(context =>
         {
             context.vault_log.Add(log);
             context.SaveChanges();
@@ -285,11 +258,34 @@ public static class History
     /// </summary>
     public static void AddAtmLog(ATMLog log)
     {
-        BankContext.AddDatabaseJob(context =>
+        DbQueue.Add(context =>
         {
             context.atm_log.Add(log);
             context.SaveChanges();
         });
     }
+    
+    private static readonly BlockingCollection<Action<BankContext>> DbQueue = new();
+
+    private static void RunDatabaseTask()
+    {
+        Task.Run(() =>
+        {
+            var context = new BankContext();
+            Console.WriteLine("データベースキューを起動");
+            while (DbQueue.TryTake(out var job,Timeout.Infinite))
+            {
+                try
+                {
+                    job?.Invoke(context);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+        });
+    }
+
 
 }
