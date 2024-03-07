@@ -118,19 +118,21 @@ public class ServerLoan
 
     public async Task<PaymentResult> Pay(Money amount,bool isSelf)
     {
-        var bank = await Bank.GetBank(Player);
-        var successWithdraw = await bank.Take(amount, "Man10Bank", "Man10Revolving", "Man10リボの支払い");
 
         await Semaphore.WaitAsync();
         try
         {
-            var score = await Score.GetScore(Player.Uuid);
             var record = Context.server_loan_tbl.FirstOrDefault(r => r.uuid == Player.Uuid);
 
+            //借金がない
             if (record == null)
             {
                 return PaymentResult.NotLoan;
             }
+
+            var paymentAmount = isSelf ? amount : new Money(record.payment_amount);
+            var bank = await Bank.GetBank(Player);
+            var successWithdraw = await bank.Take(paymentAmount, "Man10Bank", "Man10Revolving", "Man10リボの支払い");
             
             switch (successWithdraw)
             {
@@ -142,13 +144,14 @@ public class ServerLoan
                 //自動支払いで失敗した場合
                 case false:
                 {
+                    var score = await Score.GetScore(Player.Uuid);
                     record.failed_payment++;
                      
                     //ヒストリー追記
                     RecordAction(ServerLoanAction.FailedPayment,amount);
 
                     //基準スコア以上なら半減
-                    var penalty = score > _standardScore ? (int)score / 2 : _penaltyScore;
+                    var penalty = score > _standardScore ? score / 2 : _penaltyScore;
                     await Score.TakeScore(record.uuid, penalty,"まんじゅうリボの未払い");
                     return PaymentResult.NotEnoughMoney;
                 }
@@ -160,11 +163,15 @@ public class ServerLoan
                     {
                         record.last_pay_date = DateTime.Now;
                     }
-                    record.borrow_amount -= record.payment_amount;
-                    if (record.borrow_amount < 0.0)
+                    
+                    var diff = paymentAmount.Amount - record.borrow_amount;
+                    record.borrow_amount -= paymentAmount.Amount;
+                    if (record.borrow_amount <= 0.0)
                     {
                         record.borrow_amount = 0;
                         record.failed_payment = 0;
+                        await bank.Add(new Money(diff), "Man10Bank", "PaybackDifference", "差額の返金");
+
                     }
                     
                     RecordAction(isSelf ? ServerLoanAction.SelfPayment : ServerLoanAction.SuccessPayment,amount);

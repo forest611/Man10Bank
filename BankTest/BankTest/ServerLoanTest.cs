@@ -4,14 +4,21 @@ using System.Threading.Tasks;
 using Man10BankServer.Common;
 using Man10BankServer.Data;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace BankTest;
 
 public class ServerLoanTest
 {
+    private readonly ITestOutputHelper _testOutputHelper;
 
     private static readonly SemaphoreSlim Semaphore = new(1, 1);
-    
+
+    public ServerLoanTest(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
     [Fact]
     public async Task BorrowTest()
     {
@@ -29,10 +36,11 @@ public class ServerLoanTest
             var bank = await Bank.GetBank(player);
             var firstBalance = await bank.GetBalance();
 
-            var nowLoan = (await loan.GetInfo())?.borrow_amount ?? 0.0;
+            var nowLoan = new Money((await loan.GetInfo())?.borrow_amount ?? 0.0);
 
-            await loan.Pay(new Money(nowLoan), true);
-        
+            await bank.Add(nowLoan, "UnitTest", "BorrowTest", "BorrowTest");
+            var result = await loan.Pay(nowLoan, true);
+            Assert.Equal(ServerLoan.PaymentResult.Success,result);
             Assert.Equal(0.0,(await loan.GetInfo())?.borrow_amount ?? 0.0);
         
             var overAmount = new Money(1000).Plus(loan.GetBorrowableAmount());
@@ -48,8 +56,10 @@ public class ServerLoanTest
             Assert.Equal(firstBalance.Plus(successAmount).Amount,lastBalance.Amount);
 
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            Assert.True(false,e.StackTrace);
+            _testOutputHelper.WriteLine(e.Message);
             // ignored
         }
         finally
