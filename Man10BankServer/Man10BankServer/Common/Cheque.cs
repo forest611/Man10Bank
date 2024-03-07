@@ -11,15 +11,14 @@ public static class Cheque
     public static async Task<Money> Use(Player player,int id)
     {
         await Semaphore.WaitAsync();
-
         var amount = new Money(0);
         
         try
         {
+
             var record = Context.cheque_tbl.FirstOrDefault(r => r.id == id);
             if (record == null || record.used)
             {
-                Semaphore.Release();
                 return amount;
             }
 
