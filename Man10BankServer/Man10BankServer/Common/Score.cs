@@ -6,12 +6,21 @@ namespace Man10BankServer.Common;
 
 public static class Score
 {
-    private static readonly HttpClient Client = new();
+    private static HttpClient _client = new() {BaseAddress = new Uri(Configuration.Man10SystemUrl)};
     private const string ConsoleIssuer = "CONSOLE";
+
+    /// <summary>
+    /// テスト用にHttpClientを変えるコード
+    /// </summary>
+    /// <param name="client"></param>
+    public static void SetTestHttpClient(HttpClient client)
+    {
+        _client = client;
+    }
     
     public static async Task<int> GetScore(string uuid)
     {
-        using var response = await Client.GetAsync($"{Configuration.Man10SystemUrl}/Score/get?uuid={uuid}");
+        using var response = await _client.GetAsync($"Score/get?uuid={uuid}");
         var body = await response.Content.ReadAsStringAsync();
         return int.Parse(body);
     }
@@ -34,7 +43,7 @@ public static class Score
         };
         
         using var content = new StringContent(JsonSerializer.Serialize(data),Encoding.UTF8);
-        await Client.PostAsync($"{Configuration.Man10SystemUrl}/Score/take",content);
+        await _client.PostAsync("Score/take",content);
     }
 
 
