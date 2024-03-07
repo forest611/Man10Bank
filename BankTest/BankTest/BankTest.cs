@@ -6,7 +6,7 @@ using Man10BankServer.Data;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace BankTest.System;
+namespace BankTest;
 
 public class BankTest
 {

@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using Man10BankServer.Data;
 using Xunit;
 
-namespace BankTest.System;
+namespace BankTest;
 
 public class PlayerTest
 {
