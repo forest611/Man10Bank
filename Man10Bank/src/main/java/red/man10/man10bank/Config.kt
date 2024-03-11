@@ -9,6 +9,7 @@ object Config {
     private const val STATUS_CHECK_SECONDS = "StatusCheckSeconds"
     private const val HTTP_USER_NAME = "HttpUserName"
     private const val HTTP_PASSWORD = "HttpPassword"
+    private const val KICK_PLAYERS = "KickPlayers"
 
     var debugMode = false
     var statusCheckSeconds = 0
@@ -25,6 +26,7 @@ object Config {
         APIBase.userName = Man10Bank.instance.config.getString(HTTP_USER_NAME)?:"root"
         APIBase.password = Man10Bank.instance.config.getString(HTTP_PASSWORD)?:"pass"
         APIBase.baseUrl = Man10Bank.instance.config.getString(API_URL)?:""
+        APIBase.isKickPlayers = Man10Bank.instance.config.getBoolean(KICK_PLAYERS)
     }
 
 }

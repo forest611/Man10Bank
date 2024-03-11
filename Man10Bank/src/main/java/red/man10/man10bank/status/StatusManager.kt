@@ -7,10 +7,9 @@ import org.bukkit.command.CommandSender
 import red.man10.man10bank.Config
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Permissions
-import red.man10.man10bank.api.APIBank
+import red.man10.man10bank.api.APIStatus
 import red.man10.man10bank.api.Status
 import red.man10.man10bank.util.Utility.msg
-
 //サーバーの接続状況や各機能のon/offを確認するクラス
 
 object StatusManager : CommandExecutor{
@@ -21,12 +20,12 @@ object StatusManager : CommandExecutor{
 
     private fun asyncSendStatus(){
         Man10Bank.threadPool.execute {
-            APIBank.setStatus(status)
+            APIStatus.setStatus(status)
         }
     }
 
     private fun getStatus(){
-        status = APIBank.getStatus()
+        status = APIStatus.getStatus()
     }
 
     fun startStatusTimer(){

@@ -1,6 +1,7 @@
 package red.man10.man10bank.api
 
 import com.google.gson.*
+import net.kyori.adventure.text.Component
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import org.bukkit.Bukkit
@@ -28,6 +29,7 @@ object APIBase {
     var userName = ""
     var password = ""
     var baseUrl = ""
+    var isKickPlayers = false
     private lateinit var credential : String
     private var enable = false
 
@@ -54,11 +56,11 @@ object APIBase {
 
         client.newCall(request).execute().use {
             if (it.code == 500){
-                enable = false
+                disable()
                 throw RuntimeException("Man10BankServerのエラーの可能性 修正後にリロードをしてください")
             }
             if (it.code == 401){
-                enable = false
+                disable()
                 throw AuthenticationException("Httpの認証に問題あり 修正後にリロードをしてください")
             }
             callback.invoke(it)
@@ -79,11 +81,11 @@ object APIBase {
 
         client.newCall(request).execute().use {
             if (it.code == 500){
-                enable = false
+                disable()
                 throw RuntimeException("Man10BankServerのエラーの可能性 修正後にリロードをしてください")
             }
             if (it.code == 401){
-                enable = false
+                disable()
                 throw AuthenticationException("Httpの認証に問題あり 修正後にリロードをしてください")
             }
 
@@ -138,6 +140,15 @@ object APIBase {
         gson = GsonBuilder()
             .registerTypeHierarchyAdapter(LocalDateTime::class.java,LocalDateTimeSerializer())
             .create()
+    }
+
+    private fun disable(){
+        enable = false
+
+        if (isKickPlayers){
+            Bukkit.getOnlinePlayers().forEach { it.kick(Component.text("不具合のためホワイトリストをONにします")) }
+            Bukkit.setWhitelist(true)
+        }
     }
 
     //  C#DateTime->KotlinLocalDateTime
