@@ -41,6 +41,12 @@ app.UseAuthorization();
 
 app.Use(async (context, next) =>
 {
+    //Http認証
+    if (!Authentication.CheckAuthentication(context))
+    {
+        return;
+    }
+    
     //UserServerに繋がらなかったら、ショートして500を返す
     if (!Status.NowStatus.EnableAccessUserServer)
     {
