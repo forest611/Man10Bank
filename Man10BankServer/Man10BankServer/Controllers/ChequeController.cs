@@ -10,7 +10,7 @@ public class ChequeController : ControllerBase
 {
     
     [HttpGet("create")]
-    public async Task<int> Create(string uuid,double amount,string note,bool isOp)
+    public async Task<int> Create(string uuid,double amount,string note)
     {
         var p = await Player.GetFromUuid(uuid);
         if (p.IsEmpty())

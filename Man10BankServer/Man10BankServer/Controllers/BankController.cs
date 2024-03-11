@@ -82,7 +82,7 @@ public class BankController : ControllerBase
     }
 
     [HttpGet("log")]
-    public async Task<IActionResult> Log([FromBody] string uuid, int count, int skip)
+    public async Task<IActionResult> Log(string uuid, int count, int skip)
     {
         var p = await Player.GetFromUuid(uuid);
         if (p.IsEmpty())
