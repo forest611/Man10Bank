@@ -34,6 +34,7 @@ class Status {
     var enableLocalLoan = false
     var enableServerLoan = false
     var enableAccessUserServer = false
+        private set
 
     fun allTrue(){
         enableDealBank = true
@@ -41,7 +42,7 @@ class Status {
         enableCheque = true
         enableLocalLoan = true
         enableServerLoan = true
-        enableAccessUserServer = true
+//        enableAccessUserServer = true
 
     }
 
@@ -51,6 +52,6 @@ class Status {
         enableCheque = false
         enableLocalLoan = false
         enableServerLoan = false
-        enableAccessUserServer = false
+//        enableAccessUserServer = false
     }
 }

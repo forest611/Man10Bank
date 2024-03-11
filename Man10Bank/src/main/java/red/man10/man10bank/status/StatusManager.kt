@@ -93,11 +93,7 @@ object StatusManager : CommandExecutor{
 
                 when(StatusName.valueOf(args[1])){
                     StatusName.ALL -> {
-                        status.enableDealBank = value
-                        status.enableATM = value
-                        status.enableCheque = value
-                        status.enableLocalLoan = value
-                        status.enableServerLoan = value
+                        if (value) status.allTrue() else status.allFalse()
                     }
                     StatusName.DEAL_BANK -> status.enableDealBank = value
                     StatusName.ATM -> status.enableATM = value
@@ -126,7 +122,7 @@ object StatusManager : CommandExecutor{
         ATM,
         CHEQUE,
         LOCAL_LOAN,
-        SERVER_LOAN
+        SERVER_LOAN,
     }
 
 }
