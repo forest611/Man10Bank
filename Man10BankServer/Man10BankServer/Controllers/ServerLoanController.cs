@@ -14,6 +14,10 @@ public class ServerLoanController : ControllerBase
     public async Task<IActionResult> BorrowableAmount(string uuid)
     {
         var player = await Player.GetFromUuid(uuid);
+        if (player.IsEmpty())
+        {
+            return NotFound();
+        }
         var loan = new ServerLoan(player);
         return Ok(loan.GetBorrowableAmount().Amount);
     }
@@ -22,6 +26,10 @@ public class ServerLoanController : ControllerBase
     public async Task<IActionResult> IsLoser(string uuid)
     {
         var player = await Player.GetFromUuid(uuid);
+        if (player.IsEmpty())
+        {
+            return NotFound();
+        }
         var loan = new ServerLoan(player);
         var result = await loan.IsLoser();
         return Ok(result);
@@ -31,6 +39,10 @@ public class ServerLoanController : ControllerBase
     public async Task<IActionResult> GetInfo(string uuid)
     {
         var player = await Player.GetFromUuid(uuid);
+        if (player.IsEmpty())
+        {
+            return NotFound();
+        }
         var loan = new ServerLoan(player);
         var result = await loan.GetInfo();
         return result != null ? Ok(result) : NotFound();
@@ -40,6 +52,10 @@ public class ServerLoanController : ControllerBase
     public async Task<IActionResult> Borrow(string uuid, double amount)
     {
         var player = await Player.GetFromUuid(uuid);
+        if (player.IsEmpty())
+        {
+            return NotFound();
+        }
         var loan = new ServerLoan(player);
         var result = await loan.Borrow(new Money(amount));
         return Ok(result.ToString());
@@ -49,6 +65,10 @@ public class ServerLoanController : ControllerBase
     public async Task<IActionResult> Pay(string uuid, double amount)
     {
         var player = await Player.GetFromUuid(uuid);
+        if (player.IsEmpty())
+        {
+            return NotFound();
+        }
         var loan = new ServerLoan(player);
         var result = await loan.Pay(new Money(amount),true);
         return Ok(result.ToString());
@@ -58,6 +78,10 @@ public class ServerLoanController : ControllerBase
     public async void SetPaymentAmount(string uuid, double amount)
     {
         var player = await Player.GetFromUuid(uuid);
+        if (player.IsEmpty())
+        {
+            return;
+        }
         var loan = new ServerLoan(player);
         loan.SetPaymentAmount(new Money(amount));
     }
@@ -66,6 +90,10 @@ public class ServerLoanController : ControllerBase
     public async Task<IActionResult> NextPay(string uuid)
     {
         var player = await Player.GetFromUuid(uuid);
+        if (player.IsEmpty())
+        {
+            return NotFound();
+        }
         var loan = new ServerLoan(player);
         var data = await loan.GetInfo();
         if (data == null)

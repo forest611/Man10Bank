@@ -11,12 +11,15 @@ public class Player
 
     private static HttpClient _client = new() {BaseAddress = new Uri(Configuration.Man10SystemUrl)};
     private static readonly HashSet<Player> PlayerSet = new();
+    private static Player Empty => new("", "");
 
     private Player(string name, string uuid)
     {
         Name = name;
         Uuid = uuid;
     }
+
+    public bool IsEmpty() => Name == "" && Uuid == "";
     
     public static void SetTestHttpClient(HttpClient client)
     {
@@ -33,8 +36,16 @@ public class Player
         using var response = await _client.GetAsync($"player/mcid?uuid={uuid}");
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            throw new Exception("プレイヤーが存在しません");
+            Console.WriteLine("存在しないプレイヤー");
+            return Empty;
         }
+
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            Console.WriteLine("UserServerへのアクセス失敗");
+            return Empty;
+        }
+        
         var body = await response.Content.ReadAsStringAsync();
         var newPlayer = new Player(body, uuid);
         PlayerSet.Add(newPlayer);

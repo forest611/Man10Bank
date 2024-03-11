@@ -13,6 +13,10 @@ public class ChequeController : ControllerBase
     public async Task<int> Create(string uuid,double amount,string note,bool isOp)
     {
         var p = await Player.GetFromUuid(uuid);
+        if (p.IsEmpty())
+        {
+            return 0;
+        }
         return await Cheque.Create(p,new Money(amount),note);
     }
 
@@ -20,6 +24,10 @@ public class ChequeController : ControllerBase
     public async Task<IActionResult> Use(string uuid,int id)
     {
         var p = await Player.GetFromUuid(uuid);
+        if (p.IsEmpty())
+        {
+            return NotFound();
+        }
         var result = await Cheque.Use(p, id);
         var amount = result.Amount;
         return amount != 0 ? Ok(amount) : NoContent();

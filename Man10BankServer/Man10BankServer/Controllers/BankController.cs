@@ -33,6 +33,10 @@ public class BankController : ControllerBase
     public async Task<IActionResult> GetBalance(string uuid)
     {
         var p = await Player.GetFromUuid(uuid);
+        if (p.IsEmpty())
+        {
+            return NotFound();
+        }
         var bank = await Bank.GetBank(p);
         var result = await bank.GetBalance();
         return Ok(result.Amount);
@@ -42,6 +46,10 @@ public class BankController : ControllerBase
     public async Task<IActionResult> Add([FromBody] TransactionData data)
     {
         var p = await Player.GetFromUuid(data.UUID);
+        if (p.IsEmpty())
+        {
+            return NotFound();
+        }
         var bank = await Bank.GetBank(p);
         var result = await bank.Add(new Money(data.Amount), data.Plugin, data.Note, data.DisplayNote);
         return result ? Ok() : StatusCode(500,"Server Error");
@@ -51,6 +59,10 @@ public class BankController : ControllerBase
     public async Task<IActionResult> Take([FromBody] TransactionData data)
     {
         var p = await Player.GetFromUuid(data.UUID);
+        if (p.IsEmpty())
+        {
+            return NotFound();
+        }
         var bank = await Bank.GetBank(p);
         var result = await bank.Take(new Money(data.Amount), data.Plugin, data.Note, data.DisplayNote);
         return result ? Ok() : BadRequest("Lack Of Money");
@@ -60,6 +72,10 @@ public class BankController : ControllerBase
     public async Task<IActionResult> Set([FromBody] TransactionData data)
     {
         var p = await Player.GetFromUuid(data.UUID);
+        if (p.IsEmpty())
+        {
+            return NotFound();
+        }
         var bank = await Bank.GetBank(p);
         bank.Set(new Money(data.Amount), data.Plugin, data.Note, data.DisplayNote);
         return Ok();
@@ -69,6 +85,10 @@ public class BankController : ControllerBase
     public async Task<IActionResult> Log([FromBody] string uuid, int count, int skip)
     {
         var p = await Player.GetFromUuid(uuid);
+        if (p.IsEmpty())
+        {
+            return NotFound();
+        }
         var bank = await Bank.GetBank(p);
         var result = await bank.GetLog(count, skip);
         return Ok(result);
