@@ -1,5 +1,6 @@
 using Man10BankServer.Data;
 using Man10BankServer.Model;
+using Timer = System.Timers.Timer;
 
 namespace Man10BankServer.Common;
 
@@ -274,7 +275,7 @@ public class ServerLoan
 
     static ServerLoan()
     {
-        Task.Run(PaymentTask);
+        PaymentTask();
     }
     
     public static void LoadConfig(IConfiguration config)
@@ -293,21 +294,21 @@ public class ServerLoan
      /// <summary>
      /// 一日一回支払い処理を動かすタスク
      /// </summary>
-     private static async void PaymentTask()
+     private static void PaymentTask()
      {
          Console.WriteLine("リボのタスク起動しました");
          
          var context = new BankContext();
-         
-         while (true)
+
+         var timerTask = new Timer(1000 * 60);
+
+         timerTask.Elapsed += async (_, _) =>
          {
-             Thread.Sleep(1000*60);
-             
              var now = DateTime.Now;
 
              if (now.Day==_lastTaskDate.Day)
              {
-                 continue;
+                 return;
              }
              _lastTaskDate = now;
              
@@ -340,7 +341,11 @@ public class ServerLoan
              }
              
              Console.WriteLine("リボの処理終了");
-         }
+         };
+
+         timerTask.AutoReset = true;
+         
+         timerTask.Start();
      }
      
      private enum ServerLoanAction

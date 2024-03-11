@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
+using System.Timers;
 using Man10BankServer.Data;
 using Man10BankServer.Model;
+using Timer = System.Timers.Timer;
 
 namespace Man10BankServer.Common;
 
@@ -15,16 +17,18 @@ public static class History
     
     private static void RunServerEstateHistoryTask()
     {
-        Task.Run(() =>
-        {
-            Console.WriteLine("サーバー全体資産の履歴をとるタスクを開始");
+        Console.WriteLine("サーバー全体資産の履歴をとるタスクを開始");
+        
+        var timerTask = new Timer(1000 * 60 * 5);
 
-            while (true)
-            {
-                Thread.Sleep(1000*60*5);
-                AddServerEstateHistory();
-            }
-        });
+        timerTask.Elapsed += (sender, args) =>
+        {
+            Thread.Sleep(1000*60*5);
+            AddServerEstateHistory();
+        };
+
+        timerTask.AutoReset = true;
+        timerTask.Start();
     }
     
     /// <summary>
