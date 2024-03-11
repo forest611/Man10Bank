@@ -86,6 +86,12 @@ public class ServerLoanController : ControllerBase
         loan.SetPaymentAmount(new Money(amount));
     }
 
+    [HttpPost("add-payment-day")]
+    public void AddPaymentDay(int day)
+    {
+        ServerLoan.AddPaymentDay(day);
+    }
+
     [HttpGet("next-pay")]
     public async Task<IActionResult> NextPay(string uuid)
     {
