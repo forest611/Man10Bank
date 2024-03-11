@@ -9,7 +9,7 @@ object APIServerLoan {
 
     private const val PATH = "/serverloan/"
 
-    fun getBorrowableAmount(uuid: UUID):Double{
+    suspend fun getBorrowableAmount(uuid: UUID):Double{
         var amount = 0.0
         get("${PATH}borrowable-amount?uuid=${uuid}"){
             amount = it.body?.string()?.toDoubleOrNull()?:0.0
@@ -17,7 +17,7 @@ object APIServerLoan {
         return amount
     }
 
-    fun isLoser(uuid: UUID):Boolean{
+    suspend fun isLoser(uuid: UUID):Boolean{
         var result = false
         get("${PATH}is-loser?uuid=${uuid}"){
             result = it.body?.string()?.toBooleanStrictOrNull()?:false
@@ -25,7 +25,7 @@ object APIServerLoan {
         return result
     }
 
-    fun nextPayDate(uuid:UUID): LocalDateTime? {
+    suspend fun nextPayDate(uuid:UUID): LocalDateTime? {
         var time : LocalDateTime? = null
         get("${PATH}next-pay?uuid=${uuid}"){
             if (it.code != 200)return@get
@@ -35,7 +35,7 @@ object APIServerLoan {
         return time
     }
 
-    fun getInfo(uuid: UUID): ServerLoanTable? {
+    suspend fun getInfo(uuid: UUID): ServerLoanTable? {
         var data : ServerLoanTable? = null
         get("${PATH}info?uuid=${uuid}"){
             if (it.code!=200)return@get
@@ -46,7 +46,7 @@ object APIServerLoan {
     }
 
     //お金を借りる
-    fun borrow(uuid: UUID,amount:Double):String{
+    suspend fun borrow(uuid: UUID,amount:Double):String{
         var result = "Null"
         get("${PATH}borrow?uuid=${uuid}&amount=${amount}"){
             result = it.body?.string()?:"Null"
@@ -57,7 +57,7 @@ object APIServerLoan {
     /**
      * リボを支払う
      */
-    fun pay(uuid: UUID,amount: Double): String {
+    suspend fun pay(uuid: UUID,amount: Double): String {
         var result = "Null"
         get("${PATH}pay?uuid=${uuid}&amount=${amount}"){
             result = it.body?.string()?:"Null"
@@ -68,7 +68,7 @@ object APIServerLoan {
     /**
      * リボの設定値の取得
      */
-    fun property():ServerLoanProperty{
+    suspend fun property():ServerLoanProperty{
         var result = ""
         get("${PATH}property"){
             result = it.body?.string()?:""

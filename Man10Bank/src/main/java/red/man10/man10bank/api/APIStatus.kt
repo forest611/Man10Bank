@@ -7,7 +7,7 @@ object APIStatus {
 
     private const val PATH = "/status/"
 
-    fun getStatus(): Status {
+    suspend fun getStatus(): Status {
 
         var status = Status()
 
@@ -23,9 +23,9 @@ object APIStatus {
         return status
     }
 
-    fun setStatus(status: Status){
+    suspend fun setStatus(status: Status){
         val body = APIBase.gson.toJson(status).toRequestBody(mediaType)
-        APIBase.post("${PATH}set",body,{})
+        APIBase.post("${PATH}set",body) {}
     }
 }
 

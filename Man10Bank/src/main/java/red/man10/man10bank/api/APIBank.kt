@@ -12,7 +12,15 @@ object APIBank {
 
     private const val PATH = "/bank/"
 
-    fun getBalance(uuid: UUID): Double {
+    suspend fun getUUID(name:String):UUID?{
+        var uuid : UUID? = null
+        get(PATH+"uuid?name=${name}"){
+            if (it.code != 200)return@get
+            uuid = UUID.fromString(it.body?.string())
+        }
+        return uuid
+    }
+    suspend fun getBalance(uuid: UUID): Double {
         var balance = 0.0
         get(PATH+"get?uuid=${uuid}"){
             if (it.code != 200){
@@ -24,7 +32,7 @@ object APIBank {
         return balance
     }
 
-    fun addBalance(data: TransactionData): BankResult {
+    suspend fun addBalance(data: TransactionData): BankResult {
         val body = gson.toJson(data).toRequestBody(mediaType)
         var result : BankResult = BankResult.UNKNOWN_STATUS_CODE
         post(PATH + "add",body){
@@ -43,7 +51,7 @@ object APIBank {
         return result
     }
 
-    fun takeBalance(data: TransactionData): BankResult{
+    suspend fun takeBalance(data: TransactionData): BankResult{
         val body = gson.toJson(data).toRequestBody(mediaType)
         var result : BankResult = BankResult.UNKNOWN_STATUS_CODE
         post(PATH + "take",body){
@@ -62,7 +70,7 @@ object APIBank {
         return result
     }
 
-    fun setBalance(data: TransactionData): BankResult{
+    suspend fun setBalance(data: TransactionData): BankResult{
         val body = gson.toJson(data).toRequestBody(mediaType)
         var result : BankResult = BankResult.UNKNOWN_STATUS_CODE
         post(PATH + "set",body){
@@ -78,7 +86,7 @@ object APIBank {
         return result
     }
 
-    fun getLog(uuid: UUID, count:Int, skip:Int): Array<MoneyLog> {
+    suspend fun getLog(uuid: UUID, count:Int, skip:Int): Array<MoneyLog> {
         var log : Array<MoneyLog> = arrayOf()
         get(PATH+"log?uuid=$uuid&count=$count&skip=$skip"){
             if (it.code != 200){

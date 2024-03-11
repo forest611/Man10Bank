@@ -5,13 +5,13 @@ import red.man10.man10bank.api.APIBase.get
 import red.man10.man10bank.api.APIBase.gson
 import red.man10.man10bank.api.APIBase.post
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 object APILocalLoan {
 
     private const val PATH = "/localloan/"
 
-    fun create(data: LocalLoanTable): Int {
+    suspend fun create(data: LocalLoanTable): Int {
         var id = 0
         val body = gson.toJson(data).toRequestBody(APIBase.mediaType)
         post("${PATH}create", body) {
@@ -21,7 +21,7 @@ object APILocalLoan {
         return id
     }
 
-    fun pay(id:Int,amount:Double):String{
+    suspend fun pay(id:Int,amount:Double):String{
         var result = "Null"
         get("${PATH}pay?id=${id}&amount=${amount}"){
             result = it.body?.string()?:"Null"
@@ -29,7 +29,7 @@ object APILocalLoan {
         return result
     }
 
-    fun getInfo(id:Int):LocalLoanTable?{
+    suspend fun getInfo(id:Int):LocalLoanTable?{
         var json = ""
         get("${PATH}get-info?id=${id}"){
             json = it.body?.string()?:""
@@ -37,7 +37,7 @@ object APILocalLoan {
         return gson.fromJson(json,LocalLoanTable::class.java)
     }
 
-    fun property():LocalLoanProperty{
+    suspend fun property():LocalLoanProperty{
         var json = ""
         get("${PATH}property"){
             json = it.body?.string()?:""
@@ -45,7 +45,7 @@ object APILocalLoan {
         return gson.fromJson(json,LocalLoanProperty::class.java)
     }
 
-    fun totalLoan(uuid: UUID):Double{
+    suspend fun totalLoan(uuid: UUID):Double{
         var amount = 0.0
         get("${PATH}total-loan?uuid=${uuid}"){
             amount = it.body?.string()?.toDoubleOrNull()?:0.0

@@ -1,5 +1,8 @@
 package red.man10.man10bank
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.api.APIBase
 import red.man10.man10bank.bank.*
@@ -16,8 +19,12 @@ class Man10Bank : JavaPlugin() {
         lateinit var instance : Man10Bank
         lateinit var vault : VaultManager
 
+        lateinit var IOScope : CoroutineScope
+
         //      システム起動
         fun systemSetup():Boolean{
+
+            IOScope = CoroutineScope(Dispatchers.IO)
 
             Config.load()
             APIBase.setup()
@@ -31,7 +38,7 @@ class Man10Bank : JavaPlugin() {
 
         //      システム終了
         fun systemClose(){
-            StatusManager.cancelScope()
+            IOScope.cancel()
         }
 
     }
@@ -74,6 +81,8 @@ class Man10Bank : JavaPlugin() {
     override fun onDisable() {
         // Plugin shutdown logic
         systemClose()
+        StatusManager.cancelScope()
+
     }
 
 }

@@ -35,7 +35,7 @@ object APIBase {
 
 
     //      POST
-    fun post(path: String,body: RequestBody? = null,callback : (Response) -> Unit){
+    suspend fun post(path: String,body: RequestBody? = null,callback : (Response) -> Unit){
 
         if (!enable)return
 
@@ -68,7 +68,7 @@ object APIBase {
         }
     }
 
-    fun get(path: String,callback: (Response) -> Unit){
+    suspend fun get(path: String,callback: (Response) -> Unit){
 
         if (!enable)return
 

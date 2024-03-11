@@ -11,7 +11,7 @@ object APIHistory {
 
     private const val PATH = "/history/"
 
-    fun getBalanceTop(record : Int, skip:Int):Array<EstateTable>{
+    suspend fun getBalanceTop(record : Int, skip:Int):Array<EstateTable>{
         var json = ""
         get("${PATH}get-balance-top?record=${record}&skip=${skip}"){
             json = it.body?.string()?:""
@@ -19,7 +19,7 @@ object APIHistory {
         return gson.fromJson(json,arrayOf<EstateTable>()::class.java)
     }
 
-    fun getLoanTop(record : Int, skip:Int):Array<APIServerLoan.ServerLoanTable>{
+    suspend fun getLoanTop(record : Int, skip:Int):Array<APIServerLoan.ServerLoanTable>{
         var json = ""
         get("${PATH}get-loan-top?record=${record}&skip=${skip}"){
             json = it.body?.string()?:""
@@ -27,7 +27,7 @@ object APIHistory {
         return gson.fromJson(json,arrayOf<APIServerLoan.ServerLoanTable>()::class.java)
     }
 
-    fun getUserEstate(uuid: UUID):EstateTable?{
+    suspend fun getUserEstate(uuid: UUID):EstateTable?{
         var json = ""
         get("${PATH}get-user-estate?uuid=${uuid}"){
             json = it.body?.string()?:""
@@ -35,7 +35,7 @@ object APIHistory {
         return gson.fromJson(json, EstateTable::class.java)
     }
 
-    fun getServerEstate():ServerEstate?{
+    suspend fun getServerEstate():ServerEstate?{
         var json = ""
         get(PATH+"get-server-estate"){
             json = it.body?.string()?:""
@@ -43,17 +43,17 @@ object APIHistory {
         return gson.fromJson(json, ServerEstate::class.java)
     }
 
-    fun addUserEstate(data : EstateTable){
+    suspend fun addUserEstate(data : EstateTable){
         val body = gson.toJson(data).toRequestBody(APIBase.mediaType)
         post(PATH+"add-user-estate",body) {}
     }
 
-    fun addATMLog(data:ATMLog){
+    suspend fun addATMLog(data:ATMLog){
         val body = gson.toJson(data).toRequestBody(APIBase.mediaType)
         post("${PATH}add-atm-log",body) {}
     }
 
-    fun addVaultLog(data:VaultLog){
+    suspend fun addVaultLog(data:VaultLog){
         val body = gson.toJson(data).toRequestBody(APIBase.mediaType)
         post("${PATH}add-vault-log",body) {}
     }

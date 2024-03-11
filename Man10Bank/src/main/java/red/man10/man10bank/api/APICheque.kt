@@ -1,13 +1,13 @@
 package red.man10.man10bank.api
 
 import org.bukkit.entity.Player
-import java.util.UUID
+import java.util.*
 
 object APICheque {
 
     private const val PATH = "/cheque/"
 
-    fun create(uuid: UUID, amount: Double, note: String): Int {
+    suspend fun create(uuid: UUID, amount: Double, note: String): Int {
         var id = 0
         APIBase.get("${PATH}create?uuid=${uuid}&amount=$amount&note=${note}"){
             if (it.code != 200){
@@ -18,7 +18,7 @@ object APICheque {
         return id
     }
 
-    fun use(id: Int,p:Player):Double{
+    suspend fun use(id: Int,p:Player):Double{
         var amount = 0.0
         APIBase.get("${PATH}use?uuid=${p.uniqueId}&id=${id}"){
             if (it.code != 200){
@@ -29,7 +29,7 @@ object APICheque {
         return amount
     }
 
-    fun amount(id:Int):Double{
+    suspend fun amount(id:Int):Double{
         var amount = 0.0
         APIBase.get("${PATH}amount?id=${id}"){
             amount = it.body?.string()?.toDoubleOrNull()?:0.0
