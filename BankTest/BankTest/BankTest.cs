@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Man10BankServer.Common;
@@ -98,34 +100,46 @@ public class BankTest
 
         var player = await Player.GetFromUuid(Init.Uuid);
         var bank = await Bank.GetBank(player);
-        var expectAmount = await bank.GetBalance();
+        var expectAmount = (await bank.GetBalance()).Amount;
         
         await Semaphore.WaitAsync();
         
         try
         {
-            for (var i = 0; i < 1000; i++)
+            var random = new Random();
+            var amountRandom = new Random();
+            var tasks = new List<Task>();
+            Parallel.ForEach(Enumerable.Range(0, 1000), i =>
             {
-                var amount = new Money(new Random().Next(1000000));
-                var isAdd = new Random().Next(2) == 1;
+                var amount = new Money(amountRandom.Next(1000000));
+                var isAdd = random.Next(2) == 1;
                 
                 if (isAdd)
                 {
-                    var result = await bank.Add(amount, PluginName, Note, $"{Note} RandomTest {i}");
-                    if (result)
+                    tasks.Add(Task.Run(async () =>
                     {
-                        expectAmount = expectAmount.Plus(amount);
-                    }
+                        var result = await bank.Add(amount, PluginName, Note, $"{Note} RandomTest {i}");
+                        if (result)
+                        {
+                            expectAmount += amount.Amount;
+                        }
+                    }));
                 }
                 else
                 {
-                    var result = await bank.Take(amount, PluginName, Note, $"{Note} RandomTest {i}");
-                    if (result)
+                    tasks.Add(Task.Run(async () =>
                     {
-                        expectAmount = expectAmount.Minus(amount);
-                    }
+                        var result = await bank.Take(amount, PluginName, Note, $"{Note} RandomTest {i}");
+                        if (result)
+                        {
+                            expectAmount -= amount.Amount;
+                        }
+                    }));
                 }
-            }
+
+            });
+
+            await Task.WhenAll(tasks);
         }
         catch (Exception e)
         {
@@ -137,8 +151,7 @@ public class BankTest
             Semaphore.Release();
         }        
         var now = await bank.GetBalance();
-        Assert.Equal(expectAmount.Amount,now.Amount);
-
+        Assert.Equal(expectAmount,now.Amount);
     }
     
     
