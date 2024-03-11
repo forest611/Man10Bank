@@ -39,6 +39,17 @@ app.UseCors("AllowOriginPolicy");
 
 app.UseAuthorization();
 
+app.Use(async (context, next) =>
+{
+    //UserServerに繋がらなかったら、ショートして500を返す
+    if (!Status.NowStatus.EnableAccessUserServer)
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        return;
+    }
+    await next.Invoke();
+});
+
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
