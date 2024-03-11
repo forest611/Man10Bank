@@ -1,5 +1,6 @@
 package red.man10.man10bank.bank
 
+import kotlinx.coroutines.launch
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.command.Command
@@ -8,11 +9,11 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
+import red.man10.man10bank.Man10Bank.Companion.coroutineScope
 import red.man10.man10bank.Man10Bank.Companion.instance
-import red.man10.man10bank.Man10Bank.Companion.threadPool
 import red.man10.man10bank.Man10Bank.Companion.vault
-import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.api.APIHistory
+import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.util.Utility.getBundleItem
 import red.man10.man10bank.util.Utility.getShulkerItem
 import red.man10.man10bank.util.Utility.loggerInfo
@@ -24,7 +25,7 @@ object ATM :CommandExecutor{
 
     val moneyItems = ConcurrentHashMap<Double,ItemStack>()
     val moneyAmount = arrayOf(10.0,100.0,1000.0,10000.0,100000.0,1000000.0,100_000_000.0)
-    private val itemKey = "money"
+    private const val ITEM_KEY = "money"
 
     //再起動するたびにNBTが変わる問題
     fun load(){
@@ -39,7 +40,7 @@ object ATM :CommandExecutor{
         if (!moneyAmount.contains(amount))return
 
         val meta = itemStack.itemMeta
-        meta.persistentDataContainer.set(NamespacedKey.fromString(itemKey)!!, PersistentDataType.DOUBLE,amount)
+        meta.persistentDataContainer.set(NamespacedKey.fromString(ITEM_KEY)!!, PersistentDataType.DOUBLE,amount)
         itemStack.itemMeta = meta
 
         moneyItems[amount] = itemStack
@@ -57,7 +58,7 @@ object ATM :CommandExecutor{
 
         if (!moneyItems.values.any { it.isSimilar(itemStack) })return 0.0
 
-        val ret = itemStack.itemMeta.persistentDataContainer[NamespacedKey.fromString(itemKey)!!, PersistentDataType.DOUBLE]?:return 0.0
+        val ret = itemStack.itemMeta.persistentDataContainer[NamespacedKey.fromString(ITEM_KEY)!!, PersistentDataType.DOUBLE]?:return 0.0
 
         if (ret != 0.0){ return ret*itemStack.amount }
 
@@ -72,7 +73,7 @@ object ATM :CommandExecutor{
             itemStack.amount = 0
             vault.deposit(p.uniqueId,amount)
 
-            threadPool.execute {
+            coroutineScope.launch {
                 APIHistory.addATMLog(APIHistory.ATMLog(0,p.name,p.uniqueId.toString(),amount,true, LocalDateTime.now()))
             }
         }

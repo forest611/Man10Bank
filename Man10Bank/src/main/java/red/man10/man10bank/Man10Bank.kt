@@ -19,12 +19,12 @@ class Man10Bank : JavaPlugin() {
         lateinit var instance : Man10Bank
         lateinit var vault : VaultManager
 
-        lateinit var IOScope : CoroutineScope
+        lateinit var coroutineScope : CoroutineScope
 
         //      システム起動
         fun systemSetup():Boolean{
 
-            IOScope = CoroutineScope(Dispatchers.IO)
+            coroutineScope = CoroutineScope(Dispatchers.IO)
 
             Config.load()
             APIBase.setup()
@@ -38,7 +38,7 @@ class Man10Bank : JavaPlugin() {
 
         //      システム終了
         fun systemClose(){
-            IOScope.cancel()
+            coroutineScope.cancel()
         }
 
     }

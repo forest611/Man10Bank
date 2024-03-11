@@ -12,50 +12,46 @@ object APIHistory {
     private const val PATH = "/history/"
 
     suspend fun getBalanceTop(record : Int, skip:Int):Array<EstateTable>{
-        var json = ""
-        get("${PATH}get-balance-top?record=${record}&skip=${skip}"){
-            json = it.body?.string()?:""
+        get("${PATH}get-balance-top?record=${record}&skip=${skip}").use{
+            val json = it.body?.string()?:""
+            return gson.fromJson(json,arrayOf<EstateTable>()::class.java)
         }
-        return gson.fromJson(json,arrayOf<EstateTable>()::class.java)
     }
 
     suspend fun getLoanTop(record : Int, skip:Int):Array<APIServerLoan.ServerLoanTable>{
-        var json = ""
-        get("${PATH}get-loan-top?record=${record}&skip=${skip}"){
-            json = it.body?.string()?:""
+        get("${PATH}get-loan-top?record=${record}&skip=${skip}").use{
+            val json = it.body?.string()?:""
+            return gson.fromJson(json,arrayOf<APIServerLoan.ServerLoanTable>()::class.java)
         }
-        return gson.fromJson(json,arrayOf<APIServerLoan.ServerLoanTable>()::class.java)
     }
 
     suspend fun getUserEstate(uuid: UUID):EstateTable?{
-        var json = ""
-        get("${PATH}get-user-estate?uuid=${uuid}"){
-            json = it.body?.string()?:""
+        get("${PATH}get-user-estate?uuid=${uuid}").use{
+            val json = it.body?.string()?:""
+            return gson.fromJson(json, EstateTable::class.java)
         }
-        return gson.fromJson(json, EstateTable::class.java)
     }
 
     suspend fun getServerEstate():ServerEstate?{
-        var json = ""
-        get(PATH+"get-server-estate"){
-            json = it.body?.string()?:""
+        get(PATH+"get-server-estate").use{
+            val json = it.body?.string()?:""
+            return gson.fromJson(json, ServerEstate::class.java)
         }
-        return gson.fromJson(json, ServerEstate::class.java)
     }
 
     suspend fun addUserEstate(data : EstateTable){
         val body = gson.toJson(data).toRequestBody(APIBase.mediaType)
-        post(PATH+"add-user-estate",body) {}
+        post(PATH+"add-user-estate",body).use {  }
     }
 
     suspend fun addATMLog(data:ATMLog){
         val body = gson.toJson(data).toRequestBody(APIBase.mediaType)
-        post("${PATH}add-atm-log",body) {}
+        post("${PATH}add-atm-log",body).use {  }
     }
 
     suspend fun addVaultLog(data:VaultLog){
         val body = gson.toJson(data).toRequestBody(APIBase.mediaType)
-        post("${PATH}add-vault-log",body) {}
+        post("${PATH}add-vault-log",body).use {  }
     }
 
     data class VaultLog(

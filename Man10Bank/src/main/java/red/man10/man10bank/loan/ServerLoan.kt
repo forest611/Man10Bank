@@ -1,17 +1,17 @@
 package red.man10.man10bank.loan
 
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import red.man10.man10bank.Man10Bank.Companion.threadPool
+import red.man10.man10bank.Man10Bank.Companion.coroutineScope
 import red.man10.man10bank.Permissions
-import red.man10.man10bank.status.StatusManager
-import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APIServerLoan
 import red.man10.man10bank.api.APIServerLoan.ServerLoanProperty
+import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.loggerInfo
 import red.man10.man10bank.util.Utility.msg
@@ -22,7 +22,7 @@ object ServerLoan : CommandExecutor{
 
     private lateinit var property : ServerLoanProperty
 
-    fun setup(){
+    suspend fun setup(){
         property = APIServerLoan.property()
         loggerInfo("リボの設定値を読み込みました")
         loggerInfo("支払い期間:${property.paymentInterval}")
@@ -31,35 +31,40 @@ object ServerLoan : CommandExecutor{
         loggerInfo("最大貸出可能額:${property.maximumAmount}")
     }
 
-    private fun checkAmount(p:Player){
+    private suspend fun checkAmount(p:Player){
         val maxLoan = APIServerLoan.getBorrowableAmount(p.uniqueId)
-
         msg(p,"§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(property.maximumAmount)}円)")
     }
-    private fun setPayment(p:Player,amount: Double){
+    private suspend fun setPayment(p:Player,amount: Double){
         val data = APIServerLoan.getInfo(p.uniqueId)
         if (data == null){
             msg(p,"§a§lあなたはリボを利用したことがありません")
             return
         }
-        data.payment_amount = amount
-        val ret = APIServerLoan.setInfo(data)
+        val ret = APIServerLoan.setPaymentAmount(p.uniqueId,amount)
 
-        if (ret == APIBank.BankResult.SUCCESSFUL){
+        if (ret){
             msg(p,"§e§l支払額を${format(data.payment_amount)}円に変更しました")
             return
         }
         msg(p,"§e§l変更失敗。時間をおいてやり直してください")
     }
 
-    private fun showBorrowMessage(p:Player,amount:Double){
+    private suspend fun addPaymentDay(p:Player,day:Int){
+        val ret = APIServerLoan.addPaymentDay(day)
+        if (ret){
+            msg(p,"設定完了")
+            return
+        }
+        msg(p,"設定失敗")
+    }
+
+    private suspend fun showBorrowMessage(p:Player,amount:Double){
 
         if (!StatusManager.status.enableServerLoan){
             msg(p,"現在新規貸し出しは行っておりません。")
             return
         }
-
-
         if (amount <= 0.0){
             msg(p,"1円以上を入力してください")
             return
@@ -100,7 +105,7 @@ object ServerLoan : CommandExecutor{
 
     }
 
-    private fun borrow(p: Player, amount:Double){
+    private suspend fun borrow(p: Player, amount:Double){
 
         if (!StatusManager.status.enableServerLoan){
             msg(p,"現在新規貸し出しは行っておりません。")
@@ -109,27 +114,43 @@ object ServerLoan : CommandExecutor{
 
         val ret = APIServerLoan.borrow(p.uniqueId,amount)
 
-        if (ret != "Successful" && ret != "FirstSuccessful"){
+        if (ret == APIServerLoan.BorrowResult.FAILED){
             msg(p,"§c§lリボの借入に失敗しました！")
             return
+        }
+
+        if (ret == APIServerLoan.BorrowResult.FIRST_SUCCESS){
+            msg(p,"""
+                §e§l[重要] 返済について
+                §c§lMan10リボは、借りた日から${property.paymentInterval}日ずつ銀行から引き落とされます
+                §c§lお支払いができなかった場合、スコアの減少などのペナルティがあるので、
+                §c§l必ず銀行にお金を入れておくようにしましょう。
+                §c§lまた、/mrevo payment <金額>で引き落とす額を設定できます。
+            """.trimIndent())
         }
 
         msg(p,"§a§l${format(amount)}円借りました！")
         msg(p,"§a§l銀行に支払額を入れておいてください")
     }
 
-    private fun pay(p:Player,amount:Double){
-        val ret = APIServerLoan.pay(p.uniqueId,amount)
+    private suspend fun pay(p:Player,amount:Double){
+        val result = APIServerLoan.pay(p.uniqueId,amount)
 
-        if (!ret){
-            msg(p,"§c§l支払い失敗！銀行の残高が足りない可能性があります")
-            return
+        when(result){
+            APIServerLoan.PaymentResult.NOT_LOAN -> {
+                msg(p,"あなたは借金をしていません")
+
+            }
+            APIServerLoan.PaymentResult.SUCCESS -> {
+                msg(p,"§a§l支払い成功！")
+            }
+            APIServerLoan.PaymentResult.NOT_ENOUGH_MONEY ->{
+                msg(p,"§c§l支払い失敗！銀行の残高が足りない可能性があります")
+            }
         }
-
-        msg(p,"§a§l支払い成功！")
     }
 
-    private fun payAll(p:Player){
+    private suspend fun payAll(p:Player){
         pay(p,APIServerLoan.getInfo(p.uniqueId)?.borrow_amount?:0.0)
     }
 
@@ -154,8 +175,10 @@ object ServerLoan : CommandExecutor{
                 /mrevo payall : 一括返済する
             """.trimIndent())
 
-            if (sender.hasPermission(Permissions.BANK_OP_COMMAND)){
+            if (sender.hasPermission(Permissions.SERVER_LOAN_OP)){
                 msg(sender,"""
+                /mrevo addtime <day> : 全プレイヤーの支払日を指定日数遅らせる
+                =============================================
                 §c支払い期間:${property.paymentInterval}
                 §c一日あたりの利息:${property.dailyInterest}
                 §c最小貸出可能額:${property.minimumAmount}
@@ -169,7 +192,7 @@ object ServerLoan : CommandExecutor{
         when(args[0]){
 
             "check" ->{
-                threadPool.execute {
+                coroutineScope.launch {
                     checkAmount(sender)
                 }
             }
@@ -207,7 +230,7 @@ object ServerLoan : CommandExecutor{
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                threadPool.execute {
+                coroutineScope.launch {
                     showBorrowMessage(sender,amount)
                 }
             }
@@ -216,7 +239,7 @@ object ServerLoan : CommandExecutor{
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                threadPool.execute { borrow(sender,amount) }
+                coroutineScope.launch { borrow(sender,amount) }
             }
 
             "payment" ->{
@@ -225,7 +248,7 @@ object ServerLoan : CommandExecutor{
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                threadPool.execute {
+                coroutineScope.launch {
                     setPayment(sender,amount)
                 }
 
@@ -237,7 +260,7 @@ object ServerLoan : CommandExecutor{
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
-                threadPool.execute {
+                coroutineScope.launch {
                     pay(sender,amount)
                 }
             }
@@ -246,31 +269,25 @@ object ServerLoan : CommandExecutor{
             "payall" ->{
                 if (args.size != 1)return true
 
-                threadPool.execute {
+                coroutineScope.launch {
                     payAll(sender)
                 }
             }
 
-//            "addtime" ->{//mrevo addtime <player/all> <hour>
-//
-//                if (!sender.hasPermission(OP))return true
-//
-//                if (args.size != 3){
-//                    sendMsg(sender,"/mrevo addtime <player/all> <hour>")
-//                    return true
-//                }
-//
-//                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-//
-//                    when(ServerLoan.addLastPayTime(args[1],args[2].toInt())){
-//                        0 ->{ sendMsg(sender,"設定完了！${args[2]}時間追加しました") }
-//                        1 ->{ sendMsg(sender,"存在しないプレイヤーです")}
-//                    }
-//
-//                })
-//            }
+            "addtime" ->{//mrevo addtime <hour>
 
+                if (!sender.hasPermission(Permissions.SERVER_LOAN_OP))return true
 
+                if (args.size != 3){
+                    msg(sender,"/mrevo addtime <player/all> <hour>")
+                    return true
+                }
+                val time = args[1].toInt()
+
+                coroutineScope.launch {
+                    addPaymentDay(sender,time)
+                }
+            }
         }
         return false
     }

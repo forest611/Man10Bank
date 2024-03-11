@@ -1,5 +1,6 @@
 package red.man10.man10bank.bank
 
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
@@ -8,18 +9,18 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import red.man10.man10bank.Man10Bank
-import red.man10.man10bank.Man10Bank.Companion.threadPool
+import red.man10.man10bank.Man10Bank.Companion.coroutineScope
+import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.msg
 import red.man10.man10bank.util.Utility.prefix
-import java.util.UUID
+import java.util.*
 
 object PayCommand : CommandExecutor {
 
-    val confirmList = mutableListOf<UUID>()
+    private val confirmList = mutableListOf<UUID>()
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
 
@@ -91,30 +92,30 @@ object PayCommand : CommandExecutor {
             if (p == null){
                 msg(sender,"§a送金先のプレイヤーがオフラインのため、相手の銀行口座に入金します")
 
-                threadPool.execute {
+                coroutineScope.launch {
                     val uuid = APIBank.getUUID(mcid)
 
                     if (uuid == null){
                         msg(sender,"§c§lMinecraftのIDに誤りがあります")
-                        vault.deposit(sender.uniqueId,amount)
-                        return@execute
+                        Bukkit.getScheduler().runTask(instance, Runnable { vault.deposit(sender.uniqueId,amount) })
+                        return@launch
                     }
 
                     val result = APIBank.addBalance(
                         APIBank.TransactionData(
                         uuid.toString(),
                         amount,
-                        Man10Bank.instance.name,
+                        instance.name,
                         "RemittanceTo${mcid}",
                         "${mcid}へ送金"
                     ))
 
                     if (result == APIBank.BankResult.SUCCESSFUL){
                         msg(sender,"§a§l送金に成功しました！(相手:${mcid} 金額:${Utility.format(amount)}円)")
-                        return@execute
+                        return@launch
                     }else{
                         msg(sender,"§c§l送金に失敗しました。時間をおいて再度行ってください")
-                        vault.deposit(sender.uniqueId,amount)
+                        Bukkit.getScheduler().runTask(instance, Runnable { vault.deposit(sender.uniqueId,amount) })
                     }
                 }
 
@@ -153,40 +154,40 @@ object PayCommand : CommandExecutor {
             val amount = Utility.fixedPerse(args[2])?:return true
 
             //送金処理
-            threadPool.execute {
+            coroutineScope.launch {
 
                 val uuid = APIBank.getUUID(mcid)
 
                 if (uuid == null){
                     msg(sender,"§c§lMinecraftのIDに誤りがあります")
-                    return@execute
+                    return@launch
                 }
 
                 val takeResult = APIBank.takeBalance(APIBank.TransactionData(
                     sender.uniqueId.toString(),
                     amount,
-                    Man10Bank.instance.name,
+                    instance.name,
                     "RemittanceTo${mcid}",
                     "${mcid}へ送金"
                 ))
 
                 if (takeResult != APIBank.BankResult.SUCCESSFUL){
                     msg(sender,"§c§l出金に失敗しました")
-                    return@execute
+                    return@launch
                 }
 
                 val addResult = APIBank.addBalance(
                     APIBank.TransactionData(
                         uuid.toString(),
                         amount,
-                        Man10Bank.instance.name,
+                        instance.name,
                         "RemittanceFrom${mcid}",
                         "${mcid}からの送金"
                     ))
 
                 if (addResult == APIBank.BankResult.SUCCESSFUL){
                     msg(sender,"§a§l送金に成功しました！(相手:${mcid} 金額:${Utility.format(amount)}円)")
-                    return@execute
+                    return@launch
                 }else{
                     msg(sender,"§c§l送金に失敗しました。時間をおいて再度行ってください")
                     vault.deposit(sender.uniqueId,amount)

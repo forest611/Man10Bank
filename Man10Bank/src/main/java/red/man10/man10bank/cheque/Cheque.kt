@@ -1,5 +1,6 @@
 package red.man10.man10bank.cheque
 
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -16,10 +17,10 @@ import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank
-import red.man10.man10bank.Man10Bank.Companion.threadPool
+import red.man10.man10bank.Man10Bank.Companion.coroutineScope
 import red.man10.man10bank.Permissions
-import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.api.APICheque
+import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.msg
@@ -29,7 +30,7 @@ object Cheque : CommandExecutor, Listener {
 
     private const val MAX_CHARACTERS = 32
 
-    private fun create(p:Player,amount:Double,isOP:Boolean,note:String = "empty"){
+    private suspend fun create(p:Player,amount:Double,isOP:Boolean,note:String = "empty"){
 
         if (note.length > MAX_CHARACTERS){
             msg(p,"§c§l文字数が多すぎます！")
@@ -48,7 +49,7 @@ object Cheque : CommandExecutor, Listener {
             return
         }
 
-        val id = APICheque.create(p.uniqueId,fixedAmount,note,isOP)
+        val id = APICheque.create(p.uniqueId,fixedAmount,note)
 
         //失敗
         if (id==-1){
@@ -96,7 +97,7 @@ object Cheque : CommandExecutor, Listener {
         msg(p,"§a§l小切手を作成しました§e(金額:${format(fixedAmount)}円)")
     }
 
-    private fun use(p:Player,item:ItemStack){
+    private suspend fun use(p:Player,item:ItemStack){
 
         val id = getChequeID(item)?:return
 
@@ -115,7 +116,7 @@ object Cheque : CommandExecutor, Listener {
     }
 
     //インベとecにある小切手を数える。スレッドで呼ぶ
-    fun getChequeInInventory(p:Player):Double{
+    suspend fun getChequeInInventory(p:Player):Double{
         var amount = 0.0
 
         for (item in p.inventory.contents){
@@ -162,7 +163,7 @@ object Cheque : CommandExecutor, Listener {
         return item.itemMeta.persistentDataContainer[(NamespacedKey.fromString("cheque_id") ?: return null), PersistentDataType.INTEGER]
     }
 
-    private fun getChequeAmount(item:ItemStack):Double{
+    private suspend fun getChequeAmount(item:ItemStack):Double{
         val id = getChequeID(item) ?: return 0.0
         return APICheque.amount(id)
     }
@@ -191,10 +192,7 @@ object Cheque : CommandExecutor, Listener {
             return
         }
 
-        threadPool.execute {
-            use(p,item)
-        }
-
+        coroutineScope.launch { use(p,item) }
     }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
@@ -236,9 +234,7 @@ object Cheque : CommandExecutor, Listener {
 
         val note = if (args.size>=2) args[1] else "null"
 
-        threadPool.execute {
-            create(sender,amount,isOp,note)
-        }
+        coroutineScope.launch { create(sender,amount,isOp,note) }
 
         return false
     }

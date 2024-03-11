@@ -8,24 +8,22 @@ object APIStatus {
     private const val PATH = "/status/"
 
     suspend fun getStatus(): Status {
+        val status = Status()
 
-        var status = Status()
-
-        APIBase.get("${PATH}get"){ response ->
+        APIBase.get("${PATH}get").use{ response ->
             val body = response.body?.string()
 
             if (response.code != 200 || body == null){
                 status.allFalse()
-                return@get
+                return status
             }
-            status = APIBase.gson.fromJson(body,Status::class.java)
+            return APIBase.gson.fromJson(body,Status::class.java)
         }
-        return status
     }
 
     suspend fun setStatus(status: Status){
         val body = APIBase.gson.toJson(status).toRequestBody(mediaType)
-        APIBase.post("${PATH}set",body) {}
+        APIBase.post("${PATH}set",body).use {  }
     }
 }
 
@@ -38,10 +36,21 @@ class Status {
     var enableAccessUserServer = false
 
     fun allTrue(){
+        enableDealBank = true
+        enableATM = true
+        enableCheque = true
+        enableLocalLoan = true
+        enableServerLoan = true
+        enableAccessUserServer = true
 
     }
 
     fun allFalse(){
-
+        enableDealBank = false
+        enableATM = false
+        enableCheque = false
+        enableLocalLoan = false
+        enableServerLoan = false
+        enableAccessUserServer = false
     }
 }

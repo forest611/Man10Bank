@@ -1,5 +1,6 @@
 package red.man10.man10bank.loan
 
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent.runCommand
 import org.bukkit.Bukkit
@@ -15,13 +16,13 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import red.man10.man10bank.Man10Bank.Companion.threadPool
+import red.man10.man10bank.Man10Bank.Companion.coroutineScope
 import red.man10.man10bank.Man10Bank.Companion.instance
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.Permissions
-import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.api.APIBank
 import red.man10.man10bank.api.APILocalLoan
+import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.util.Utility.format
 import red.man10.man10bank.util.Utility.loggerInfo
 import red.man10.man10bank.util.Utility.msg
@@ -35,7 +36,7 @@ object LocalLoan: Listener,CommandExecutor{
 
     private lateinit var property: APILocalLoan.LocalLoanProperty
 
-    fun setup(){
+    suspend fun setup(){
         property = APILocalLoan.property()
         loggerInfo("個人間借金の設定を読み込みました")
         loggerInfo("最小金利:${property.minimumInterest}")
@@ -46,7 +47,7 @@ object LocalLoan: Listener,CommandExecutor{
     /**
      * 個人間借金を作る
      */
-    private fun create(lender:Player, borrower:Player, amount:Double, interest:Double, due:Int){
+    private suspend fun create(lender:Player, borrower:Player, amount:Double, interest:Double, due:Int){
 
         val withdrawAmount = amount * (1 + property.fee)
 
@@ -100,7 +101,7 @@ object LocalLoan: Listener,CommandExecutor{
     /**
      * 手形を発行する
      */
-    private fun getNote(id:Int): ItemStack? {
+    private suspend fun getNote(id:Int): ItemStack? {
 
         val data = APILocalLoan.getInfo(id)?:return null
 
@@ -146,19 +147,19 @@ object LocalLoan: Listener,CommandExecutor{
         val id = meta.persistentDataContainer[NamespacedKey(instance,"id"), PersistentDataType.INTEGER]?:return
         val user = e.player
 
-        threadPool.execute {
+        coroutineScope.launch {
 
             //ここでnullが帰ってきたら手形じゃないと判定
-            val data = APILocalLoan.getInfo(id)?:return@execute
+            val data = APILocalLoan.getInfo(id)?:return@launch
 
             if (!StatusManager.status.enableLocalLoan){
                 msg(user,"現在メンテナンスにより個人間借金は行えません")
-                return@execute
+                return@launch
             }
 
             if (data.payback_date.isAfter(LocalDateTime.now())){
                 msg(user,"この手形はまだ有効になっていません")
-                return@execute
+                return@launch
             }
 
             val borrowUUID = UUID.fromString(data.borrow_uuid)
@@ -231,9 +232,11 @@ object LocalLoan: Listener,CommandExecutor{
                 }
             }
 
+            val newNote = getNote(id)?:return@launch
+
             Bukkit.getScheduler().runTask(instance, Runnable {
                 item.amount = 0
-                user.inventory.addItem(getNote(id)!!)
+                user.inventory.addItem(newNote)
             })
 
         }
@@ -285,7 +288,7 @@ object LocalLoan: Listener,CommandExecutor{
             }
 
             map.remove(sender.uniqueId)
-            threadPool.execute {
+            coroutineScope.launch {
                 create(lendP,sender,data.amount,data.interest,data.due)
             }
 

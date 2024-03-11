@@ -14,4 +14,5 @@ object Permissions {
 
     //リボ
     const val SERVER_LOAN_USER = "man10bank.server_loan.user"
+    const val SERVER_LOAN_OP = "man10bank.server_loan.op"
 }

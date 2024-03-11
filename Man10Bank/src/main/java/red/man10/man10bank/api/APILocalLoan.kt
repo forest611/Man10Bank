@@ -12,45 +12,38 @@ object APILocalLoan {
     private const val PATH = "/localloan/"
 
     suspend fun create(data: LocalLoanTable): Int {
-        var id = 0
         val body = gson.toJson(data).toRequestBody(APIBase.mediaType)
-        post("${PATH}create", body) {
-            if (it.code != 200)return@post
-            id = it.body?.string()?.toIntOrNull()?:0
+        post("${PATH}create", body).use {
+            if (it.code != 200)return 0
+            return it.body?.string()?.toIntOrNull()?:0
         }
-        return id
     }
 
     suspend fun pay(id:Int,amount:Double):String{
-        var result = "Null"
-        get("${PATH}pay?id=${id}&amount=${amount}"){
-            result = it.body?.string()?:"Null"
+        get("${PATH}pay?id=${id}&amount=${amount}").use{
+            return it.body?.string()?:"Null"
         }
-        return result
     }
 
     suspend fun getInfo(id:Int):LocalLoanTable?{
-        var json = ""
-        get("${PATH}get-info?id=${id}"){
-            json = it.body?.string()?:""
+        get("${PATH}get-info?id=${id}").use{
+            val json = it.body?.string()?:""
+            return gson.fromJson(json,LocalLoanTable::class.java)
         }
-        return gson.fromJson(json,LocalLoanTable::class.java)
     }
 
     suspend fun property():LocalLoanProperty{
-        var json = ""
-        get("${PATH}property"){
-            json = it.body?.string()?:""
+        get("${PATH}property").use{
+            val json = it.body?.string()?:""
+            return gson.fromJson(json,LocalLoanProperty::class.java)
         }
-        return gson.fromJson(json,LocalLoanProperty::class.java)
     }
 
     suspend fun totalLoan(uuid: UUID):Double{
-        var amount = 0.0
-        get("${PATH}total-loan?uuid=${uuid}"){
-            amount = it.body?.string()?.toDoubleOrNull()?:0.0
+        get("${PATH}total-loan?uuid=${uuid}").use{
+            val amount = it.body?.string()?.toDoubleOrNull()?:0.0
+            return amount
         }
-        return amount
     }
 
     data class LocalLoanTable(

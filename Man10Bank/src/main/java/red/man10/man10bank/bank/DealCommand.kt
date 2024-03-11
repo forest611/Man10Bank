@@ -1,15 +1,16 @@
 package red.man10.man10bank.bank
 
+import kotlinx.coroutines.launch
+import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import red.man10.man10bank.Man10Bank
+import red.man10.man10bank.Man10Bank.Companion.coroutineScope
 import red.man10.man10bank.Man10Bank.Companion.instance
-import red.man10.man10bank.Man10Bank.Companion.threadPool
 import red.man10.man10bank.Man10Bank.Companion.vault
-import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.api.APIBank
+import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.util.Utility
 import red.man10.man10bank.util.Utility.msg
 import kotlin.math.floor
@@ -25,7 +26,7 @@ object DealCommand : CommandExecutor{
 
         if (sender !is Player)return true
 
-        if (!Man10Bank.isEnableServer() || !StatusManager.status.enableDealBank){
+        if (!StatusManager.status.enableDealBank){
             msg(sender,"§c§l現在銀行はメンテナンス中です")
             return true
         }
@@ -51,7 +52,7 @@ object DealCommand : CommandExecutor{
                 return true
             }
 
-            threadPool.execute {
+            coroutineScope.launch {
                 val result = APIBank.addBalance(APIBank.TransactionData(
                     sender.uniqueId.toString(),
                     fixedAmount,
@@ -62,12 +63,11 @@ object DealCommand : CommandExecutor{
 
                 if (result != APIBank.BankResult.SUCCESSFUL){
                     msg(sender,"§c入金エラーが発生しました")
-                    vault.deposit(sender.uniqueId,fixedAmount)
-                    return@execute
+                    Bukkit.getScheduler().runTask(instance, Runnable { vault.deposit(sender.uniqueId,fixedAmount) })
+                    return@launch
                 }
                 msg(sender,"§e入金できました！")
             }
-
         }
 
         if (label == "withdraw"){
@@ -76,13 +76,12 @@ object DealCommand : CommandExecutor{
                 return true
             }
 
-            threadPool.execute {
-
+            coroutineScope.launch {
                 val amount = if (args[0] == "all") APIBank.getBalance(sender.uniqueId) else Utility.fixedPerse(args[0])
 
                 if (amount==null || amount < 1){
                     msg(sender,"§c§l数字で1円以上を入力してください！")
-                    return@execute
+                    return@launch
                 }
 
                 val fixedAmount = floor(amount)
@@ -97,16 +96,19 @@ object DealCommand : CommandExecutor{
 
                 if (result == APIBank.BankResult.LACK_OF_MONEY){
                     msg(sender,"§c所持金が足りません")
-                    return@execute
+                    return@launch
                 }
 
                 if (result != APIBank.BankResult.SUCCESSFUL){
                     msg(sender,"§c出金エラーが発生しました")
                     vault.deposit(sender.uniqueId,fixedAmount)
-                    return@execute
+                    return@launch
                 }
-                vault.deposit(sender.uniqueId,fixedAmount)
-                msg(sender,"§e出金できました！")
+
+                Bukkit.getScheduler().runTask(instance, Runnable {
+                    vault.deposit(sender.uniqueId,fixedAmount)
+                    msg(sender,"§e出金できました！")
+                })
             }
         }
 

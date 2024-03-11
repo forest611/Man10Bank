@@ -1,5 +1,8 @@
 package red.man10.man10bank.bank
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -21,8 +24,9 @@ object BankEvent : Listener{
     fun login(e: PlayerJoinEvent){
         val p = e.player
 
-        Thread{
-            Thread.sleep(3000)
+        Man10Bank.coroutineScope.launch(Dispatchers.Default) {
+            delay(3000)
+
             BankCommand.asyncShowBalance(p, p.uniqueId)
 
             //OPに対しては、ログイン時に稼働状況を表示
@@ -31,7 +35,7 @@ object BankEvent : Listener{
                     e.player.performCommand("bankstatus")
                 })
             }
-        }.start()
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

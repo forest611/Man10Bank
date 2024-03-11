@@ -8,33 +8,27 @@ object APICheque {
     private const val PATH = "/cheque/"
 
     suspend fun create(uuid: UUID, amount: Double, note: String): Int {
-        var id = 0
-        APIBase.get("${PATH}create?uuid=${uuid}&amount=$amount&note=${note}"){
+        APIBase.get("${PATH}create?uuid=${uuid}&amount=$amount&note=${note}").use{
             if (it.code != 200){
-                return@get
+                return 0
             }
-            id = it.body?.string()?.toIntOrNull()?:0
+            return it.body?.string()?.toIntOrNull()?:0
         }
-        return id
     }
 
     suspend fun use(id: Int,p:Player):Double{
-        var amount = 0.0
-        APIBase.get("${PATH}use?uuid=${p.uniqueId}&id=${id}"){
+        APIBase.get("${PATH}use?uuid=${p.uniqueId}&id=${id}").use{
             if (it.code != 200){
-                return@get
+                return 0.0
             }
-            amount = it.body?.string()?.toDoubleOrNull()?:0.0
+            return it.body?.string()?.toDoubleOrNull()?:0.0
         }
-        return amount
     }
 
     suspend fun amount(id:Int):Double{
-        var amount = 0.0
-        APIBase.get("${PATH}amount?id=${id}"){
-            amount = it.body?.string()?.toDoubleOrNull()?:0.0
+        APIBase.get("${PATH}amount?id=${id}").use{
+            return it.body?.string()?.toDoubleOrNull()?:0.0
         }
-        return amount
     }
 
 }

@@ -1,5 +1,8 @@
 package red.man10.man10bank.bank
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent
 import org.bukkit.Bukkit
@@ -8,7 +11,7 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
-import red.man10.man10bank.Man10Bank.Companion.threadPool
+import red.man10.man10bank.Man10Bank.Companion.coroutineScope
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APIBank
@@ -66,11 +69,11 @@ object BankCommand : CommandExecutor{
             "user" ->{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
-                threadPool.execute {
+                coroutineScope.launch {
                     val uuid = APIBank.getUUID(args[1])
                     if (uuid == null){
                         msg(sender,"ログイン履歴がない可能性があります")
-                        return@execute
+                        return@launch
                     }
                     asyncShowBalance(sender,uuid)
                 }
@@ -80,11 +83,11 @@ object BankCommand : CommandExecutor{
                 if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
                 val page  = if (args.size == 2) 0 else args[2].toIntOrNull()?:0
-                threadPool.execute {
+                coroutineScope.launch {
                     val uuid = APIBank.getUUID(args[1])
                     if (uuid == null){
                         msg(sender,"プレイヤーが見つかりません")
-                        return@execute
+                        return@launch
                     }
                     asyncShowLog(uuid,sender,page)
                 }
@@ -98,13 +101,7 @@ object BankCommand : CommandExecutor{
                     return true
                 }
 
-                val uuid = APIBank.getUUID(args[1])
                 val amount = Utility.fixedPerse(args[2])
-
-                if (uuid == null){
-                    msg(sender,"ユーザーが見つかりませんでした")
-                    return true
-                }
 
                 if (amount==null){
                     msg(sender,"§c§l数字で入力してください！")
@@ -116,7 +113,15 @@ object BankCommand : CommandExecutor{
                     return true
                 }
 
-                threadPool.execute {
+                coroutineScope.launch {
+
+                    val uuid = APIBank.getUUID(args[1])
+
+                    if (uuid == null){
+                        msg(sender,"ユーザーが見つかりませんでした")
+                        return@launch
+                    }
+
                     val result = APIBank.addBalance(APIBank.TransactionData(
                         uuid.toString(),
                         amount,
@@ -127,7 +132,7 @@ object BankCommand : CommandExecutor{
 
                     if (result != APIBank.BankResult.SUCCESSFUL){
                         msg(sender,"§c入金エラーが発生しました")
-                        return@execute
+                        return@launch
                     }
                     msg(sender,"§e入金できました！")
                 }
@@ -142,12 +147,6 @@ object BankCommand : CommandExecutor{
                 }
 
                 val amount = Utility.fixedPerse(args[2])
-                val uuid = APIBank.getUUID(args[1])
-
-                if (uuid == null){
-                    msg(sender,"ユーザーが見つかりませんでした")
-                    return true
-                }
 
                 if (amount==null){
                     msg(sender,"§c§l数字で入力してください！")
@@ -159,7 +158,15 @@ object BankCommand : CommandExecutor{
                     return true
                 }
 
-                threadPool.execute {
+
+                coroutineScope.launch {
+                    val uuid = APIBank.getUUID(args[1])
+
+                    if (uuid == null){
+                        msg(sender,"ユーザーが見つかりませんでした")
+                        return@launch
+                    }
+
                     val result = APIBank.takeBalance(APIBank.TransactionData(
                         uuid.toString(),
                         amount,
@@ -170,7 +177,7 @@ object BankCommand : CommandExecutor{
 
                     if (result != APIBank.BankResult.SUCCESSFUL){
                         msg(sender,"§c出金エラーが発生しました")
-                        return@execute
+                        return@launch
                     }
                     msg(sender,"§e出金できました！")
                 }
@@ -185,12 +192,6 @@ object BankCommand : CommandExecutor{
                 }
 
                 val amount = Utility.fixedPerse(args[2])
-                val uuid = APIBank.getUUID(args[1])
-
-                if (uuid == null){
-                    msg(sender,"ユーザーが見つかりませんでした")
-                    return true
-                }
 
                 if (amount==null){
                     msg(sender,"§c§l数字で入力してください！")
@@ -202,7 +203,14 @@ object BankCommand : CommandExecutor{
                     return true
                 }
 
-                threadPool.execute {
+                coroutineScope.launch {
+                    val uuid = APIBank.getUUID(args[1])
+
+                    if (uuid == null){
+                        msg(sender,"ユーザーが見つかりませんでした")
+                        return@launch
+                    }
+
                     APIBank.setBalance(APIBank.TransactionData(
                         uuid.toString(),
                         amount,
@@ -211,23 +219,9 @@ object BankCommand : CommandExecutor{
                         "サーバーによる設定"
                     ))
 
-                    msg(sender,"§e設定できました！")
+                    msg(sender,"§e設定完了！")
                 }
             }
-
-//            "on" ->{
-//                if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
-//
-//                msg(sender,"銀行をオープンしました")
-//            }
-//
-//            "off" ->{
-//                if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
-//                Man10Bank.close()
-//                msg(sender,"銀行をクローズしました")
-//            }
-
-
         }
 
 
@@ -236,29 +230,26 @@ object BankCommand : CommandExecutor{
 
     fun asyncShowBalance(sender: CommandSender, uuid:UUID){
 
-        threadPool.execute {
+        coroutineScope.launch (Dispatchers.IO) {
             val p = Bukkit.getPlayer(uuid)
 
             if (p == null){
                 EstateHistory.asyncShowEstate(sender,uuid)
-                return@execute
+                return@launch
             }
 
-            val revoInfo = APIServerLoan.getInfo(p.uniqueId)
+            val revoInfoDeferred = async { APIServerLoan.getInfo(p.uniqueId) }
+            val bankAmountDeferred = async { APIBank.getBalance(p.uniqueId) }
+            val nextDateDeferred = async { APIServerLoan.nextPayDate(p.uniqueId) }
 
-            val bankAmount = APIBank.getBalance(p.uniqueId)
-
-            if (bankAmount == -1.0){
-                APIBank.createBank(uuid)
-                msg(sender,"§e§l銀行口座を開設しました！")
-                return@execute
-            }
+            val revoInfo = revoInfoDeferred.await()
+            val bankAmount = bankAmountDeferred.await()
+            val nextDate = nextDateDeferred.await()
 
             val loan = revoInfo?.borrow_amount?:0.0
             val payment =revoInfo?.payment_amount?:0.0
             val failed = revoInfo?.failed_payment?:0
-            val nextDate = APIServerLoan.nextPayDate(p.uniqueId)
-            val score = APIBank.getScore(p.uniqueId)
+//            val score = APIBank.getScore(p.uniqueId)
             val balance = vault.getBalance(p.uniqueId)
             val cash = ATM.getCash(p)
 //            val estate = APIHistory.getUserEstate(p.uniqueId)?.estete?:0.0
@@ -273,7 +264,7 @@ object BankCommand : CommandExecutor{
             if (cash>0.0){ msg(sender," §b§l現金:  §e§l${format(cash)}円") }
             if (estate>0.0){ msg(sender," §b§lその他の資産:  §e§l${format(estate)}円") }
 
-            msg(sender," §b§lスコア: §a§l${format(score.toDouble())}")
+//            msg(sender," §b§lスコア: §a§l${format(score.toDouble())}")
 
             if (loan!=0.0 && nextDate!=null){
                 msg(sender," §b§lまんじゅうリボ:  §c§l${format(loan)}円")
@@ -284,7 +275,6 @@ object BankCommand : CommandExecutor{
                 }
             }
             sender.sendMessage(text("$prefix §a§l§n[ここをクリックでコマンドをみる]").clickEvent(ClickEvent.runCommand("/bank help")))
-
         }
 
     }
@@ -309,7 +299,7 @@ object BankCommand : CommandExecutor{
 
     private fun asyncShowLog(uuid:UUID, sender:CommandSender, page:Int){
 
-        threadPool.execute {
+        coroutineScope.launch {
             val skip = page*10
             val log = APIBank.getLog(uuid,10,skip)
             val mcid = Bukkit.getOfflinePlayer(uuid).name
@@ -337,17 +327,23 @@ object BankCommand : CommandExecutor{
     }
 
     private fun asyncShowBalanceSheet(uuid: UUID,sender: CommandSender){
-        threadPool.execute {
-            val estate = APIHistory.getUserEstate(uuid)
+        coroutineScope.launch {
+            val estateDeferred = async { APIHistory.getUserEstate(uuid) }
+            val vaultDeferred = async { vault.getBalance(uuid) }
+            val bankDeferred = async { APIBank.getBalance(uuid) }
+            val serverLoanDeferred = async { APIServerLoan.getInfo(uuid)?.borrow_amount?:0.0 }
+            val localLoanDeferred = async { APILocalLoan.totalLoan(uuid) }
+
+            val estate = estateDeferred.await()
+            val vault = vaultDeferred.await()
+            val bank = bankDeferred.await()
+            val serverLoan = serverLoanDeferred.await()
+            val localLoan = localLoanDeferred.await()
+
             val p = Bukkit.getOfflinePlayer(uuid)
             val mcid = p.name
-
-            val vault = vault.getBalance(uuid)
-            val bank = APIBank.getBalance(uuid)
-            val items = estate?.estete?:0.0
-            val cash = if (p.isOnline) ATM.getCash(p.player!!) else estate?.cash?:0.0
-            val serverLoan = APIServerLoan.getInfo(uuid)?.borrow_amount?:0.0
-            val localLoan = APILocalLoan.totalLoan(uuid)
+            val items = estate?.estete ?: 0.0
+            val cash = if (p.isOnline) ATM.getCash(p.player!!) else estate?.cash ?: 0.0
 
             val assets = vault+bank+items+cash
             val liability = localLoan + serverLoan

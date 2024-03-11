@@ -1,6 +1,10 @@
 package red.man10.man10bank.api
 
 import com.google.gson.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
@@ -33,11 +37,9 @@ object APIBase {
     private lateinit var credential : String
     private var enable = false
 
-
     //      POST
-    suspend fun post(path: String,body: RequestBody? = null,callback : (Response) -> Unit){
-
-        if (!enable)return
+    suspend fun post(path: String,body: RequestBody? = null):Response{
+        if (!enable) throw IllegalStateException("サーバーに問題あり")
 
         loggerDebug("PostRequest:${path}")
 
@@ -54,23 +56,28 @@ object APIBase {
                 .build()
         }
 
-        client.newCall(request).execute().use {
-            if (it.code == 500){
-                disable()
-                throw RuntimeException("Man10BankServerのエラーの可能性 修正後にリロードをしてください")
+        return withContext(Dispatchers.IO){
+            val response = client.newCall(request).execute()
+
+            when(response.code){
+                500 -> {
+                    disable()
+                    throw RuntimeException("Man10BankServerのエラーの可能性 修正後にリロードをしてください")
+                }
+                401 -> {
+                    disable()
+                    throw AuthenticationException("Httpの認証に問題あり 修正後にリロードをしてください")
+                }
+                else -> {
+                    loggerDebug("Code:${response.code} Body:${response.body?.string()}")
+                    response
+                }
             }
-            if (it.code == 401){
-                disable()
-                throw AuthenticationException("Httpの認証に問題あり 修正後にリロードをしてください")
-            }
-            callback.invoke(it)
-            loggerDebug("Code:${it.code} Body:${it.body?.string()}")
         }
     }
 
-    suspend fun get(path: String,callback: (Response) -> Unit){
-
-        if (!enable)return
+    suspend fun get(path: String) : Response{
+        if (!enable)throw IllegalStateException("サーバーに問題あり")
 
         loggerDebug("GetRequest:${path}")
 
@@ -79,23 +86,27 @@ object APIBase {
             .addHeader("Authorization", credential)
             .build()
 
-        client.newCall(request).execute().use {
-            if (it.code == 500){
-                disable()
-                throw RuntimeException("Man10BankServerのエラーの可能性 修正後にリロードをしてください")
+        return withContext(Dispatchers.IO){
+            val response = client.newCall(request).execute()
+            when(response.code){
+                500 -> {
+                    disable()
+                    throw RuntimeException("Man10BankServerのエラーの可能性 修正後にリロードをしてください")
+                }
+                401 -> {
+                    disable()
+                    throw AuthenticationException("Httpの認証に問題あり 修正後にリロードをしてください")
+                }
+                else -> {
+                    loggerDebug("Code:${response.code} Body:${response.body?.string()}")
+                    response
+                }
             }
-            if (it.code == 401){
-                disable()
-                throw AuthenticationException("Httpの認証に問題あり 修正後にリロードをしてください")
-            }
-
-            callback.invoke(it)
-            loggerDebug("Code:${it.code} Body:${it.body?.string()}")
         }
     }
 
     //      接続  接続に成功したらtrueを返す
-    fun setup(){
+    fun setup() = Man10Bank.coroutineScope.launch{
 
         setupGson()
 
@@ -126,7 +137,7 @@ object APIBase {
 
         Man10Bank.instance.reloadConfig()
         credential = Credentials.basic(userName, password)
-        val status = APIStatus.getStatus()
+        val status = async { APIStatus.getStatus() }.await()
 
         if (!status.enableAccessUserServer){
             enable = false

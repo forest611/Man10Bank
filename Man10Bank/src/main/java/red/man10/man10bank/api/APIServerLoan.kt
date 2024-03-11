@@ -2,6 +2,7 @@ package red.man10.man10bank.api
 
 import red.man10.man10bank.api.APIBase.get
 import red.man10.man10bank.api.APIBase.gson
+import red.man10.man10bank.api.APIBase.post
 import java.time.LocalDateTime
 import java.util.*
 
@@ -10,70 +11,79 @@ object APIServerLoan {
     private const val PATH = "/serverloan/"
 
     suspend fun getBorrowableAmount(uuid: UUID):Double{
-        var amount = 0.0
-        get("${PATH}borrowable-amount?uuid=${uuid}"){
-            amount = it.body?.string()?.toDoubleOrNull()?:0.0
+        get("${PATH}borrowable-amount?uuid=${uuid}").use{
+            return it.body?.string()?.toDoubleOrNull()?:0.0
         }
-        return amount
     }
 
     suspend fun isLoser(uuid: UUID):Boolean{
-        var result = false
-        get("${PATH}is-loser?uuid=${uuid}"){
-            result = it.body?.string()?.toBooleanStrictOrNull()?:false
+        get("${PATH}is-loser?uuid=${uuid}").use{
+            return it.body?.string()?.toBooleanStrictOrNull()?:false
         }
-        return result
     }
 
     suspend fun nextPayDate(uuid:UUID): LocalDateTime? {
-        var time : LocalDateTime? = null
-        get("${PATH}next-pay?uuid=${uuid}"){
-            if (it.code != 200)return@get
-            val body = it.body?.string()?:return@get
-            time = gson.fromJson(body,LocalDateTime::class.java)
+        get("${PATH}next-pay?uuid=${uuid}").use{
+            if (it.code != 200)return null
+            val body = it.body?.string()?:return null
+            return gson.fromJson(body,LocalDateTime::class.java)
         }
-        return time
     }
 
     suspend fun getInfo(uuid: UUID): ServerLoanTable? {
-        var data : ServerLoanTable? = null
-        get("${PATH}info?uuid=${uuid}"){
-            if (it.code!=200)return@get
-            val body = it.body?.string()?:return@get
-            data = gson.fromJson(body,ServerLoanTable::class.java)
+        get("${PATH}info?uuid=${uuid}").use{
+            if (it.code!=200)return null
+            val body = it.body?.string()?:return null
+            return gson.fromJson(body,ServerLoanTable::class.java)
         }
-        return data
+    }
+
+    suspend fun setPaymentAmount(uuid: UUID,amount: Double):Boolean{
+        post("${PATH}set-payment?uuid=${uuid}&amount=${amount}").use {
+            return it.code == 200
+        }
+    }
+
+    suspend fun addPaymentDay(day:Int):Boolean{
+        post("${PATH}add-payment-day?day=${day}").use {
+            return it.code == 200
+        }
     }
 
     //お金を借りる
-    suspend fun borrow(uuid: UUID,amount:Double):String{
-        var result = "Null"
-        get("${PATH}borrow?uuid=${uuid}&amount=${amount}"){
-            result = it.body?.string()?:"Null"
+    suspend fun borrow(uuid: UUID,amount:Double):BorrowResult{
+        get("${PATH}borrow?uuid=${uuid}&amount=${amount}").use{
+            when(it.body?.string()?:"Null"){
+                "Failed" -> return BorrowResult.FAILED
+                "Success" -> return BorrowResult.SUCCESS
+                "FirstSuccess" -> return BorrowResult.FIRST_SUCCESS
+                else -> return BorrowResult.FAILED
+            }
         }
-        return result
     }
 
     /**
      * リボを支払う
      */
-    suspend fun pay(uuid: UUID,amount: Double): String {
-        var result = "Null"
-        get("${PATH}pay?uuid=${uuid}&amount=${amount}"){
-            result = it.body?.string()?:"Null"
+    suspend fun pay(uuid: UUID,amount: Double): PaymentResult {
+        get("${PATH}pay?uuid=${uuid}&amount=${amount}").use{
+            when(it.body?.string()){
+                "Success" -> return PaymentResult.SUCCESS
+                "NotEnoughMoney" -> return PaymentResult.NOT_ENOUGH_MONEY
+                "NotLoan" -> return PaymentResult.NOT_LOAN
+                else -> return PaymentResult.NOT_LOAN
+            }
         }
-        return result
     }
 
     /**
      * リボの設定値の取得
      */
     suspend fun property():ServerLoanProperty{
-        var result = ""
-        get("${PATH}property"){
-            result = it.body?.string()?:""
+        get("${PATH}property").use{
+            val result = it.body?.string()?:""
+            return gson.fromJson(result,ServerLoanProperty::class.java)
         }
-        return gson.fromJson(result,ServerLoanProperty::class.java)
     }
 
     data class ServerLoanTable(
@@ -95,5 +105,17 @@ object APIServerLoan {
         var minimumAmount:Double,
         var maximumAmount:Double
     )
+
+    enum class BorrowResult{
+        FAILED,
+        FIRST_SUCCESS,
+        SUCCESS
+    }
+
+    enum class PaymentResult{
+        SUCCESS,
+        NOT_ENOUGH_MONEY,
+        NOT_LOAN
+    }
 
 }

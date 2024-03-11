@@ -13,88 +13,84 @@ object APIBank {
     private const val PATH = "/bank/"
 
     suspend fun getUUID(name:String):UUID?{
-        var uuid : UUID? = null
-        get(PATH+"uuid?name=${name}"){
-            if (it.code != 200)return@get
-            uuid = UUID.fromString(it.body?.string())
+        get(PATH+"uuid?name=${name}").use {
+            val body = it.body?.string()?:return null
+            return UUID.fromString(body)
         }
-        return uuid
     }
     suspend fun getBalance(uuid: UUID): Double {
-        var balance = 0.0
-        get(PATH+"get?uuid=${uuid}"){
+        get(PATH+"get?uuid=${uuid}").use{
             if (it.code != 200){
-                balance = -1.0
-                return@get
+                return 0.0
             }
-            balance = it.body?.string()?.toDoubleOrNull()?:0.0
+            return it.body?.string()?.toDoubleOrNull()?:0.0
         }
-        return balance
     }
 
     suspend fun addBalance(data: TransactionData): BankResult {
         val body = gson.toJson(data).toRequestBody(mediaType)
-        var result : BankResult = BankResult.UNKNOWN_STATUS_CODE
-        post(PATH + "add",body){
+        post(PATH + "add",body).use{
             when(it.code){
                 200 -> {
-                    result = BankResult.SUCCESSFUL
+                    return BankResult.SUCCESSFUL
                 }
                 404 -> {
-                    result = BankResult.NOT_FOUND_ACCOUNT
+                    return BankResult.NOT_FOUND_ACCOUNT
                 }
                 500 -> {
-                    result = BankResult.FAILED
+                    return BankResult.FAILED
+                }
+                else -> {
+                    return BankResult.UNKNOWN_STATUS_CODE
                 }
             }
         }
-        return result
     }
 
     suspend fun takeBalance(data: TransactionData): BankResult{
         val body = gson.toJson(data).toRequestBody(mediaType)
-        var result : BankResult = BankResult.UNKNOWN_STATUS_CODE
-        post(PATH + "take",body){
+        post(PATH + "take",body).use{
             when(it.code){
                 200 -> {
-                    result = BankResult.SUCCESSFUL
+                    return BankResult.SUCCESSFUL
                 }
                 404 -> {
-                    result = BankResult.NOT_FOUND_ACCOUNT
+                    return BankResult.NOT_FOUND_ACCOUNT
                 }
                 400 -> {
-                    result = BankResult.LACK_OF_MONEY
+                    return BankResult.LACK_OF_MONEY
+                }
+                else -> {
+                    return BankResult.UNKNOWN_STATUS_CODE
                 }
             }
         }
-        return result
     }
 
     suspend fun setBalance(data: TransactionData): BankResult{
         val body = gson.toJson(data).toRequestBody(mediaType)
-        var result : BankResult = BankResult.UNKNOWN_STATUS_CODE
-        post(PATH + "set",body){
+        post(PATH + "set",body).use{
             when(it.code){
                 200 -> {
-                    result = BankResult.SUCCESSFUL
+                    return BankResult.SUCCESSFUL
                 }
                 404 -> {
-                    result = BankResult.NOT_FOUND_ACCOUNT
+                    return BankResult.NOT_FOUND_ACCOUNT
+                }
+                else -> {
+                    return BankResult.UNKNOWN_STATUS_CODE
                 }
             }
         }
-        return result
     }
 
     suspend fun getLog(uuid: UUID, count:Int, skip:Int): Array<MoneyLog> {
-        var log : Array<MoneyLog> = arrayOf()
-        get(PATH+"log?uuid=$uuid&count=$count&skip=$skip"){
+        get(PATH+"log?uuid=$uuid&count=$count&skip=$skip").use{
             if (it.code != 200){
-                return@get
+                return arrayOf()
             }
-            log = gson.fromJson(it.body?.string()?:"", arrayOf<MoneyLog>()::class.java)
+            return gson.fromJson(it.body?.string()?:"", arrayOf<MoneyLog>()::class.java)
         }
-        return log
     }
 
     data class TransactionData(
