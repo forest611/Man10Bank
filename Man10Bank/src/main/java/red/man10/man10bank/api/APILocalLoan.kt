@@ -1,38 +1,56 @@
 package red.man10.man10bank.api
 
 import okhttp3.RequestBody.Companion.toRequestBody
-import red.man10.man10bank.api.APIBase.getRequest
+import red.man10.man10bank.api.APIBase.get
 import red.man10.man10bank.api.APIBase.gson
-import red.man10.man10bank.api.APIBase.postAndGetResponse
+import red.man10.man10bank.api.APIBase.post
 import java.time.LocalDateTime
 import java.util.UUID
 
 object APILocalLoan {
 
-    private const val apiRoute="/localloan/"
+    private const val PATH = "/localloan/"
 
     fun create(data: LocalLoanTable): Int {
-        val jsonStr = gson.toJson(data)
-        val body = jsonStr.toRequestBody(APIBase.mediaType)
-        return postAndGetResponse("${apiRoute}create", body).toIntOrNull() ?: 0
+        var id = 0
+        val body = gson.toJson(data).toRequestBody(APIBase.mediaType)
+        post("${PATH}create", body) {
+            if (it.code != 200)return@post
+            id = it.body?.string()?.toIntOrNull()?:0
+        }
+        return id
     }
 
     fun pay(id:Int,amount:Double):String{
-        return getRequest("${apiRoute}pay?id=${id}&amount=${amount}")?:"Null"
+        var result = "Null"
+        get("${PATH}pay?id=${id}&amount=${amount}"){
+            result = it.body?.string()?:"Null"
+        }
+        return result
     }
 
     fun getInfo(id:Int):LocalLoanTable?{
-        val result = getRequest("${apiRoute}get-info?id=${id}")?:return null
-        return gson.fromJson(result,LocalLoanTable::class.java)
+        var json = ""
+        get("${PATH}get-info?id=${id}"){
+            json = it.body?.string()?:""
+        }
+        return gson.fromJson(json,LocalLoanTable::class.java)
     }
 
     fun property():LocalLoanProperty{
-        val result = getRequest("${apiRoute}property")
-        return gson.fromJson(result,LocalLoanProperty::class.java)
+        var json = ""
+        get("${PATH}property"){
+            json = it.body?.string()?:""
+        }
+        return gson.fromJson(json,LocalLoanProperty::class.java)
     }
 
     fun totalLoan(uuid: UUID):Double{
-        return getRequest("${apiRoute}total-loan")?.toDoubleOrNull()?:0.0
+        var amount = 0.0
+        get("${PATH}total-loan?uuid=${uuid}"){
+            amount = it.body?.string()?.toDoubleOrNull()?:0.0
+        }
+        return amount
     }
 
     data class LocalLoanTable(

@@ -1,65 +1,78 @@
 package red.man10.man10bank.api
 
-import okhttp3.RequestBody.Companion.toRequestBody
-import red.man10.man10bank.api.APIBase.getRequest
+import red.man10.man10bank.api.APIBase.get
 import red.man10.man10bank.api.APIBase.gson
-import red.man10.man10bank.api.APIBase.postRequest
 import java.time.LocalDateTime
 import java.util.*
 
 object APIServerLoan {
 
-    private const val apiRoute = "/serverloan/"
+    private const val PATH = "/serverloan/"
 
     fun getBorrowableAmount(uuid: UUID):Double{
-        val result = getRequest("${apiRoute}borrowable-amount?uuid=${uuid}")
-        return result?.toDoubleOrNull()?:-1.0
+        var amount = 0.0
+        get("${PATH}borrowable-amount?uuid=${uuid}"){
+            amount = it.body?.string()?.toDoubleOrNull()?:0.0
+        }
+        return amount
     }
 
     fun isLoser(uuid: UUID):Boolean{
-        val result = getRequest("${apiRoute}is-loser?uuid=${uuid}")
-        return result?.toBooleanStrictOrNull()?:false
+        var result = false
+        get("${PATH}is-loser?uuid=${uuid}"){
+            result = it.body?.string()?.toBooleanStrictOrNull()?:false
+        }
+        return result
     }
 
     fun nextPayDate(uuid:UUID): LocalDateTime? {
-        val result = getRequest("${apiRoute}next-pay?uuid=${uuid}")?:return null
-        return gson.fromJson(result,LocalDateTime::class.java)
+        var time : LocalDateTime? = null
+        get("${PATH}next-pay?uuid=${uuid}"){
+            if (it.code != 200)return@get
+            val body = it.body?.string()?:return@get
+            time = gson.fromJson(body,LocalDateTime::class.java)
+        }
+        return time
     }
 
     fun getInfo(uuid: UUID): ServerLoanTable? {
-        val result = getRequest("${apiRoute}get-info?uuid=${uuid}")?:return null
-        return gson.fromJson(result,ServerLoanTable::class.java)
-    }
-
-    fun setInfo(data: ServerLoanTable): APIBank.BankResult {
-        val jsonStr = gson.toJson(data)
-        val body = jsonStr.toRequestBody(APIBase.mediaType)
-        return when(postRequest("${apiRoute}set-info", body)){
-            200 -> APIBank.BankResult.SUCCESSFUL
-            550 -> APIBank.BankResult.NOT_FOUND_ACCOUNT
-            else -> APIBank.BankResult.UNKNOWN_STATUS_CODE
+        var data : ServerLoanTable? = null
+        get("${PATH}info?uuid=${uuid}"){
+            if (it.code!=200)return@get
+            val body = it.body?.string()?:return@get
+            data = gson.fromJson(body,ServerLoanTable::class.java)
         }
+        return data
     }
 
     //お金を借りる
     fun borrow(uuid: UUID,amount:Double):String{
-        return getRequest("${apiRoute}try-borrow?uuid=${uuid}&amount=${amount}")?:"Null"
+        var result = "Null"
+        get("${PATH}borrow?uuid=${uuid}&amount=${amount}"){
+            result = it.body?.string()?:"Null"
+        }
+        return result
     }
 
     /**
      * リボを支払う
-     * 支払い成功したらtrueを返す
      */
-    fun pay(uuid: UUID,amount: Double): Boolean {
-        val result = getRequest("${apiRoute}pay?uuid=${uuid}&amount=${amount}")
-        return result?.toBooleanStrictOrNull()?:false
+    fun pay(uuid: UUID,amount: Double): String {
+        var result = "Null"
+        get("${PATH}pay?uuid=${uuid}&amount=${amount}"){
+            result = it.body?.string()?:"Null"
+        }
+        return result
     }
 
     /**
      * リボの設定値の取得
      */
     fun property():ServerLoanProperty{
-        val result = getRequest("${apiRoute}property")
+        var result = ""
+        get("${PATH}property"){
+            result = it.body?.string()?:""
+        }
         return gson.fromJson(result,ServerLoanProperty::class.java)
     }
 
