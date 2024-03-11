@@ -61,7 +61,7 @@ object DealCommand : CommandExecutor{
                     "/depositによる入金"
                 ))
 
-                if (result != APIBank.BankResult.SUCCESSFUL){
+                if (result != APIBank.BankResult.Successful){
                     msg(sender,"§c入金エラーが発生しました")
                     Bukkit.getScheduler().runTask(instance, Runnable { vault.deposit(sender.uniqueId,fixedAmount) })
                     return@launch
@@ -94,12 +94,12 @@ object DealCommand : CommandExecutor{
                     "/withdrawによる出金"
                 ))
 
-                if (result == APIBank.BankResult.LACK_OF_MONEY){
+                if (result == APIBank.BankResult.LackOfMoney){
                     msg(sender,"§c所持金が足りません")
                     return@launch
                 }
 
-                if (result != APIBank.BankResult.SUCCESSFUL){
+                if (result != APIBank.BankResult.Successful){
                     msg(sender,"§c出金エラーが発生しました")
                     vault.deposit(sender.uniqueId,fixedAmount)
                     return@launch

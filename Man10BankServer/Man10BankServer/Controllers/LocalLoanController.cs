@@ -21,7 +21,7 @@ public class LocalLoanController : ControllerBase
     public async Task<IActionResult> Pay(int id, double amount)
     {
         var result = await LocalLoan.Pay(id, new Money(amount));
-        return Ok(result);
+        return Ok(result.ToString());
     }
 
     [HttpGet("get-info")]

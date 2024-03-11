@@ -19,9 +19,13 @@ object APILocalLoan {
         }
     }
 
-    suspend fun pay(id:Int,amount:Double):String{
+    suspend fun pay(id:Int,amount:Double):PaymentResult{
         get("${PATH}pay?id=${id}&amount=${amount}").use{
-            return it.body?.string()?:"Null"
+            try {
+                return PaymentResult.valueOf(it.body?.string()?:"DataNotFound")
+            }catch (e:Exception){
+                return PaymentResult.DataNotFound
+            }
         }
     }
 
@@ -64,5 +68,13 @@ object APILocalLoan {
         var maximumInterest : Double,
         var fee : Double
     )
+
+    enum class PaymentResult{
+        DataNotFound,
+        DateError,
+        AlreadyPaid,
+        SuccessPay,
+        SuccessAllPay
+    }
 
 }

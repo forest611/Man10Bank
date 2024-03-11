@@ -110,7 +110,7 @@ object PayCommand : CommandExecutor {
                         "${mcid}へ送金"
                     ))
 
-                    if (result == APIBank.BankResult.SUCCESSFUL){
+                    if (result == APIBank.BankResult.Successful){
                         msg(sender,"§a§l送金に成功しました！(相手:${mcid} 金額:${Utility.format(amount)}円)")
                         return@launch
                     }else{
@@ -171,7 +171,7 @@ object PayCommand : CommandExecutor {
                     "${mcid}へ送金"
                 ))
 
-                if (takeResult != APIBank.BankResult.SUCCESSFUL){
+                if (takeResult != APIBank.BankResult.Successful){
                     msg(sender,"§c§l出金に失敗しました")
                     return@launch
                 }
@@ -185,7 +185,7 @@ object PayCommand : CommandExecutor {
                         "${mcid}からの送金"
                     ))
 
-                if (addResult == APIBank.BankResult.SUCCESSFUL){
+                if (addResult == APIBank.BankResult.Successful){
                     msg(sender,"§a§l送金に成功しました！(相手:${mcid} 金額:${Utility.format(amount)}円)")
                     return@launch
                 }else{

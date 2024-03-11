@@ -55,7 +55,7 @@ public static class LocalLoan
     /// <param name="id"></param>
     /// <param name="amount"></param>
     /// <returns></returns>
-    public static async Task<string> Pay(int id,Money amount)
+    public static async Task<PaymentResult> Pay(int id,Money amount)
     {
         await Semaphore.WaitAsync();
         try
@@ -64,19 +64,19 @@ public static class LocalLoan
 
             if (data == null)
             {
-                return "DataNotFound";
+                return PaymentResult.DataNotFound;
             }
 
             //返済日になってなかった場合
             if (data.payback_date>=DateTime.Now)
             {
-                return "DateError";
+                return PaymentResult.DateError;
             }
 
             //すでに全額返済していた場合
             if (data.amount<=0)
             {
-                return "Already";
+                return PaymentResult.AlreadyPaid;
             }
 
             data.amount -= amount.Amount;
@@ -85,12 +85,12 @@ public static class LocalLoan
             {
                 data.amount = 0;
                 await Context.SaveChangesAsync();
-                return "AllPaid";
+                return PaymentResult.SuccessAllPay;
             }
 
             await Context.SaveChangesAsync();
 
-            return "Paid";
+            return PaymentResult.SuccessPay;
 
         }
         catch (Exception e)
@@ -102,7 +102,7 @@ public static class LocalLoan
             Semaphore.Release();
         }
 
-        return "DataNotFound";
+        return PaymentResult.DataNotFound;
     }
 
     public static async Task<LocalLoanTable?> GetInfo(int id)
@@ -142,5 +142,14 @@ public static class LocalLoan
         }
 
         return new Money(0);
+    }
+    
+    public enum PaymentResult
+    {
+        DataNotFound,
+        DateError,
+        AlreadyPaid,
+        SuccessPay,
+        SuccessAllPay
     }
 }

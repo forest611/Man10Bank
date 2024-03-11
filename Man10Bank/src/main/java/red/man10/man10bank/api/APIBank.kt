@@ -32,16 +32,16 @@ object APIBank {
         post(PATH + "add",body).use{
             when(it.code){
                 200 -> {
-                    return BankResult.SUCCESSFUL
+                    return BankResult.Successful
                 }
                 404 -> {
-                    return BankResult.NOT_FOUND_ACCOUNT
+                    return BankResult.NotFoundAccount
                 }
                 500 -> {
-                    return BankResult.FAILED
+                    return BankResult.Failed
                 }
                 else -> {
-                    return BankResult.UNKNOWN_STATUS_CODE
+                    return BankResult.UnknownStatusCode
                 }
             }
         }
@@ -52,16 +52,16 @@ object APIBank {
         post(PATH + "take",body).use{
             when(it.code){
                 200 -> {
-                    return BankResult.SUCCESSFUL
+                    return BankResult.Successful
                 }
                 404 -> {
-                    return BankResult.NOT_FOUND_ACCOUNT
+                    return BankResult.NotFoundAccount
                 }
                 400 -> {
-                    return BankResult.LACK_OF_MONEY
+                    return BankResult.LackOfMoney
                 }
                 else -> {
-                    return BankResult.UNKNOWN_STATUS_CODE
+                    return BankResult.UnknownStatusCode
                 }
             }
         }
@@ -72,13 +72,13 @@ object APIBank {
         post(PATH + "set",body).use{
             when(it.code){
                 200 -> {
-                    return BankResult.SUCCESSFUL
+                    return BankResult.Successful
                 }
                 404 -> {
-                    return BankResult.NOT_FOUND_ACCOUNT
+                    return BankResult.NotFoundAccount
                 }
                 else -> {
-                    return BankResult.UNKNOWN_STATUS_CODE
+                    return BankResult.UnknownStatusCode
                 }
             }
         }
@@ -115,10 +115,10 @@ object APIBank {
     )
 
     enum class BankResult{
-        SUCCESSFUL,
-        NOT_FOUND_ACCOUNT,
-        LACK_OF_MONEY,
-        UNKNOWN_STATUS_CODE,
-        FAILED
+        Successful,
+        NotFoundAccount,
+        LackOfMoney,
+        UnknownStatusCode,
+        Failed
     }
 }

@@ -57,11 +57,12 @@ object LocalLoan: Listener,CommandExecutor{
             return
         }
 
-        val paybackDate = calcDue(due)
+        //返済日
+        val paybackDate = LocalDateTime.now().plusDays(due.toLong())
         //返済額=貸出額+(貸出額x利子x日数)
         val payment = amount + (amount * interest * due)
 
-        val ret = APILocalLoan.create(
+        val result = APILocalLoan.create(
             APILocalLoan.LocalLoanTable(
             0,
             lender.name,
@@ -74,14 +75,14 @@ object LocalLoan: Listener,CommandExecutor{
         ))
 
         //サーバーへの問い合わせ失敗や発行失敗
-        if (ret<=0){
+        if (result<=0){
             msg(lender,"手形の発行に失敗。銀行への問い合わせができませんでした")
             msg(borrower,"手形の発行に失敗。銀行への問い合わせができませんでした")
             vault.deposit(lender.uniqueId, withdrawAmount)
             return
         }
 
-        val note = getNote(ret)
+        val note = getNote(result)
 
         //手形の発行失敗
         if (note == null){
@@ -127,13 +128,6 @@ object LocalLoan: Listener,CommandExecutor{
         return note
     }
 
-    private fun calcDue(day:Int,borrow:LocalDateTime = LocalDateTime.now()):LocalDateTime{
-        borrow.plusDays(day.toLong())
-//        val calender = Calendar.getInstance()
-//        calender.time = borrow
-//        calender.add(Calendar.DAY_OF_YEAR,day)
-        return borrow
-    }
 
     @EventHandler
     fun asyncUseNote(e:PlayerInteractEvent){
@@ -182,14 +176,14 @@ object LocalLoan: Listener,CommandExecutor{
                     takeFromBank,
                     instance.name,
                     "paybackmoney",
-                    "借金の返済")) == APIBank.BankResult.SUCCESSFUL){
+                    "借金の返済")) == APIBank.BankResult.Successful){
                 paidMoney += takeFromBank
             }
 
             val borrow = Bukkit.getPlayer(borrowUUID)
 
             when(APILocalLoan.pay(id,paidMoney)){
-                "Paid"->{
+                APILocalLoan.PaymentResult.SuccessPay->{
                     msg(user,"${data.borrow_player}から${format(paidMoney)}円の回収を行いました")
                     vault.deposit(user.uniqueId,paidMoney)
 
@@ -199,7 +193,7 @@ object LocalLoan: Listener,CommandExecutor{
                     }
                 }
 
-                "AllPaid"->{
+                APILocalLoan.PaymentResult.SuccessAllPay->{
                     val diff = paidMoney - data.amount
 
                     if (borrow != null) {
@@ -213,7 +207,7 @@ object LocalLoan: Listener,CommandExecutor{
 
                 }
 
-                "Already" ->{
+                APILocalLoan.PaymentResult.AlreadyPaid ->{
                     msg(user,"この借金は回収済みです")
                 }
 
@@ -255,6 +249,7 @@ object LocalLoan: Listener,CommandExecutor{
             return false
         }
 
+        //ヘルプメッセージ
         if (args.isNullOrEmpty()){
             msg(sender,"§a/mlend <貸す相手> <金額> <返済日(日)> " +
                     "<金利(1日ごと)${format(property.minimumInterest,1)}〜${format(property.maximumInterest,1)}>")
@@ -358,7 +353,7 @@ object LocalLoan: Listener,CommandExecutor{
         msg(borrower,"§e貸し出す人:${sender.name}")
         msg(borrower,"§e貸し出される金額:${format(fixedAmount)}")
         msg(borrower,"§e返す金額:${format(fixedAmount + (fixedAmount * interest * due))}")
-        msg(borrower,"§e返す日:$${calcDue(due).format(DateTimeFormatter.ISO_LOCAL_DATE)}")
+        msg(borrower,"§e返す日:$${LocalDateTime.now().plusDays(due.toLong()).format(DateTimeFormatter.ISO_LOCAL_DATE)}")
         borrower.sendMessage(allowOrDeny)
         msg(borrower,"§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
         return true

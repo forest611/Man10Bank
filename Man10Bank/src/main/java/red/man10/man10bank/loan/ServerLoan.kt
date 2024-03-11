@@ -41,9 +41,9 @@ object ServerLoan : CommandExecutor{
             msg(p,"§a§lあなたはリボを利用したことがありません")
             return
         }
-        val ret = APIServerLoan.setPaymentAmount(p.uniqueId,amount)
+        val result = APIServerLoan.setPaymentAmount(p.uniqueId,amount)
 
-        if (ret){
+        if (result){
             msg(p,"§e§l支払額を${format(data.payment_amount)}円に変更しました")
             return
         }
@@ -51,8 +51,8 @@ object ServerLoan : CommandExecutor{
     }
 
     private suspend fun addPaymentDay(p:Player,day:Int){
-        val ret = APIServerLoan.addPaymentDay(day)
-        if (ret){
+        val result = APIServerLoan.addPaymentDay(day)
+        if (result){
             msg(p,"設定完了")
             return
         }
@@ -114,12 +114,12 @@ object ServerLoan : CommandExecutor{
 
         val ret = APIServerLoan.borrow(p.uniqueId,amount)
 
-        if (ret == APIServerLoan.BorrowResult.FAILED){
+        if (ret == APIServerLoan.BorrowResult.Failed){
             msg(p,"§c§lリボの借入に失敗しました！")
             return
         }
 
-        if (ret == APIServerLoan.BorrowResult.FIRST_SUCCESS){
+        if (ret == APIServerLoan.BorrowResult.FirstSuccess){
             msg(p,"""
                 §e§l[重要] 返済について
                 §c§lMan10リボは、借りた日から${property.paymentInterval}日ずつ銀行から引き落とされます
@@ -137,14 +137,14 @@ object ServerLoan : CommandExecutor{
         val result = APIServerLoan.pay(p.uniqueId,amount)
 
         when(result){
-            APIServerLoan.PaymentResult.NOT_LOAN -> {
+            APIServerLoan.PaymentResult.NotLoan -> {
                 msg(p,"あなたは借金をしていません")
 
             }
-            APIServerLoan.PaymentResult.SUCCESS -> {
+            APIServerLoan.PaymentResult.Success -> {
                 msg(p,"§a§l支払い成功！")
             }
-            APIServerLoan.PaymentResult.NOT_ENOUGH_MONEY ->{
+            APIServerLoan.PaymentResult.NotEnoughMoney ->{
                 msg(p,"§c§l支払い失敗！銀行の残高が足りない可能性があります")
             }
         }
@@ -159,11 +159,6 @@ object ServerLoan : CommandExecutor{
         if (sender !is Player){
             return true
         }
-
-//        if (!Status.enableServerLoan){
-//            msg(sender,"現在メンテナンスによりMan10リボは行えません")
-//            return false
-//        }
 
         if (args.isNullOrEmpty()){
 
@@ -197,28 +192,6 @@ object ServerLoan : CommandExecutor{
                     checkAmount(sender)
                 }
             }
-
-            "checkop" ->{
-
-                if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
-                //TODO:
-
-            }
-
-//            "share" ->{
-//
-//                val amount = ServerLoan.shareMap[sender]?:-1.0
-//
-//                if (amount == -1.0){
-//                    sender.sendMessage("あなたは貸し出し可能金額の審査をしておりません！")
-//                    return true
-//                }
-//
-//                Bukkit.broadcast(Component.text("${prefix}§b§l${sender.name}§a§lさんの公的ローン貸し出し可能金額は" +
-//                        "・・・§e§l${format(amount)}円§a§lです！"))
-//
-//                ServerLoan.shareMap.remove(sender)
-//            }
 
             "borrow" ->{
 

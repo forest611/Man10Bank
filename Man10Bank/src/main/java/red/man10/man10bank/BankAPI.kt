@@ -26,7 +26,7 @@ class BankAPI(private val plugin: JavaPlugin) {
             displayNote
         ))
 
-        return result == APIBank.BankResult.SUCCESSFUL
+        return result == APIBank.BankResult.Successful
     }
 
     /**
@@ -42,7 +42,7 @@ class BankAPI(private val plugin: JavaPlugin) {
             displayNote
         ))
 
-        return result == APIBank.BankResult.SUCCESSFUL
+        return result == APIBank.BankResult.Successful
     }
 
     /**

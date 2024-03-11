@@ -55,15 +55,17 @@ object StatusManager : CommandExecutor{
         if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return false
         if (args.isNullOrEmpty()){
             msg(sender,"現在の稼働状況")
+            msg(sender,"BankServer:${status.enableAccessUserServer}")
             msg(sender,"===================================")
-            msg(sender,"${StatusName.DEAL_BANK.name}:${status.enableDealBank}")
-            msg(sender,"${StatusName.ATM.name}:${status.enableATM}")
-            msg(sender,"${StatusName.CHEQUE.name}:${status.enableCheque}")
-            msg(sender,"${StatusName.SERVER_LOAN.name}:${status.enableServerLoan}")
-            msg(sender,"${StatusName.LOCAL_LOAN.name}:${status.enableLocalLoan}")
+            msg(sender,"${StatusName.DealBank.name}:${status.enableDealBank}")
+            msg(sender,"${StatusName.Atm.name}:${status.enableATM}")
+            msg(sender,"${StatusName.Cheque.name}:${status.enableCheque}")
+            msg(sender,"${StatusName.ServerLoan.name}:${status.enableServerLoan}")
+            msg(sender,"${StatusName.LocalLoan.name}:${status.enableLocalLoan}")
             msg(sender,"===================================")
             msg(sender,"APIServerは/bankstatus reload で再接続")
             msg(sender,"各機能は/bankstatus set <上記識別名> <true/false> でon/off切り替え")
+            msg(sender,"")
             msg(sender,"GitHub: https://github.com/forest611/Man10Bank")
             msg(sender,"Author:Jin Morikawa")
 
@@ -92,14 +94,14 @@ object StatusManager : CommandExecutor{
                 val value = args[2].toBoolean()
 
                 when(StatusName.valueOf(args[1])){
-                    StatusName.ALL -> {
+                    StatusName.All -> {
                         if (value) status.allTrue() else status.allFalse()
                     }
-                    StatusName.DEAL_BANK -> status.enableDealBank = value
-                    StatusName.ATM -> status.enableATM = value
-                    StatusName.CHEQUE -> status.enableCheque = value
-                    StatusName.LOCAL_LOAN -> status.enableLocalLoan = value
-                    StatusName.SERVER_LOAN -> status.enableServerLoan = value
+                    StatusName.DealBank -> status.enableDealBank = value
+                    StatusName.Atm -> status.enableATM = value
+                    StatusName.Cheque -> status.enableCheque = value
+                    StatusName.LocalLoan -> status.enableLocalLoan = value
+                    StatusName.ServerLoan -> status.enableServerLoan = value
 //                    else ->{
 //                        msg(sender,"無効なステータス")
 //                    }
@@ -117,12 +119,12 @@ object StatusManager : CommandExecutor{
     }
 
     enum class StatusName{
-        ALL,
-        DEAL_BANK,
-        ATM,
-        CHEQUE,
-        LOCAL_LOAN,
-        SERVER_LOAN,
+        All,
+        DealBank,
+        Atm,
+        Cheque,
+        LocalLoan,
+        ServerLoan,
     }
 
 }

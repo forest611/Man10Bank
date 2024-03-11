@@ -130,7 +130,7 @@ object BankCommand : CommandExecutor{
                         "サーバーから発行"
                     ))
 
-                    if (result != APIBank.BankResult.SUCCESSFUL){
+                    if (result != APIBank.BankResult.Successful){
                         msg(sender,"§c入金エラーが発生しました")
                         return@launch
                     }
@@ -175,7 +175,7 @@ object BankCommand : CommandExecutor{
                         "サーバーから徴収"
                     ))
 
-                    if (result != APIBank.BankResult.SUCCESSFUL){
+                    if (result != APIBank.BankResult.Successful){
                         msg(sender,"§c出金エラーが発生しました")
                         return@launch
                     }

@@ -53,11 +53,10 @@ object APIServerLoan {
     //お金を借りる
     suspend fun borrow(uuid: UUID,amount:Double):BorrowResult{
         get("${PATH}borrow?uuid=${uuid}&amount=${amount}").use{
-            when(it.body?.string()?:"Null"){
-                "Failed" -> return BorrowResult.FAILED
-                "Success" -> return BorrowResult.SUCCESS
-                "FirstSuccess" -> return BorrowResult.FIRST_SUCCESS
-                else -> return BorrowResult.FAILED
+            try {
+                return BorrowResult.valueOf(it.body?.string()?:"Failed")
+            }catch (e:Exception){
+                return BorrowResult.Failed
             }
         }
     }
@@ -67,11 +66,10 @@ object APIServerLoan {
      */
     suspend fun pay(uuid: UUID,amount: Double): PaymentResult {
         get("${PATH}pay?uuid=${uuid}&amount=${amount}").use{
-            when(it.body?.string()){
-                "Success" -> return PaymentResult.SUCCESS
-                "NotEnoughMoney" -> return PaymentResult.NOT_ENOUGH_MONEY
-                "NotLoan" -> return PaymentResult.NOT_LOAN
-                else -> return PaymentResult.NOT_LOAN
+            try {
+                return PaymentResult.valueOf(it.body?.string()?:"NotLoan")
+            }catch (e:Exception){
+                return PaymentResult.NotLoan
             }
         }
     }
@@ -107,15 +105,15 @@ object APIServerLoan {
     )
 
     enum class BorrowResult{
-        FAILED,
-        FIRST_SUCCESS,
-        SUCCESS
+        Failed,
+        Success,
+        FirstSuccess
     }
 
     enum class PaymentResult{
-        SUCCESS,
-        NOT_ENOUGH_MONEY,
-        NOT_LOAN
+        Success,
+        NotEnoughMoney,
+        NotLoan
     }
 
 }
