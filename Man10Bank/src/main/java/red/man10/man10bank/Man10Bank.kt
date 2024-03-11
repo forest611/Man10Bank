@@ -3,6 +3,7 @@ package red.man10.man10bank
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.api.APIBase
 import red.man10.man10bank.bank.*
@@ -31,8 +32,10 @@ class Man10Bank : JavaPlugin() {
 
             StatusManager.startStatusTask()
             ATM.load()
-            ServerLoan.setup()
-            LocalLoan.setup()
+            coroutineScope.launch {
+                ServerLoan.setup()
+                LocalLoan.setup()
+            }
             return true
         }
 

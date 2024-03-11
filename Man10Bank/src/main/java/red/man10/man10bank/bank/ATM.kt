@@ -92,7 +92,7 @@ object ATM :CommandExecutor{
 
         if (vault.withdraw(p.uniqueId,amount)){
             p.inventory.addItem(moneyItems[amount]!!.clone())
-            APIHistory.addATMLog(APIHistory.ATMLog(0,p.name,p.uniqueId.toString(),amount,false, LocalDateTime.now()))
+            coroutineScope.launch { APIHistory.addATMLog(APIHistory.ATMLog(0,p.name,p.uniqueId.toString(),amount,false, LocalDateTime.now())) }
         }else{
             msg(p,"§c§l電子マネーが足りません！")
         }
