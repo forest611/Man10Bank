@@ -33,23 +33,33 @@ public class Player
         {
             return cachePlayer;
         }
-        using var response = await _client.GetAsync($"player/mcid?uuid={uuid}");
-        if (response.StatusCode == HttpStatusCode.NotFound)
-        {
-            Console.WriteLine("存在しないプレイヤー");
-            return Empty;
-        }
 
-        if (response.StatusCode != HttpStatusCode.OK)
+        try
         {
-            Console.WriteLine("UserServerへのアクセス失敗");
+            using var response = await _client.GetAsync($"player/mcid?uuid={uuid}");
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                Console.WriteLine("存在しないプレイヤー");
+                return Empty;
+            }
+
+            // if (response.StatusCode != HttpStatusCode.OK)
+            // {
+            //     Console.WriteLine("UserServerへのアクセス失敗");
+            //     return Empty;
+            // }
+        
+            var name = await response.Content.ReadAsStringAsync();
+            var newPlayer = new Player(name, uuid);
+            PlayerSet.Add(newPlayer);
+            return newPlayer;
+        }
+        //UserServerへの接続失敗
+        catch (Exception)
+        {
+            Status.NowStatus.EnableAccessUserServer = false;
             return Empty;
         }
-        
-        var body = await response.Content.ReadAsStringAsync();
-        var newPlayer = new Player(body, uuid);
-        PlayerSet.Add(newPlayer);
-        return newPlayer;
     } 
     public static async Task<Player> GetFromName(string name)
     {

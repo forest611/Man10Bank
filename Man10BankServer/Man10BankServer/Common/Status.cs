@@ -10,5 +10,6 @@ public class Status
     public bool EnableCheque { get; set; }
     public bool EnableLocalLoan { get; set; }
     public bool EnableServerLoan { get; set; }
+    public bool EnableAccessUserServer { get; set; }
 
 }

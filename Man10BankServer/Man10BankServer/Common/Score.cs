@@ -20,9 +20,18 @@ public static class Score
     
     public static async Task<int> GetScore(string uuid)
     {
-        using var response = await _client.GetAsync($"Score/get?uuid={uuid}");
-        var body = await response.Content.ReadAsStringAsync();
-        return int.Parse(body);
+        try
+        {
+            using var response = await _client.GetAsync($"Score/get?uuid={uuid}");
+            var body = await response.Content.ReadAsStringAsync();
+            return int.Parse(body);
+
+        }
+        catch (Exception)
+        {
+            Status.NowStatus.EnableAccessUserServer = false;
+            return 0;
+        }
     }
 
     /// <summary>
@@ -41,9 +50,16 @@ public static class Score
             note = note,
             issuer = ConsoleIssuer
         };
-        
-        using var content = new StringContent(JsonSerializer.Serialize(data),Encoding.UTF8);
-        await _client.PostAsync("Score/take",content);
+
+        try
+        {
+            using var content = new StringContent(JsonSerializer.Serialize(data),Encoding.UTF8);
+            await _client.PostAsync("Score/take",content);
+        }
+        catch (Exception)
+        {
+            Status.NowStatus.EnableAccessUserServer = false;
+        }
     }
 
 
