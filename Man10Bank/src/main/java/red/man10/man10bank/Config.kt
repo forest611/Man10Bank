@@ -11,7 +11,6 @@ object Config {
     private const val HTTP_PASSWORD = "HttpPassword"
 
     var debugMode = false
-    var url = ""
     var statusCheckSeconds = 0
 
     //      Configの読み込み
@@ -21,11 +20,11 @@ object Config {
         Man10Bank.instance.reloadConfig()
 
         debugMode = Man10Bank.instance.config.getBoolean(DEBUG_MODE)
-        url = Man10Bank.instance.config.getString(API_URL)?:""
         statusCheckSeconds = Man10Bank.instance.config.getInt(STATUS_CHECK_SECONDS)
 
         APIBase.userName = Man10Bank.instance.config.getString(HTTP_USER_NAME)?:"root"
         APIBase.password = Man10Bank.instance.config.getString(HTTP_PASSWORD)?:"pass"
+        APIBase.baseUrl = Man10Bank.instance.config.getString(API_URL)?:""
     }
 
 }

@@ -4,16 +4,15 @@ import com.google.gson.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import org.bukkit.Bukkit
-import red.man10.man10bank.Config
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.util.Utility.loggerDebug
-import red.man10.man10bank.util.Utility.loggerInfo
 import java.lang.reflect.Type
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
+import javax.naming.AuthenticationException
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
@@ -28,28 +27,40 @@ object APIBase {
 
     var userName = ""
     var password = ""
-    private val credential = Credentials.basic(userName, password)
+    var baseUrl = ""
+    private lateinit var credential : String
+    private var enable = false
 
 
     //      POST
     fun post(path: String,body: RequestBody? = null,callback : (Response) -> Unit){
 
+        if (!enable)return
+
         loggerDebug("PostRequest:${path}")
 
         val request = if (body!=null){
             Request.Builder()
-                .url(Config.url+path)
+                .url(baseUrl+path)
                 .addHeader("Authorization", credential)
                 .post(body)
                 .build()
         } else{
             Request.Builder()
-                .url(Config.url+path)
+                .url(baseUrl+path)
                 .addHeader("Authorization", credential)
                 .build()
         }
 
         client.newCall(request).execute().use {
+            if (it.code == 500){
+                enable = false
+                throw RuntimeException("Man10BankServerのエラーの可能性 修正後にリロードをしてください")
+            }
+            if (it.code == 401){
+                enable = false
+                throw AuthenticationException("Httpの認証に問題あり 修正後にリロードをしてください")
+            }
             callback.invoke(it)
             loggerDebug("Code:${it.code} Body:${it.body?.string()}")
         }
@@ -57,14 +68,25 @@ object APIBase {
 
     fun get(path: String,callback: (Response) -> Unit){
 
+        if (!enable)return
+
         loggerDebug("GetRequest:${path}")
 
         val request = Request.Builder()
-            .url(Config.url+path)
+            .url(baseUrl+path)
             .addHeader("Authorization", credential)
             .build()
 
         client.newCall(request).execute().use {
+            if (it.code == 500){
+                enable = false
+                throw RuntimeException("Man10BankServerのエラーの可能性 修正後にリロードをしてください")
+            }
+            if (it.code == 401){
+                enable = false
+                throw AuthenticationException("Httpの認証に問題あり 修正後にリロードをしてください")
+            }
+
             callback.invoke(it)
             loggerDebug("Code:${it.code} Body:${it.body?.string()}")
         }
@@ -101,14 +123,16 @@ object APIBase {
             .build()
 
         Man10Bank.instance.reloadConfig()
-
+        credential = Credentials.basic(userName, password)
         val status = APIStatus.getStatus()
 
         if (!status.enableAccessUserServer){
+            enable = false
             throw RuntimeException("Man10BankServerとMan10UserServerの接続ができていません！")
         }
-    }
 
+        enable = true
+    }
 
     private fun setupGson(){
         gson = GsonBuilder()
