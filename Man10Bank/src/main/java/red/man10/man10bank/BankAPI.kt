@@ -18,7 +18,7 @@ class BankAPI(private val plugin: JavaPlugin) {
      * 出金リクエストを送る
      */
     fun withdraw(uuid: UUID,amount:Double,note:String,displayNote:String):Boolean{
-        val result = APIBank.takeBank(APIBank.TransactionData(
+        val result = APIBank.takeBalance(APIBank.TransactionData(
             uuid.toString(),
             amount,
             plugin.name,
@@ -34,7 +34,7 @@ class BankAPI(private val plugin: JavaPlugin) {
      * @param ver オーバーロードのための仮引数
      */
     fun deposit(uuid: UUID,amount:Double,note:String,displayNote:String,ver:Int = 1):Boolean{
-        val result = APIBank.addBank(APIBank.TransactionData(
+        val result = APIBank.addBalance(APIBank.TransactionData(
             uuid.toString(),
             amount,
             plugin.name,
@@ -50,7 +50,7 @@ class BankAPI(private val plugin: JavaPlugin) {
      */
     @Deprecated("リターン値のあるバージョンを使用すること")
     fun deposit(uuid: UUID,amount:Double,note:String,displayNote:String){
-        APIBank.addBank(APIBank.TransactionData(
+        APIBank.addBalance(APIBank.TransactionData(
             uuid.toString(),
             amount,
             plugin.name,

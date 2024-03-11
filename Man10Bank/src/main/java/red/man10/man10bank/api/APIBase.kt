@@ -1,10 +1,8 @@
 package red.man10.man10bank.api
 
 import com.google.gson.*
+import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
 import org.bukkit.Bukkit
 import red.man10.man10bank.Config
 import red.man10.man10bank.Man10Bank
@@ -28,91 +26,52 @@ object APIBase {
     private lateinit var client : OkHttpClient
     lateinit var gson : Gson
 
+    var userName = ""
+    var password = ""
+    private val credential = Credentials.basic(userName, password)
+
+
     //      POST
-    fun postRequest(path: String, body: RequestBody? = null):Int{
+    fun post(path: String,body: RequestBody? = null,callback : (Response) -> Unit){
 
         loggerDebug("PostRequest:${path}")
 
         val request = if (body!=null){
             Request.Builder()
                 .url(Config.url+path)
+                .addHeader("Authorization", credential)
                 .post(body)
                 .build()
         } else{
             Request.Builder()
                 .url(Config.url+path)
+                .addHeader("Authorization", credential)
                 .build()
         }
 
-        var code = 0
-
-        try {
-            val response = client.newCall(request).execute()
-            code = response.code
-            response.close()
-            loggerDebug("StatusCode:${code}")
-        }catch (e:Exception){
-            Bukkit.getLogger().info(e.message)
+        client.newCall(request).execute().use {
+            callback.invoke(it)
+            loggerDebug("Code:${it.code} Body:${it.body?.string()}")
         }
-
-        return code
     }
 
-    //      POST
-    fun postAndGetResponse(path: String, body: RequestBody? = null):String{
-
-        loggerDebug("PostRequest:${path}")
-
-        val request = if (body!=null){
-            Request.Builder()
-                .url(Config.url+path)
-                .post(body)
-                .build()
-        } else{
-            Request.Builder()
-                .url(Config.url+path)
-                .build()
-        }
-
-        var result = ""
-
-        try {
-            val response = client.newCall(request).execute()
-            result = response.body?.string()?:""
-            response.close()
-            loggerDebug("ResponseBody:${result}")
-        }catch (e:Exception){
-            Bukkit.getLogger().info(e.message)
-        }
-
-        return result
-    }
-
-    //      GET
-    fun getRequest(path:String): String? {
+    fun get(path: String,callback: (Response) -> Unit){
 
         loggerDebug("GetRequest:${path}")
 
         val request = Request.Builder()
             .url(Config.url+path)
+            .addHeader("Authorization", credential)
             .build()
 
-        var result : String? = null
-
-        try {
-            val response = client.newCall(request).execute()
-            result = response.body?.string()
-            loggerDebug("ResponseBody:$result")
-            response.close()
-        }catch (e:Exception){
-            Bukkit.getLogger().info(e.message)
+        client.newCall(request).execute().use {
+            callback.invoke(it)
+            loggerDebug("Code:${it.code} Body:${it.body?.string()}")
         }
-
-        return result
     }
 
     //      接続  接続に成功したらtrueを返す
-    fun setup() : Boolean{
+    fun setup(){
 
         setupGson()
 
@@ -143,33 +102,11 @@ object APIBase {
 
         Man10Bank.instance.reloadConfig()
 
-//        url = Man10Bank.instance.config.getString(Config.API_URL)?:"https://localhost:7031"
+        val status = APIStatus.getStatus()
 
-        when(val code = connectionCheck()){
-            0 ->{
-                loggerInfo("Man10BankServerの接続を確認しました")
-                return true
-            }
-
-            1 ->{
-                Man10Bank.instance.server.setWhitelist(true)
-                Bukkit.getLogger().warning("Man10BankServerがMySQLに接続できていません。ホワイトリストをかけます Code:${code}")
-                Bukkit.getLogger().warning("接続できる状態にした後にPaperMCの再起動をしてください")
-                return false
-            }
-
-            else ->{
-                Man10Bank.instance.server.setWhitelist(true)
-                Bukkit.getLogger().warning("Man10BankServerの接続に失敗したので、ホワイトリストをかけます Code:${code}")
-                Bukkit.getLogger().warning("接続できる状態にした後にPaperMCの再起動をしてください")
-                return false
-            }
+        if (!status.enableAccessUserServer){
+            throw RuntimeException("Man10BankServerとMan10UserServerの接続ができていません！")
         }
-    }
-
-    //      接続を試す
-    private fun connectionCheck(): Int {
-        return getRequest("/bank/try-connect")?.toIntOrNull() ?: -1
     }
 
 

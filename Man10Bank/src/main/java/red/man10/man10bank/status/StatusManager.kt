@@ -8,6 +8,7 @@ import red.man10.man10bank.Config
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APIBank
+import red.man10.man10bank.api.Status
 import red.man10.man10bank.util.Utility.msg
 
 //サーバーの接続状況や各機能のon/offを確認するクラス

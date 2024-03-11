@@ -11,7 +11,6 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
@@ -28,7 +27,6 @@ import red.man10.man10bank.util.Utility.loggerInfo
 import red.man10.man10bank.util.Utility.msg
 import red.man10.man10bank.util.Utility.prefix
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.math.floor
@@ -179,7 +177,7 @@ object LocalLoan: Listener,CommandExecutor{
             val takeFromBank = if (bankMoney>data.amount-paidMoney) data.amount-paidMoney else bankMoney
 
             //銀行
-            if (APIBank.takeBank(APIBank.TransactionData(borrowUUID.toString(),
+            if (APIBank.takeBalance(APIBank.TransactionData(borrowUUID.toString(),
                     takeFromBank,
                     instance.name,
                     "paybackmoney",
@@ -219,7 +217,7 @@ object LocalLoan: Listener,CommandExecutor{
                 }
 
                 else ->{
-                    APIBank.addBank(
+                    APIBank.addBalance(
                         APIBank.TransactionData(
                             borrowUUID.toString(),
                             paidMoney,

@@ -100,7 +100,7 @@ object PayCommand : CommandExecutor {
                         return@execute
                     }
 
-                    val result = APIBank.addBank(
+                    val result = APIBank.addBalance(
                         APIBank.TransactionData(
                         uuid.toString(),
                         amount,
@@ -162,7 +162,7 @@ object PayCommand : CommandExecutor {
                     return@execute
                 }
 
-                val takeResult = APIBank.takeBank(APIBank.TransactionData(
+                val takeResult = APIBank.takeBalance(APIBank.TransactionData(
                     sender.uniqueId.toString(),
                     amount,
                     Man10Bank.instance.name,
@@ -175,7 +175,7 @@ object PayCommand : CommandExecutor {
                     return@execute
                 }
 
-                val addResult = APIBank.addBank(
+                val addResult = APIBank.addBalance(
                     APIBank.TransactionData(
                         uuid.toString(),
                         amount,

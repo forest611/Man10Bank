@@ -117,7 +117,7 @@ object BankCommand : CommandExecutor{
                 }
 
                 threadPool.execute {
-                    val result = APIBank.addBank(APIBank.TransactionData(
+                    val result = APIBank.addBalance(APIBank.TransactionData(
                         uuid.toString(),
                         amount,
                         Man10Bank.instance.name,
@@ -160,7 +160,7 @@ object BankCommand : CommandExecutor{
                 }
 
                 threadPool.execute {
-                    val result = APIBank.takeBank(APIBank.TransactionData(
+                    val result = APIBank.takeBalance(APIBank.TransactionData(
                         uuid.toString(),
                         amount,
                         Man10Bank.instance.name,
@@ -203,7 +203,7 @@ object BankCommand : CommandExecutor{
                 }
 
                 threadPool.execute {
-                    APIBank.setBank(APIBank.TransactionData(
+                    APIBank.setBalance(APIBank.TransactionData(
                         uuid.toString(),
                         amount,
                         Man10Bank.instance.name,
@@ -311,7 +311,7 @@ object BankCommand : CommandExecutor{
 
         threadPool.execute {
             val skip = page*10
-            val log = APIBank.getBankLog(uuid,10,skip)
+            val log = APIBank.getLog(uuid,10,skip)
             val mcid = Bukkit.getOfflinePlayer(uuid).name
 
             msg(sender,"§d§l===========${mcid}の銀行の履歴==========")

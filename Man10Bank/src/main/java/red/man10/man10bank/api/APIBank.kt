@@ -1,86 +1,92 @@
 package red.man10.man10bank.api
 
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.bukkit.Bukkit
-import red.man10.man10bank.status.StatusManager
-import red.man10.man10bank.api.APIBase.getRequest
+import red.man10.man10bank.api.APIBase.get
 import red.man10.man10bank.api.APIBase.gson
 import red.man10.man10bank.api.APIBase.mediaType
-import red.man10.man10bank.api.APIBase.postRequest
-import red.man10.man10bank.status.Status
+import red.man10.man10bank.api.APIBase.post
 import java.time.LocalDateTime
 import java.util.*
 
 object APIBank {
 
-    private const val apiRoute = "/bank/"
-
-    fun getScore(uuid: UUID):Int{
-        return getRequest(apiRoute + "score?uuid=${uuid}")?.toIntOrNull() ?: 0
-    }
-
-    fun getUUID(mcid:String): UUID? {
-        val uuid : UUID
-        try {
-            uuid = UUID.fromString(getRequest(apiRoute+"uuid?mcid=${mcid}"))
-        }catch (e:Exception){
-            return null
-        }
-        return uuid
-    }
+    private const val PATH = "/bank/"
 
     fun getBalance(uuid: UUID): Double {
-        return getRequest(apiRoute + "balance?uuid=${uuid}")?.toDoubleOrNull() ?: -1.0
-    }
-
-    fun getBankLog(uuid: UUID,record:Int,skip:Int): Array<MoneyLog> {
-        val result = getRequest(apiRoute+"log?uuid=${uuid}&record=${record}&skip=${skip}")
-        return gson.fromJson(result, arrayOf<MoneyLog>()::class.java)
-    }
-
-    fun addBank(data: TransactionData): BankResult {
-
-        val jsonStr = gson.toJson(data)
-        val body = jsonStr.toRequestBody(mediaType)
-        when(postRequest(apiRoute + "add", body)){
-            200 -> return BankResult.SUCCESSFUL
-            550 -> return BankResult.NOT_FOUND_ACCOUNT
-            551 -> return BankResult.FAILED
+        var balance = 0.0
+        get(PATH+"get?uuid=${uuid}"){
+            if (it.code != 200){
+                balance = -1.0
+                return@get
+            }
+            balance = it.body?.string()?.toDoubleOrNull()?:0.0
         }
-        return BankResult.UNKNOWN_STATUS_CODE
+        return balance
     }
 
-    fun takeBank(data: TransactionData): BankResult {
-
-        val jsonStr = gson.toJson(data)
-        val body = jsonStr.toRequestBody(mediaType)
-        when(postRequest(apiRoute + "take", body)){
-            200 -> return BankResult.SUCCESSFUL
-            550 -> return BankResult.NOT_FOUND_ACCOUNT
-            551 -> return BankResult.NOT_ENOUGH_MONEY
+    fun addBalance(data: TransactionData): BankResult {
+        val body = gson.toJson(data).toRequestBody(mediaType)
+        var result : BankResult = BankResult.UNKNOWN_STATUS_CODE
+        post(PATH + "add",body){
+            when(it.code){
+                200 -> {
+                    result = BankResult.SUCCESSFUL
+                }
+                404 -> {
+                    result = BankResult.NOT_FOUND_ACCOUNT
+                }
+                500 -> {
+                    result = BankResult.FAILED
+                }
+            }
         }
-        return BankResult.UNKNOWN_STATUS_CODE
+        return result
     }
 
-    fun setBank(data:TransactionData) {
-
-        val jsonStr = gson.toJson(data)
-        val body = jsonStr.toRequestBody(mediaType)
-        postRequest(apiRoute+"set",body)
+    fun takeBalance(data: TransactionData): BankResult{
+        val body = gson.toJson(data).toRequestBody(mediaType)
+        var result : BankResult = BankResult.UNKNOWN_STATUS_CODE
+        post(PATH + "take",body){
+            when(it.code){
+                200 -> {
+                    result = BankResult.SUCCESSFUL
+                }
+                404 -> {
+                    result = BankResult.NOT_FOUND_ACCOUNT
+                }
+                400 -> {
+                    result = BankResult.LACK_OF_MONEY
+                }
+            }
+        }
+        return result
     }
 
-    fun createBank(uuid:UUID) {
-        val p = Bukkit.getOfflinePlayer(uuid)
-        getRequest("${apiRoute}create?uuid=${p.uniqueId}&mcid=${p.name}")
+    fun setBalance(data: TransactionData): BankResult{
+        val body = gson.toJson(data).toRequestBody(mediaType)
+        var result : BankResult = BankResult.UNKNOWN_STATUS_CODE
+        post(PATH + "set",body){
+            when(it.code){
+                200 -> {
+                    result = BankResult.SUCCESSFUL
+                }
+                404 -> {
+                    result = BankResult.NOT_FOUND_ACCOUNT
+                }
+            }
+        }
+        return result
     }
 
-    fun getStatus(): Status {
-        val result = getRequest("${apiRoute}get-status")
-        return gson.fromJson(result, Status::class.java)
-    }
-
-    fun setStatus(data: Status){
-        postRequest("${apiRoute}set-status", gson.toJson(data).toRequestBody(mediaType))
+    fun getLog(uuid: UUID, count:Int, skip:Int): Array<MoneyLog> {
+        var log : Array<MoneyLog> = arrayOf()
+        get(PATH+"log?uuid=$uuid&count=$count&skip=$skip"){
+            if (it.code != 200){
+                return@get
+            }
+            log = gson.fromJson(it.body?.string()?:"", arrayOf<MoneyLog>()::class.java)
+        }
+        return log
     }
 
     data class TransactionData(
@@ -107,7 +113,7 @@ object APIBank {
     enum class BankResult{
         SUCCESSFUL,
         NOT_FOUND_ACCOUNT,
-        NOT_ENOUGH_MONEY,
+        LACK_OF_MONEY,
         UNKNOWN_STATUS_CODE,
         FAILED
     }

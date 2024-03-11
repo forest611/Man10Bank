@@ -52,7 +52,7 @@ object DealCommand : CommandExecutor{
             }
 
             threadPool.execute {
-                val result = APIBank.addBank(APIBank.TransactionData(
+                val result = APIBank.addBalance(APIBank.TransactionData(
                     sender.uniqueId.toString(),
                     fixedAmount,
                     instance.name,
@@ -87,7 +87,7 @@ object DealCommand : CommandExecutor{
 
                 val fixedAmount = floor(amount)
 
-                val result = APIBank.takeBank(APIBank.TransactionData(
+                val result = APIBank.takeBalance(APIBank.TransactionData(
                     sender.uniqueId.toString(),
                     fixedAmount,
                     instance.name,
@@ -95,7 +95,7 @@ object DealCommand : CommandExecutor{
                     "/withdrawによる出金"
                 ))
 
-                if (result == APIBank.BankResult.NOT_ENOUGH_MONEY){
+                if (result == APIBank.BankResult.LACK_OF_MONEY){
                     msg(sender,"§c所持金が足りません")
                     return@execute
                 }
