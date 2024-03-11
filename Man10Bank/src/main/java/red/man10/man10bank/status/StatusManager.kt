@@ -1,5 +1,6 @@
 package red.man10.man10bank.status
 
+import kotlinx.coroutines.*
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -10,16 +11,17 @@ import red.man10.man10bank.Permissions
 import red.man10.man10bank.api.APIStatus
 import red.man10.man10bank.api.Status
 import red.man10.man10bank.util.Utility.msg
+
 //サーバーの接続状況や各機能のon/offを確認するクラス
 
 object StatusManager : CommandExecutor{
 
     var status = Status()
 
-    private var timerThread = Thread()
+    private val scope = CoroutineScope(Dispatchers.IO)
 
     private fun asyncSendStatus(){
-        Man10Bank.threadPool.execute {
+        scope.launch{
             APIStatus.setStatus(status)
         }
     }
@@ -28,24 +30,24 @@ object StatusManager : CommandExecutor{
         status = APIStatus.getStatus()
     }
 
-    fun startStatusTimer(){
-        timerThread = Thread{
+    fun startStatusTask(){
+
+        scope.launch {
             Bukkit.getLogger().info("ステータスチェク処理を走らせます")
-            while (true){
+            while (isActive){
                 try {
                     getStatus()
-                    Thread.sleep(1000L * Config.statusCheckSeconds)
-                }catch (e:InterruptedException){
+                    delay(1000L * Config.statusCheckSeconds)
+                }catch (e:CancellationException){
                     Bukkit.getLogger().info("ステータスチェック処理を中断")
-                    return@Thread
+                    return@launch
                 }
             }
         }
-        timerThread.start()
     }
 
-    fun stopStatusTimer(){
-        timerThread.interrupt()
+    fun cancelScope(){
+        scope.cancel()
     }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
@@ -53,7 +55,6 @@ object StatusManager : CommandExecutor{
         if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return false
         if (args.isNullOrEmpty()){
             msg(sender,"現在の稼働状況")
-            msg(sender,"APIServer:${Man10Bank.isEnableServer()}")
             msg(sender,"===================================")
             msg(sender,"${StatusName.DEAL_BANK.name}:${status.enableDealBank}")
             msg(sender,"${StatusName.ATM.name}:${status.enableATM}")
@@ -62,7 +63,7 @@ object StatusManager : CommandExecutor{
             msg(sender,"${StatusName.LOCAL_LOAN.name}:${status.enableLocalLoan}")
             msg(sender,"===================================")
             msg(sender,"APIServerは/bankstatus reload で再接続")
-            msg(sender,"各機能は/bankstatus set <上記名> <true/false> でon/off切り替え")
+            msg(sender,"各機能は/bankstatus set <上記識別名> <true/false> でon/off切り替え")
 
             return true
         }
@@ -70,7 +71,7 @@ object StatusManager : CommandExecutor{
         if (args[0] == "reload"){
             if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
-            Thread{
+            scope.launch(Dispatchers.Default) {
                 msg(sender,"§c§lシステム終了・・・")
                 Man10Bank.systemClose()
                 msg(sender,"§c§lシステム起動・・・")
@@ -78,8 +79,9 @@ object StatusManager : CommandExecutor{
                     msg(sender,"§c§l§nAPIサーバーへの接続に失敗")
                 }
                 msg(sender,"§c§lシステムリロード完了")
-//                    Man10Bank.open()
-            }.start()
+
+            }
+
         }
 
         if (args[0] == "set" && args.size == 3){

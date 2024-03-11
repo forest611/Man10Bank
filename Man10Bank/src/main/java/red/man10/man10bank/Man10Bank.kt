@@ -8,7 +8,6 @@ import red.man10.man10bank.loan.LocalLoan
 import red.man10.man10bank.loan.ServerLoan
 import red.man10.man10bank.status.StatusManager
 import red.man10.man10bank.util.MenuFramework
-import java.util.concurrent.Executors
 
 class Man10Bank : JavaPlugin() {
 
@@ -17,40 +16,13 @@ class Man10Bank : JavaPlugin() {
         lateinit var instance : Man10Bank
         lateinit var vault : VaultManager
 
-        var threadPool = Executors.newSingleThreadExecutor()
-
-//        private var bankOpen = true
-
-        private var canConnectServer = false
-
-//        fun open(){
-//            bankOpen = true
-//            instance.config.set(Config.BANK_ENABLE,true)
-//            instance.saveConfig()
-//        }
-//
-//        fun close(){
-//            bankOpen = false
-//            instance.config.set(Config.BANK_ENABLE,false)
-//            instance.saveConfig()
-//        }
-
-        fun isEnableServer():Boolean{
-            return canConnectServer
-        }
         //      システム起動
         fun systemSetup():Boolean{
 
-            if (threadPool.isShutdown || threadPool.isTerminated){
-                threadPool = Executors.newSingleThreadExecutor()
-            }
-
             Config.load()
-            canConnectServer = APIBase.setup()
-            //接続に失敗したらこれ以降の読み込みをやめる
-            if (!canConnectServer){ return false }
+            APIBase.setup()
 
-            StatusManager.startStatusTimer()
+            StatusManager.startStatusTask()
             ATM.load()
             ServerLoan.setup()
             LocalLoan.setup()
@@ -59,8 +31,7 @@ class Man10Bank : JavaPlugin() {
 
         //      システム終了
         fun systemClose(){
-            threadPool.shutdownNow()
-            StatusManager.stopStatusTimer()
+            StatusManager.cancelScope()
         }
 
     }
