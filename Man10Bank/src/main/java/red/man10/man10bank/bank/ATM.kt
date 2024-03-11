@@ -172,6 +172,11 @@ object ATM :CommandExecutor{
             val item = sender.inventory.itemInMainHand.clone().asOne()
             val amount = args[1].toDoubleOrNull()?:return true
 
+            if (!moneyItems.contains(amount)){
+                msg(sender,"対応金額:${moneyItems.values}")
+                return true
+            }
+
             setCashItem(item,amount)
 
             msg(sender,"${amount}円通貨の登録")

@@ -72,7 +72,6 @@ class Man10Bank : JavaPlugin() {
         BankCommand.labels.forEach { getCommand(it)!!.setExecutor(BankCommand) }
         DealCommand.labels.forEach { getCommand(it)!!.setExecutor(DealCommand) }
 
-
         //イベントの登録
         server.pluginManager.registerEvents(Cheque,this)
         server.pluginManager.registerEvents(MenuFramework.MenuListener,this)

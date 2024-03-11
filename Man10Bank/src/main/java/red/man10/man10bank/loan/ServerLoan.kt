@@ -172,6 +172,7 @@ object ServerLoan : CommandExecutor{
                 /mrevo check : 借りれる上限額を確かめる
                 /mrevo borrow <金額>: お金を借りる(確認画面を挟みます)
                 /mrevo payment <金額> : リボの支払い額を決める
+                /mrevo pay : 返済する
                 /mrevo payall : 一括返済する
             """.trimIndent())
 
@@ -279,7 +280,7 @@ object ServerLoan : CommandExecutor{
                 if (!sender.hasPermission(Permissions.SERVER_LOAN_OP))return true
 
                 if (args.size != 3){
-                    msg(sender,"/mrevo addtime <player/all> <hour>")
+                    msg(sender,"/mrevo addtime <hour>")
                     return true
                 }
                 val time = args[1].toInt()

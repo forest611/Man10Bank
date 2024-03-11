@@ -26,7 +26,7 @@ object StatusManager : CommandExecutor{
         }
     }
 
-    private fun getStatus(){
+    private suspend fun getStatus(){
         status = APIStatus.getStatus()
     }
 
@@ -64,6 +64,8 @@ object StatusManager : CommandExecutor{
             msg(sender,"===================================")
             msg(sender,"APIServerは/bankstatus reload で再接続")
             msg(sender,"各機能は/bankstatus set <上記識別名> <true/false> でon/off切り替え")
+            msg(sender,"GitHub: https://github.com/forest611/Man10Bank")
+            msg(sender,"Author:Jin Morikawa")
 
             return true
         }
