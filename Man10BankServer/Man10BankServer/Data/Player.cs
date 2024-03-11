@@ -42,12 +42,6 @@ public class Player
                 Console.WriteLine("存在しないプレイヤー");
                 return Empty;
             }
-
-            // if (response.StatusCode != HttpStatusCode.OK)
-            // {
-            //     Console.WriteLine("UserServerへのアクセス失敗");
-            //     return Empty;
-            // }
         
             var name = await response.Content.ReadAsStringAsync();
             var newPlayer = new Player(name, uuid);
@@ -68,14 +62,24 @@ public class Player
         {
             return cachePlayer;
         }
-        using var response = await _client.GetAsync($"player/uuid?minecraftId={name}");
-        if (response.StatusCode == HttpStatusCode.NotFound)
+
+        try
         {
-            throw new Exception("プレイヤーが存在しません");
+            using var response = await _client.GetAsync($"player/uuid?minecraftId={name}");
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return Empty;
+            }
+            var uuid = await response.Content.ReadAsStringAsync();
+            var newPlayer = new Player(name,uuid);
+            PlayerSet.Add(newPlayer);
+            return newPlayer;
+
         }
-        var body = await response.Content.ReadAsStringAsync();
-        var newPlayer = new Player(name,body);
-        PlayerSet.Add(newPlayer);
-        return newPlayer;
+        catch (Exception)
+        {
+            Status.NowStatus.EnableAccessUserServer = false;
+            return Empty;
+        }
     }
 }

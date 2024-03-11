@@ -93,6 +93,17 @@ public class BankController : ControllerBase
         var result = await bank.GetLog(count, skip);
         return Ok(result);
     }
+
+    [HttpGet("uuid")]
+    public async Task<IActionResult> GetUuid(string name)
+    {
+        var p = await Player.GetFromName(name);
+        if (p.IsEmpty())
+        {
+            return NotFound();
+        }
+        return Ok(p.Uuid);
+    }
     
 }
 
