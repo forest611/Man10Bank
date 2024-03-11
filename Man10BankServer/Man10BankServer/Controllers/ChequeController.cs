@@ -10,14 +10,15 @@ public class ChequeController : ControllerBase
 {
     
     [HttpGet("create")]
-    public async Task<int> Create(string uuid,double amount,string note)
+    public async Task<IActionResult> Create(string uuid,double amount,string note)
     {
         var p = await Player.GetFromUuid(uuid);
         if (p.IsEmpty())
         {
-            return 0;
+            return BadRequest();
         }
-        return await Cheque.Create(p,new Money(amount),note);
+        var id = await Cheque.Create(p,new Money(amount),note);
+        return id != 0 ? Ok(id) : BadRequest();
     }
 
     [HttpGet("use")]
@@ -31,5 +32,11 @@ public class ChequeController : ControllerBase
         var result = await Cheque.Use(p, id);
         var amount = result.Amount;
         return amount != 0 ? Ok(amount) : NoContent();
+    }
+
+    [HttpGet("amount")]
+    public async Task<double> Amount(int id)
+    {
+        return (await Cheque.Amount(id)).Amount;
     }
 }

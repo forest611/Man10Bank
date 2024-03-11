@@ -70,5 +70,30 @@ public static class Cheque
         
         return record.id;
     }
-    
+
+    public static async Task<Money> Amount(int id)
+    {
+        await Semaphore.WaitAsync();
+        var amount = new Money(0);
+        
+        try
+        {
+            var record = Context.cheque_tbl.FirstOrDefault(r => r.id == id);
+            if (record == null || record.used)
+            {
+                return amount;
+            }
+            amount = new Money(record.amount);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+
+        return amount;        
+    }
 }
