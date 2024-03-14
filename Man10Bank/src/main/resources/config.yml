@@ -1,2 +1,7 @@
 API:
   URL: 'https://localhost:7031'
+HttpUserName: root
+HttpPassword: pass
+KickPlayers: true
+DebugMode: false
+StatusCheckSeconds: 60
