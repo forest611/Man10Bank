@@ -86,7 +86,7 @@ public class ServerLoanController : ControllerBase
         loan.SetPaymentAmount(new Money(amount));
     }
 
-    [HttpPost("add-payment-day")]
+    [HttpGet("add-payment-day")]
     public void AddPaymentDay(int day)
     {
         ServerLoan.AddPaymentDay(day);
