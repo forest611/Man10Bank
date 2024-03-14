@@ -252,8 +252,8 @@ object ServerLoan : CommandExecutor{
 
                 if (!sender.hasPermission(Permissions.SERVER_LOAN_OP))return true
 
-                if (args.size != 3){
-                    msg(sender,"/mrevo addtime <hour>")
+                if (args.size != 2){
+                    msg(sender,"/mrevo addtime <day>")
                     return true
                 }
                 val time = args[1].toInt()

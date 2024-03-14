@@ -45,7 +45,7 @@ object APIServerLoan {
     }
 
     suspend fun addPaymentDay(day:Int):Boolean{
-        post("${PATH}add-payment-day?day=${day}").use {
+        get("${PATH}add-payment-day?day=${day}").use {
             return it.code == 200
         }
     }
