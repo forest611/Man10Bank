@@ -1,10 +1,10 @@
 name: 'Man10Bank'
 version: '1.0'
 main: red.man10.man10bank.Man10Bank
-api-version: 1.19
+api-version: 1.20
 softdepend:
   - Vault
-  - Man10CommonLibs
+#  - Man10CommonLibs
 commands:
   mcheque:
     description: '小切手を発行するコマンド'

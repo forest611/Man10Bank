@@ -2,8 +2,6 @@ package red.man10.man10bank.api
 
 import com.google.gson.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.Component
 import okhttp3.*
@@ -69,7 +67,7 @@ object APIBase {
                     throw AuthenticationException("Httpの認証に問題あり 修正後にリロードをしてください")
                 }
                 else -> {
-                    loggerDebug("Code:${response.code} Body:${response.body?.string()}")
+                    loggerDebug("Code:${response.code}")
                     response
                 }
             }
@@ -98,7 +96,7 @@ object APIBase {
                     throw AuthenticationException("Httpの認証に問題あり 修正後にリロードをしてください")
                 }
                 else -> {
-                    loggerDebug("Code:${response.code} Body:${response.body?.string()}")
+                    loggerDebug("Code:${response.code}")
                     response
                 }
             }
@@ -106,7 +104,7 @@ object APIBase {
     }
 
     //      接続  接続に成功したらtrueを返す
-    fun setup() = Man10Bank.coroutineScope.launch{
+    suspend fun setup() {
 
         setupGson()
 
@@ -137,14 +135,18 @@ object APIBase {
 
         Man10Bank.instance.reloadConfig()
         credential = Credentials.basic(userName, password)
-        val status = async { APIStatus.getStatus() }.await()
+
+        enable = true
+
+        val status = APIStatus.getStatus()
 
         if (!status.enableAccessUserServer){
             enable = false
             throw RuntimeException("Man10BankServerとMan10UserServerの接続ができていません！")
         }
 
-        enable = true
+        Bukkit.getLogger().info("Man10BankServerへの接続に成功しました")
+
     }
 
     private fun setupGson(){
@@ -170,7 +172,7 @@ object APIBase {
 
         override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): LocalDateTime {
             val dateString = json?.asString?.replace("T"," ")?.replace("+9:00","")
-            Bukkit.getLogger().info("JsonToLocalDateTime:${dateString}")
+//            Bukkit.getLogger().info("JsonToLocalDateTime:${dateString}")
             return LocalDateTime.parse(dateString, deserializeFormatter)
         }
 

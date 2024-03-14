@@ -27,12 +27,13 @@ class Man10Bank : JavaPlugin() {
 
             coroutineScope = CoroutineScope(Dispatchers.IO)
 
-            Config.load()
-            APIBase.setup()
-
-            StatusManager.startStatusTask()
-            ATM.load()
             coroutineScope.launch {
+                Config.load()
+                APIBase.setup()
+
+                StatusManager.startStatusTask()
+                ATM.load()
+
                 ServerLoan.setup()
                 LocalLoan.setup()
             }

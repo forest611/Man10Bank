@@ -43,6 +43,7 @@ object StatusManager : CommandExecutor{
                     return@launch
                 }
             }
+            Bukkit.getLogger().info("ステータスチェック処理の終了")
         }
     }
 
