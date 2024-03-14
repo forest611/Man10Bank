@@ -7,6 +7,7 @@ import red.man10.man10bank.api.APIBase.mediaType
 import red.man10.man10bank.api.APIBase.post
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.math.floor
 
 object APIBank {
 
@@ -28,6 +29,7 @@ object APIBank {
     }
 
     suspend fun addBalance(data: TransactionData): BankResult {
+        if (floor(data.amount) != data.amount) return BankResult.Failed
         val body = gson.toJson(data).toRequestBody(mediaType)
         post(PATH + "add",body).use{
             when(it.code){
@@ -48,6 +50,7 @@ object APIBank {
     }
 
     suspend fun takeBalance(data: TransactionData): BankResult{
+        if (floor(data.amount) != data.amount) return BankResult.Failed
         val body = gson.toJson(data).toRequestBody(mediaType)
         post(PATH + "take",body).use{
             when(it.code){
