@@ -105,18 +105,19 @@ object LocalLoan: Listener,CommandExecutor{
     private suspend fun getNote(id:Int): ItemStack? {
 
         val data = APILocalLoan.getInfo(id)?:return null
+        val p = Bukkit.getOfflinePlayer(data.borrow_uuid)
 
         val note = ItemStack(Material.PAPER)
         val meta = note.itemMeta
 
         meta.setCustomModelData(2)
 
-        Bukkit.getLogger().info("Player:${Bukkit.getOfflinePlayer(data.borrow_uuid).name} UUID${data.borrow_uuid}")
+//        Bukkit.getLogger().info("Player:${Bukkit.getOfflinePlayer(data.borrow_uuid).name} UUID${data.borrow_uuid}")
 
         meta.displayName(text("§c§l約束手形 §7§l(Promissory Note)"))
         meta.lore = mutableListOf(
             "§4§l========[Man10Bank]========",
-            "   §7§l債務者:  ${Bukkit.getOfflinePlayer(data.borrow_uuid).name}",
+            "   §7§l債務者:  ${p.name}",
             "   §8§l有効日:  ${data.payback_date.format(DateTimeFormatter.ISO_LOCAL_DATE)}",
             "   §7§l支払額:  ${format(data.amount)}円",
             "§4§l==========================")
