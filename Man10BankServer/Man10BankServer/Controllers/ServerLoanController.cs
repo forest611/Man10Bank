@@ -48,7 +48,7 @@ public class ServerLoanController : ControllerBase
         return result != null ? Ok(result) : NotFound();
     }
 
-    [HttpPost("borrow")]
+    [HttpGet("borrow")]
     public async Task<IActionResult> Borrow(string uuid, double amount)
     {
         var player = await Player.GetFromUuid(uuid);
