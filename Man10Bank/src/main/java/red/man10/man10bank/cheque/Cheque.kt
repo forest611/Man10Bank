@@ -44,7 +44,7 @@ object Cheque : CommandExecutor, Listener {
             return
         }
 
-        if (!Man10Bank.vault.withdraw(p.uniqueId,fixedAmount)){
+        if (!isOP && !Man10Bank.vault.withdraw(p.uniqueId,fixedAmount)){
             msg(p,"§c§l電子マネーがありません")
             return
         }
@@ -73,7 +73,7 @@ object Cheque : CommandExecutor, Listener {
 
         lore.add(Component.text("§e====[Man10Bank]===="))
         lore.add(Component.text(""))
-        lore.add(Component.text("§a§l発行者: ${if (isOP)"§c§l" else "§d§l"}${p.name}"))
+        lore.add(Component.text("§a§l発行者: ${if (isOP)"§e[§4§lGM§e]§c§l" else "§d§l"}${p.name}"))
         lore.add(Component.text("§a§l金額: ${format(fixedAmount)}円"))
         if (note != "null"){
             lore.add(Component.text("§d§lメモ: $note"))
