@@ -50,6 +50,7 @@ app.Use(async (context, next) =>
     //UserServerに繋がらなかったら、ショートして500を返す
     if (!Status.NowStatus.EnableAccessUserServer)
     {
+        Console.WriteLine("UserServerへの接続失敗");
         context.Response.StatusCode = StatusCodes.Status500InternalServerError;
         return;
     }

@@ -143,7 +143,7 @@ public class BankTest
         }
         catch (Exception e)
         {
-            Assert.True(false,e.StackTrace ?? "");
+            Assert.True(false,e.Message);
             // ignored
         }
         finally
