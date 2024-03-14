@@ -23,7 +23,7 @@ public static class History
 
         timerTask.Elapsed += (sender, args) =>
         {
-            Thread.Sleep(1000*60*5);
+            // Thread.Sleep(1000*60*5);
             AddServerEstateHistory();
         };
 
@@ -71,6 +71,8 @@ public static class History
             context.server_estate_history.Add(record);
 
             context.SaveChanges();
+            
+            Console.WriteLine("サーバー資産の保存完了");
         });
     }
     

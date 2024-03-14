@@ -27,7 +27,7 @@ public class Bank
     /// </summary>
     static Bank()
     {
-        Task.Run(RunQueueTasks);
+        RunQueueTasks();
     }
     
     public static async Task<Bank> GetBank(Player player)
@@ -168,22 +168,26 @@ public class Bank
     {
         Console.WriteLine("取引キューの起動");
 
-        while (BlockingCollection.TryTake(out var job,Timeout.Infinite))
+        Task.Run(() =>
         {
-            try
+            while (BlockingCollection.TryTake(out var job,Timeout.Infinite))
             {
-                job?.Invoke();
+                try
+                {
+                    job?.Invoke();
+                }
+                catch (ThreadInterruptedException)
+                {
+                    Console.WriteLine("終了");
+                    return;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
             }
-            catch (ThreadInterruptedException)
-            {
-                Console.WriteLine("終了");
-                return;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-        }
+        });
+
     }
     
 }
