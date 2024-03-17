@@ -56,7 +56,12 @@ object APIBase {
         }
 
         return withContext(Dispatchers.IO){
-            val response = client.newCall(request).execute()
+            val response = try {
+                client.newCall(request).execute()
+            }catch (e:Exception){
+                disable()
+                throw e
+            }
 
             when(response.code){
                 500 -> {
