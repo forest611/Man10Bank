@@ -358,7 +358,6 @@ public class ServerLoan
                  {
                      data.borrow_amount += data.borrow_amount * DailyInterest;
                  }
-                 await context.SaveChangesAsync();
                  
                  //支払日じゃなければコンティニュ
                  var diff = now - data.last_pay_date;
@@ -372,6 +371,7 @@ public class ServerLoan
 
              }
              
+             await context.SaveChangesAsync();
              Console.WriteLine("リボの処理終了");
          };
 
