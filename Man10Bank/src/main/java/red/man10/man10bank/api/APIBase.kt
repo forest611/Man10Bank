@@ -33,7 +33,8 @@ object APIBase {
     var baseUrl = ""
     var isKickPlayers = false
     private lateinit var credential : String
-    private var enable = false
+    var enable = false
+        private set
 
     //      POST
     suspend fun post(path: String,body: RequestBody? = null):Response{

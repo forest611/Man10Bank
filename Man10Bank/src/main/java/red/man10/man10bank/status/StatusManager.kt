@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender
 import red.man10.man10bank.Config
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Permissions
+import red.man10.man10bank.api.APIBase
 import red.man10.man10bank.api.APIStatus
 import red.man10.man10bank.api.Status
 import red.man10.man10bank.util.Utility.msg
@@ -41,7 +42,7 @@ object StatusManager : CommandExecutor{
                 }catch (e:CancellationException){
                     Bukkit.getLogger().info("ステータスチェック処理を中断")
                     return@launch
-                }
+                }catch (_:Exception){}
             }
             Bukkit.getLogger().info("ステータスチェック処理の終了")
         }
@@ -57,6 +58,7 @@ object StatusManager : CommandExecutor{
         if (args.isNullOrEmpty()){
             msg(sender,"現在の稼働状況")
             msg(sender,"BankServer:${status.enableAccessUserServer}")
+            msg(sender,"ネットワーク接続:${APIBase.enable}")
             msg(sender,"===================================")
             msg(sender,"${StatusName.DealBank.name}:${status.enableDealBank}")
             msg(sender,"${StatusName.Atm.name}:${status.enableATM}")
@@ -65,7 +67,7 @@ object StatusManager : CommandExecutor{
             msg(sender,"${StatusName.LocalLoan.name}:${status.enableLocalLoan}")
             msg(sender,"===================================")
             msg(sender,"APIServerは/bankstatus reload で再接続")
-            msg(sender,"各機能は/bankstatus set <上記識別名> <true/false> でon/off切り替え")
+            msg(sender,"各機能は/bankstatus set <上記識別名/All> <true/false> でon/off切り替え")
             msg(sender,"")
             msg(sender,"GitHub: https://github.com/forest611/Man10Bank")
             msg(sender,"Author:Jin Morikawa")
@@ -76,15 +78,14 @@ object StatusManager : CommandExecutor{
         if (args[0] == "reload"){
             if (!sender.hasPermission(Permissions.BANK_OP_COMMAND))return true
 
-            scope.launch(Dispatchers.Default) {
+            msg(sender,"§c§lリロードを開始します")
+
+            CoroutineScope(Dispatchers.Default).launch {
                 msg(sender,"§c§lシステム終了・・・")
                 Man10Bank.systemClose()
                 msg(sender,"§c§lシステム起動・・・")
-                if (!Man10Bank.systemSetup()){
-                    msg(sender,"§c§l§nAPIサーバーへの接続に失敗")
-                }
+                Man10Bank.systemSetup()
                 msg(sender,"§c§lシステムリロード完了")
-
             }
 
         }
