@@ -37,8 +37,8 @@ object StatusManager : CommandExecutor{
             Bukkit.getLogger().info("ステータスチェク処理を走らせます")
             while (isActive){
                 try {
-                    getStatus()
                     delay(1000L * Config.statusCheckSeconds)
+                    getStatus()
                 }catch (e:CancellationException){
                     Bukkit.getLogger().info("ステータスチェック処理を中断")
                     return@launch

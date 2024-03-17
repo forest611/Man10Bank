@@ -165,8 +165,10 @@ object APIBase {
         enable = false
 
         if (isKickPlayers){
-            Bukkit.getOnlinePlayers().forEach { it.kick(Component.text("不具合のためホワイトリストをONにします")) }
-            Bukkit.setWhitelist(true)
+            Bukkit.getScheduler().runTask(Man10Bank.instance, Runnable {
+                Bukkit.getOnlinePlayers().forEach { it.kick(Component.text("不具合のためホワイトリストをONにします")) }
+                Bukkit.setWhitelist(true)
+            })
         }
     }
 
