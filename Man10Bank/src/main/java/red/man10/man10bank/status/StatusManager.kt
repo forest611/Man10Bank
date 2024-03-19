@@ -59,6 +59,7 @@ object StatusManager : CommandExecutor{
             msg(sender,"現在の稼働状況")
             msg(sender,"BankServer:${status.enableAccessUserServer}")
             msg(sender,"ネットワーク接続:${APIBase.enable}")
+            msg(sender,"コルーチン:${Man10Bank.coroutineScope.isActive}")
             msg(sender,"===================================")
             msg(sender,"${StatusName.DealBank.name}:${status.enableDealBank}")
             msg(sender,"${StatusName.Atm.name}:${status.enableATM}")
