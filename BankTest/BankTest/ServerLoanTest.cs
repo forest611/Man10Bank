@@ -39,16 +39,16 @@ public class ServerLoanTest
             var nowLoan = new Money((await loan.GetInfo())?.borrow_amount ?? 0.0);
 
             await bank.Add(nowLoan, "UnitTest", "BorrowTest", "BorrowTest");
-            var result = await loan.Pay(nowLoan, true);
+            var result = await loan.PayFromBank(nowLoan, true);
             Assert.Equal(ServerLoan.PaymentResult.Success,result);
             Assert.Equal(0.0,(await loan.GetInfo())?.borrow_amount ?? 0.0);
         
             var overAmount = new Money(1000).Plus(loan.GetBorrowableAmount());
-            var overResult = await loan.Borrow(overAmount);
+            var overResult = await loan.BorrowAndSendMoney(overAmount);
             Assert.Equal(ServerLoan.BorrowResult.Failed,overResult);
 
             var successAmount = loan.GetBorrowableAmount();
-            var successResult = await loan.Borrow(successAmount);
+            var successResult = await loan.BorrowAndSendMoney(successAmount);
             Assert.NotEqual(ServerLoan.BorrowResult.Failed,successResult);
 
             var lastBalance = await bank.GetBalance();
@@ -85,15 +85,15 @@ public class ServerLoanTest
 
             var nowLoan = (await loan.GetInfo())?.borrow_amount ?? 0.0;
 
-            await loan.Pay(new Money(nowLoan), true);
+            await loan.PayFromBank(new Money(nowLoan), true);
         
             Assert.Equal(0.0,(await loan.GetInfo())?.borrow_amount ?? 0.0);
         
             var successAmount = loan.GetBorrowableAmount();
-            var successResult = await loan.Borrow(successAmount);
+            var successResult = await loan.BorrowAndSendMoney(successAmount);
             Assert.NotEqual(ServerLoan.BorrowResult.Failed,successResult);
 
-            var payResult = await loan.Pay(successAmount,true);
+            var payResult = await loan.PayFromBank(successAmount,true);
 
             var balance = await bank.GetBalance();
 

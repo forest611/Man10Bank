@@ -32,7 +32,7 @@ public class ServerLoan
     /// </summary>
     /// <param name="amount"></param>
     /// <returns></returns>
-    public async Task<BorrowResult> Borrow(Money amount)
+    public async Task<BorrowResult> BorrowAndSendMoney(Money amount)
     {
         await Semaphore.WaitAsync();
 
@@ -123,7 +123,7 @@ public class ServerLoan
     /// <param name="amount"></param>
     /// <param name="isSelf"></param>
     /// <returns></returns>
-    public async Task<PaymentResult> Pay(Money amount,bool isSelf)
+    public async Task<PaymentResult> PayFromBank(Money amount,bool isSelf)
     {
 
         await Semaphore.WaitAsync();
@@ -367,7 +367,7 @@ public class ServerLoan
                  var player = await Player.GetFromUuid(data.uuid);
                  var loan = new ServerLoan(player);
                  //支払い処理
-                 await loan.Pay(payment, false);
+                 await loan.PayFromBank(payment, false);
 
              }
              

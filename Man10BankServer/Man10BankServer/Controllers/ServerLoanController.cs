@@ -13,6 +13,11 @@ public class ServerLoanController : ControllerBase
     [HttpGet("borrowable-amount")]
     public async Task<IActionResult> BorrowableAmount(string uuid)
     {
+        if (!Authentication.HasUserPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
+
         var player = await Player.GetFromUuid(uuid);
         if (player.IsEmpty())
         {
@@ -25,6 +30,11 @@ public class ServerLoanController : ControllerBase
     [HttpGet("is-loser")]
     public async Task<IActionResult> IsLoser(string uuid)
     {
+        if (!Authentication.HasUserPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
+
         var player = await Player.GetFromUuid(uuid);
         if (player.IsEmpty())
         {
@@ -38,6 +48,11 @@ public class ServerLoanController : ControllerBase
     [HttpGet("info")]
     public async Task<IActionResult> GetInfo(string uuid)
     {
+        if (!Authentication.HasUserPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
+
         var player = await Player.GetFromUuid(uuid);
         if (player.IsEmpty())
         {
@@ -51,32 +66,46 @@ public class ServerLoanController : ControllerBase
     [HttpGet("borrow")]
     public async Task<IActionResult> Borrow(string uuid, double amount)
     {
+        if (!Authentication.HasUserPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
+
         var player = await Player.GetFromUuid(uuid);
         if (player.IsEmpty())
         {
             return NotFound();
         }
         var loan = new ServerLoan(player);
-        var result = await loan.Borrow(new Money(amount));
+        var result = await loan.BorrowAndSendMoney(new Money(amount));
         return Ok(result.ToString());
     }
     
     [HttpGet("pay")]
     public async Task<IActionResult> Pay(string uuid, double amount)
     {
+        if (!Authentication.HasUserPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
         var player = await Player.GetFromUuid(uuid);
         if (player.IsEmpty())
         {
             return NotFound();
         }
         var loan = new ServerLoan(player);
-        var result = await loan.Pay(new Money(amount),true);
+        var result = await loan.PayFromBank(new Money(amount),true);
         return Ok(result.ToString());
     }
 
     [HttpPost("set-payment")]
     public async void SetPaymentAmount(string uuid, double amount)
     {
+        if (!Authentication.HasAdminPermission(HttpContext))
+        {
+            return;
+        }
+
         var player = await Player.GetFromUuid(uuid);
         if (player.IsEmpty())
         {
@@ -89,12 +118,21 @@ public class ServerLoanController : ControllerBase
     [HttpGet("add-payment-day")]
     public void AddPaymentDay(int day)
     {
+        if (!Authentication.HasAdminPermission(HttpContext))
+        {
+            return;
+        }
         ServerLoan.AddPaymentDay(day);
     }
 
     [HttpGet("next-pay")]
-    public async Task<IActionResult> NextPay(string uuid)
+    public async Task<IActionResult> GetNextPayDate(string uuid)
     {
+        if (!Authentication.HasUserPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
+
         var player = await Player.GetFromUuid(uuid);
         if (player.IsEmpty())
         {

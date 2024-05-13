@@ -13,6 +13,10 @@ public class LocalLoanController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateLoan([FromBody] LocalLoanTable data)
     {
+        if (!Authentication.HasAdminPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
         var result = await LocalLoan.Create(data);
         return result != 0 ? Ok(result) : StatusCode(500,"Server Error");
     }
@@ -20,6 +24,10 @@ public class LocalLoanController : ControllerBase
     [HttpGet("pay")]
     public async Task<IActionResult> Pay(int id, double amount)
     {
+        if (!Authentication.HasAdminPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
         var result = await LocalLoan.Pay(id, new Money(amount));
         return Ok(result.ToString());
     }
@@ -27,6 +35,10 @@ public class LocalLoanController : ControllerBase
     [HttpGet("get-info")]
     public async Task<IActionResult> GetInfo(int id)
     {
+        if (!Authentication.HasAdminPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
         var result = await LocalLoan.GetInfo(id);
         return result != null ? Ok(result) : NotFound();
     }
@@ -40,6 +52,10 @@ public class LocalLoanController : ControllerBase
     [HttpGet("total-loan")]
     public async Task<double> GetTotalLoan(string uuid)
     {
+        if (!Authentication.HasUserPermission(HttpContext))
+        {
+            return 0.0;
+        }
         var result = await LocalLoan.GetTotalLoan(uuid);
         return result.Amount;
     }

@@ -12,6 +12,10 @@ public class ChequeController : ControllerBase
     [HttpGet("create")]
     public async Task<IActionResult> Create(string uuid,double amount,string note)
     {
+        if (!Authentication.HasAdminPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
         var p = await Player.GetFromUuid(uuid);
         if (p.IsEmpty())
         {
@@ -24,6 +28,10 @@ public class ChequeController : ControllerBase
     [HttpGet("use")]
     public async Task<IActionResult> Use(string uuid,int id)
     {
+        if (!Authentication.HasAdminPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
         var p = await Player.GetFromUuid(uuid);
         if (p.IsEmpty())
         {
@@ -37,6 +45,10 @@ public class ChequeController : ControllerBase
     [HttpGet("amount")]
     public async Task<double> Amount(int id)
     {
+        if (!Authentication.HasAdminPermission(HttpContext))
+        {
+            return 0;
+        }
         return (await Cheque.Amount(id)).Amount;
     }
 }

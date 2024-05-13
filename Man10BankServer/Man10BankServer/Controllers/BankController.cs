@@ -32,6 +32,11 @@ public class BankController : ControllerBase
     [HttpGet("get")]
     public async Task<IActionResult> GetBalance(string uuid)
     {
+        if (!Authentication.HasUserPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
+        
         var p = await Player.GetFromUuid(uuid);
         if (p.IsEmpty())
         {
@@ -45,6 +50,11 @@ public class BankController : ControllerBase
     [HttpPost("add")]
     public async Task<IActionResult> Add([FromBody] TransactionData data)
     {
+        if (!Authentication.HasAdminPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
+
         var p = await Player.GetFromUuid(data.UUID);
         if (p.IsEmpty())
         {
@@ -58,6 +68,11 @@ public class BankController : ControllerBase
     [HttpPost("take")]
     public async Task<IActionResult> Take([FromBody] TransactionData data)
     {
+        if (!Authentication.HasAdminPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
+        
         var p = await Player.GetFromUuid(data.UUID);
         if (p.IsEmpty())
         {
@@ -71,6 +86,12 @@ public class BankController : ControllerBase
     [HttpPost("set")]
     public async Task<IActionResult> Set([FromBody] TransactionData data)
     {
+        if (!Authentication.HasAdminPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
+
+
         var p = await Player.GetFromUuid(data.UUID);
         if (p.IsEmpty())
         {
@@ -83,7 +104,11 @@ public class BankController : ControllerBase
 
     [HttpGet("log")]
     public async Task<IActionResult> Log(string uuid, int count, int skip)
-    {
+    {        if (!Authentication.HasUserPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
+        
         var p = await Player.GetFromUuid(uuid);
         if (p.IsEmpty())
         {
@@ -97,6 +122,11 @@ public class BankController : ControllerBase
     [HttpGet("uuid")]
     public async Task<IActionResult> GetUuid(string name)
     {
+        if (!Authentication.HasUserPermission(HttpContext))
+        {
+            return Unauthorized();
+        }
+        
         var p = await Player.GetFromName(name);
         if (p.IsEmpty())
         {
