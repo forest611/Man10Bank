@@ -26,6 +26,7 @@ import red.man10.man10bank.loan.*
 import red.man10.man10score.ScoreDatabase
 import java.text.Normalizer
 import java.text.SimpleDateFormat
+import java.util.UUID
 import kotlin.math.abs
 import kotlin.math.floor
 
@@ -66,6 +67,8 @@ class Man10Bank : JavaPlugin(),Listener {
         var loggingServerHistory = false
 
         var workWorld : Location? = null
+
+        val loadedPlayerUUIDs=ArrayList<UUID>()
     }
 
     private val checking = HashMap<Player,Command>()
@@ -924,11 +927,18 @@ class Man10Bank : JavaPlugin(),Listener {
         Bukkit.getScheduler().runTaskAsynchronously(this, Runnable Thread@{
             Thread.sleep(3000)
             showBalance(p,p)
+
+
+            if(server.onlinePlayers.contains(p)) loadedPlayerUUIDs.add(p.uniqueId)
         })
     }
 
     @EventHandler (priority = EventPriority.LOWEST)
     fun logout(e:PlayerQuitEvent){
+
+
+        loadedPlayerUUIDs.remove(e.player.uniqueId)
+
         Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { EstateData.saveCurrentEstate(e.player) })
     }
 
