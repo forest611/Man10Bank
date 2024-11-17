@@ -1,9 +1,9 @@
 <component name="ArtifactManager">
   <artifact type="jar" name="Man10Bank">
-    <output-path>$PROJECT_DIR$/../../paper/plugins</output-path>
+    <output-path>$PROJECT_DIR$/../../minecraft/paper_120/plugins</output-path>
     <root id="archive" name="Man10Bank.jar">
-      <element id="module-output" name="Man10BankPaper.main" />
       <element id="dir-copy" path="$PROJECT_DIR$/src/main/resources" />
+      <element id="module-output" name="red.man10.Man10BankPaper.main" />
     </root>
   </artifact>
 </component>
