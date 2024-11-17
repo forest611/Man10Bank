@@ -27,7 +27,7 @@ object Cheque :Listener{
     @Synchronized
     fun createCheque(p:Player, amount:Double, note:String?, isOP:Boolean){
 
-        if (note !=null && note.length > 50){
+        if (note !=null && note.length > 20){
             sendMsg(p,"§c§lメモは20文字以内にしてください。")
             return
         }
