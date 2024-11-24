@@ -146,7 +146,10 @@ class Man10Bank : JavaPlugin(),Listener {
                 val amount = args[0].toDoubleOrNull()?:return false
                 val note = if (args.size>1)args[1] else null
 
-                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { Cheque.createCheque(sender,amount,note,true) })
+                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
+                    sendMsg(sender,"§a§l銀行に問い合わせ中...§k§lXX")
+                    Cheque.createCheque(sender,amount,note,true)
+                })
 
                 return true
             }
@@ -172,7 +175,10 @@ class Man10Bank : JavaPlugin(),Listener {
 
                 val note = if (args.size>1)args[1] else null
 
-                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable { Cheque.createCheque(sender,amount,note,false) })
+                Bukkit.getScheduler().runTaskAsynchronously(this, Runnable {
+                    sendMsg(sender,"§a§l銀行に問い合わせ中...§k§lXX")
+                    Cheque.createCheque(sender,amount,note,false)
+                })
 
                 return true
             }

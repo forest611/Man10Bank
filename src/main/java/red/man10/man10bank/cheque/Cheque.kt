@@ -32,9 +32,16 @@ object Cheque :Listener{
             return
         }
 
+        //排他制御
+        if (!mysql.lock("cheque_tbl")){
+            sendMsg(p,"§c§lただいま窓口が混雑しているようです。しばらくお待ちください。")
+            return
+        }
+
         val rs = mysql.query("select id from cheque_tbl order by id desc limit 1;")
 
         if (rs == null){
+            mysql.unlock()
             sendMsg(p,"§c§l銀行への問い合わせに失敗しました。運営に報告してください。- 01")
             return
         }
@@ -42,6 +49,7 @@ object Cheque :Listener{
         val id = if (rs.next()){ rs.getInt("id")+1 } else 1
 
         if (!isOP && !vault.withdraw(p.uniqueId,amount)){
+            mysql.unlock()
             sendMsg(p,"§c§l電子マネーがありません！")
             return
         }
@@ -77,6 +85,9 @@ object Cheque :Listener{
         val result = mysql.execute("INSERT INTO cheque_tbl (player, uuid, amount, note, date, used) " +
                 "VALUES ('${p.name}', '${p.uniqueId}', ${amount}, '${if (note !=null)MySQLManager.escapeStringForMySQL(note) else null}', now(),  DEFAULT);")
 
+        //排他解除
+        mysql.unlock()
+
         if (!result){
             sendMsg(p,"§c§l銀行への問い合わせに失敗しました。運営に報告してください。- 02")
 
@@ -84,7 +95,6 @@ object Cheque :Listener{
             if (!isOP){
                 vault.deposit(p.uniqueId,amount)
             }
-
             return
         }
 
