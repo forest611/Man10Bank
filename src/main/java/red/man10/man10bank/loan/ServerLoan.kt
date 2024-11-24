@@ -116,7 +116,6 @@ object ServerLoan {
 
         var calcAmount = minServerLoanAmount+ (median*scoreMulti* lendParameter)
 
-
         if (calcAmount<0.0)calcAmount = 0.0
 
         return if (maxServerLoanAmount < calcAmount) maxServerLoanAmount else calcAmount
@@ -192,13 +191,10 @@ object ServerLoan {
         val max = getLoanAmount(p)
         val borrowing = getBorrowingAmount(p)
 
-
         if (amount <= 0.0){
             sendMsg(p,"1円以上を入力してください")
             return
         }
-
-        sendMsg(p,"Man10Bankシステムに問い合わせ中・・・§l§kXX")
 
         if(borrowedSubAccount(p.uniqueId)){
             sendMsg(p,"§c§lあなたが所有しているアカウントのいずれかで、すでに借金をしているため、このアカウントでお金を借りることはできません！")
