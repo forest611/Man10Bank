@@ -136,6 +136,7 @@ create table cheque_tbl
 	note varchar(128) null,
 	date datetime null,
 	use_date datetime null,
+	use_player varchar(16) null,
 	used tinyint default 0 null,
 	constraint cheque_tbl_pk
 		primary key (id)
@@ -156,7 +157,7 @@ create table server_loan_tbl
 	borrow_amount double null comment '借りた金額の合計',
 	payment_amount double null comment '週ごとの支払額',
 	failed_payment int default 0 comment '支払いに失敗した回数',
-	stop_interest tinyint default 0 comment '利息をたすかどうか'
+	stop_interest tinyint default 0 comment '利息をたすかどうか',
 	constraint server_loan_tbl_pk
 		primary key (id)
 );

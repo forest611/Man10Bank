@@ -185,6 +185,18 @@ class MySQLManager(private val plugin: JavaPlugin, private val conName: String) 
         return rs
     }
 
+    fun lock(table: String): Boolean {
+        return execute("lock tables $table write;")
+    }
+
+    fun unlock(): Boolean {
+        val ret = execute("unlock tables;")
+        if (!ret){
+            Bukkit.getLogger().warning("テーブルのアンロックに失敗しました。DBの接続を確認して再起動をしてください")
+        }
+        return ret
+    }
+
 
     fun close() {
 
