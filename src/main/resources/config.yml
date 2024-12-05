@@ -5,23 +5,14 @@ mysql:
   port: 3306
   db: man10offlinebank
 
-mlendFee: 0.1
-mlendMax: 10000000.0
-mlendRate: 1.0
-enableLocalLoan: false
-
-loggingServerHistory: false
-paymentThread: false
-
-kickDunce: false
-
-isInstalledShop: false
-
+loanfee: 1.1
+loanmax: 10000000.0
+loanrate: 1.0
+loggingServerHistory: true
 revolving:
-  lendParameter: 0.0
-  borrowStandardScore: 0
-  minServerLoan: 100000.0
-  maxServerLoan: 1000000.0
-  revolvingFee: 0.0
-  lastPaymentCycle: 0
-  enable: true
+  medianPercentage: 1.0
+  recordPercentage: 1.0
+  scorePercentage: 1.0
+  maxServerLoan: 5000000
+  revolvingFee: 0.005
+  isEnable: true

@@ -84,12 +84,16 @@ class LoanCommand : CommandExecutor{
             }
 
             Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-
-                sendMsg(sender,"Man10Bankシステムに問い合わせ中・・・§l§kXX")
-
                 val data = LoanData()
+                val id = data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
 
-                data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
+                if (id == -1){
+
+                    sendMsg(sender,"§c§l相手の銀行のお金が足りませんでした")
+                    sendMsg(cache.lend,"§c§l銀行のお金が足りません！${format(cache.amount+(cache.amount* loanFee))}円入れてください！")
+                    return@Runnable
+
+                }
 
                 cache.lend.inventory.addItem(data.getNote())
 
@@ -174,10 +178,10 @@ class LoanCommand : CommandExecutor{
             return true
         }
 
-//        if (sender.name == args[0]){
-//            sendMsg(sender,"§c自分に借金はできません")
-//            return true
-//        }
+        if (sender.name == args[0]){
+            sendMsg(sender,"§c自分に借金はできません")
+            return true
+        }
 
         val borrow = Bukkit.getPlayer(args[0])
 

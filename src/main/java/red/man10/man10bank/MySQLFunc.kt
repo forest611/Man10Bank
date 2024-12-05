@@ -29,8 +29,7 @@ class MySQLFunc(host: String, db: String, user: String, pass: String, port: Stri
             // var s = "jdbc:mysql://" + this.HOST + ":" + this.PORT + "/" + this.DB + "?useSSL=false" + this.USER + this.PASS
             // Bukkit.getLogger().log(Level.INFO,s)
 
-            this.con = DriverManager.getConnection(
-                "jdbc:mysql://${this.HOST}:${this.PORT}/${this.DB}?useSSL=false&allowPublicKeyRetrieval=true", this.USER, this.PASS)
+            this.con = DriverManager.getConnection("jdbc:mysql://" + this.HOST + ":" + this.PORT + "/" + this.DB + "?useSSL=false", this.USER, this.PASS)
             return this.con
         } catch (e:Exception) {
             Bukkit.getLogger().log(Level.SEVERE, "Could not connect to MySQL server, error message: ${e.message}")

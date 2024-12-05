@@ -116,6 +116,7 @@ object ServerLoan {
 
         var calcAmount = minServerLoanAmount+ (median*scoreMulti* lendParameter)
 
+
         if (calcAmount<0.0)calcAmount = 0.0
 
         return if (maxServerLoanAmount < calcAmount) maxServerLoanAmount else calcAmount
@@ -185,16 +186,18 @@ object ServerLoan {
         commandList.add(p)
     }
 
-    @Synchronized
     fun borrow(p:Player, amount:Double){
 
         val max = getLoanAmount(p)
         val borrowing = getBorrowingAmount(p)
 
+
         if (amount <= 0.0){
             sendMsg(p,"1円以上を入力してください")
             return
         }
+
+        sendMsg(p,"Man10Bankシステムに問い合わせ中・・・§l§kXX")
 
         if(borrowedSubAccount(p.uniqueId)){
             sendMsg(p,"§c§lあなたが所有しているアカウントのいずれかで、すでに借金をしているため、このアカウントでお金を借りることはできません！")
@@ -213,22 +216,13 @@ object ServerLoan {
 
         val mysql = MySQLManager(plugin,"Man10ServerLoan")
 
-        mysql.lock("server_loan_tbl")
-
-        val rs = mysql.query("SELECT payment_amount From server_loan_tbl where uuid='${p.uniqueId}'")
-
-        if (rs == null){
-            sendMsg(p,"§c§l銀行への問い合わせに失敗しました。運営に報告してください。- 01")
-            return
-        }
-
-        val query: String
+        val rs = mysql.query("SELECT payment_amount From server_loan_tbl where uuid='${p.uniqueId}'")?:return
 
         //初借金の場合
         if (!rs.next()){
 
-            query = "INSERT INTO server_loan_tbl (player, uuid, borrow_date, last_pay_date, borrow_amount, payment_amount) " +
-                    "VALUES ('${p.name}', '${p.uniqueId}', DEFAULT, DEFAULT, ${amount}, ${minPaymentAmount*2})"
+            mysql.execute("INSERT INTO server_loan_tbl (player, uuid, borrow_date, last_pay_date, borrow_amount, payment_amount) " +
+                    "VALUES ('${p.name}', '${p.uniqueId}', DEFAULT, DEFAULT, ${amount}, ${minPaymentAmount*2})")
 
             p.sendMessage("""
                 §e§l[返済について]
@@ -240,19 +234,11 @@ object ServerLoan {
 
         //2回目以降
         }else if (borrowing==0.0){
-            query = " UPDATE server_loan_tbl SET borrow_amount=${amount}, borrow_date=now(), " +
-                    "last_pay_date=now(),payment_amount=${minPaymentAmount*2} WHERE uuid = '${p.uniqueId}'"
+            mysql.execute(" UPDATE server_loan_tbl SET borrow_amount=${amount}, borrow_date=now(), " +
+                    "last_pay_date=now(),payment_amount=${minPaymentAmount*2} WHERE uuid = '${p.uniqueId}'")
         }else{
-            query = " UPDATE server_loan_tbl SET borrow_amount=borrow_amount+${amount}" +
-                    ",payment_amount=${minPaymentAmount*2} WHERE uuid = '${p.uniqueId}'"
-        }
-
-        val ret = mysql.execute(query)
-
-        if (!ret){
-            mysql.unlock()
-            sendMsg(p,"§c§l銀行への問い合わせに失敗しました。運営に報告してください。- 02")
-            return
+            mysql.execute(" UPDATE server_loan_tbl SET borrow_amount=borrow_amount+${amount}" +
+                    ",payment_amount=${minPaymentAmount*2} WHERE uuid = '${p.uniqueId}'")
         }
 
         rs.close()
@@ -261,6 +247,7 @@ object ServerLoan {
         sendMsg(p,"§a§lお金を借りることができました！")
 
         vault.deposit(p.uniqueId,amount)
+
     }
 
     fun setPaymentAmount(p:Player,amount:Double){
