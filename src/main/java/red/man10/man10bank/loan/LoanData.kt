@@ -27,20 +27,25 @@ class LoanData {
 
     private val mysql = MySQLManager(plugin,"Man10Loan")
 
-    fun create(lend:Player, borrow: Player, borrowedAmount : Double, rate:Double, paybackDay:Int):Int{
-
-        if (Bank.withdraw(lend.uniqueId, borrowedAmount+(borrowedAmount * Man10Bank.loanFee), plugin,"LoanCreate","借金の貸し出し").first!=0)return -1
-
-        Bank.deposit(borrow.uniqueId, borrowedAmount, plugin, "LoanCreate","借金の借り入れ")
+    @Synchronized
+    fun create(lend:Player, borrow: Player, borrowedAmount : Double, rate:Double, paybackDay:Int):Boolean{
 
         //30日を基準に金利が設定される
         debt = calcRate(borrowedAmount,paybackDay,rate)
-
         this.borrow = borrow.uniqueId
-
         paybackDate = calcDate(paybackDay)
 
-        mysql.execute("INSERT INTO loan_table " +
+        if (!mysql.lock("loan_table")){
+            sendMsg(lend,"§c§lただいま窓口が混雑しているようです。しばらくお待ちください。")
+            return false
+        }
+
+        if (Bank.withdraw(lend.uniqueId, borrowedAmount+(borrowedAmount * Man10Bank.loanFee), plugin,"LoanCreate","借金の貸し出し").first!=0){
+            sendMsg(lend,"§c§lお金が足りません！")
+            return false
+        }
+
+        val result = mysql.execute("INSERT INTO loan_table " +
                 "(lend_player, lend_uuid, borrow_player, borrow_uuid, borrow_date, payback_date, amount) " +
                 "VALUES ('${lend.name}', " +
                 "'${lend.uniqueId}', " +
@@ -50,18 +55,32 @@ class LoanData {
                 "'${SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(paybackDate.time)}', " +
                 "$debt);")
 
-        val rs = mysql.query("SELECT id from loan_table order by id desc limit 1;")?:return -2
-        rs.next()
+        if (!result){
+            mysql.unlock()
+            sendMsg(lend,"§c§lデータベースエラーが発生しました。運営に報告してください。- 01")
+            return false
+        }
 
+        val rs = mysql.query("SELECT id from loan_table order by id desc limit 1;")
+
+        if (rs == null || !rs.next()){
+            mysql.unlock()
+            sendMsg(lend,"§c§lデータベースエラーが発生しました。運営に報告してください。- 02")
+            return false
+        }
         id = rs.getInt("id")
+
+        mysql.close()
 
         rs.close()
         mysql.close()
 
+        Bank.deposit(borrow.uniqueId, borrowedAmount, plugin, "LoanCreate","借金の借り入れ")
+
+
         lendMap[id] = this
 
-        return id
-
+        return true
     }
 
     fun load(id:Int): LoanData? {

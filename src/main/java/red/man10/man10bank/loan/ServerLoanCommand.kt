@@ -109,6 +109,7 @@ class ServerLoanCommand : CommandExecutor{
                 val amount = args[1].toDoubleOrNull()?:return true
 
                 Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
+                    sendMsg(sender,"Man10Bankシステムに問い合わせ中・・・§l§kXX")
                     ServerLoan.borrow(sender,amount)
                 })
 

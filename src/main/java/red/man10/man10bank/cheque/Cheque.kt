@@ -27,11 +27,29 @@ object Cheque :Listener{
     @Synchronized
     fun createCheque(p:Player, amount:Double, note:String?, isOP:Boolean){
 
-        val rs = mysql.query("select id from cheque_tbl order by id desc limit 1;")?:return
+        if (note !=null && note.length > 20){
+            sendMsg(p,"§c§lメモは20文字以内にしてください。")
+            return
+        }
 
-        val id = if (rs.next()){ rs.getInt("id")+1 }else 1
+        //排他制御
+        if (!mysql.lock("cheque_tbl")){
+            sendMsg(p,"§c§lただいま窓口が混雑しているようです。しばらくお待ちください。")
+            return
+        }
+
+        val rs = mysql.query("select id from cheque_tbl order by id desc limit 1;")
+
+        if (rs == null){
+            mysql.unlock()
+            sendMsg(p,"§c§l銀行への問い合わせに失敗しました。運営に報告してください。- 01")
+            return
+        }
+
+        val id = if (rs.next()){ rs.getInt("id")+1 } else 1
 
         if (!isOP && !vault.withdraw(p.uniqueId,amount)){
+            mysql.unlock()
             sendMsg(p,"§c§l電子マネーがありません！")
             return
         }
@@ -48,9 +66,7 @@ object Cheque :Listener{
         lore.add(Component.text(""))
         lore.add(Component.text("§a§l発行者: ${if (isOP)"§c§l" else "§d§l"}${p.name}"))
         lore.add(Component.text("§a§l金額: ${format(amount)}円"))
-        if (note !=null){
-            lore.add(Component.text("§d§lメモ: $note"))
-        }
+        if (note !=null){ lore.add(Component.text("§d§lメモ: $note")) }
         lore.add(Component.text(""))
         lore.add(Component.text("§e=================="))
 
@@ -66,8 +82,21 @@ object Cheque :Listener{
 
         chequeItem.itemMeta = meta
 
-        mysql.execute("INSERT INTO cheque_tbl (player, uuid, amount, note, date, used) " +
+        val result = mysql.execute("INSERT INTO cheque_tbl (player, uuid, amount, note, date, used) " +
                 "VALUES ('${p.name}', '${p.uniqueId}', ${amount}, '${if (note !=null)MySQLManager.escapeStringForMySQL(note) else null}', now(),  DEFAULT);")
+
+        //排他解除
+        mysql.unlock()
+
+        if (!result){
+            sendMsg(p,"§c§l銀行への問い合わせに失敗しました。運営に報告してください。- 02")
+
+            //返金
+            if (!isOP){
+                vault.deposit(p.uniqueId,amount)
+            }
+            return
+        }
 
         p.inventory.addItem(chequeItem)
 
@@ -95,14 +124,24 @@ object Cheque :Listener{
 
         if (id == -1)return
 
-        val rs = mysql.query("select used from cheque_tbl where id=$id;")?:return
+        val rs = mysql.query("select used from cheque_tbl where id=$id;")
+
+        if (rs == null){
+            sendMsg(p,"§c§l銀行への問い合わせに失敗しました。運営に報告してください。- 03")
+            return
+        }
 
         if (!rs.next() || rs.getInt("used") == 1){
             sendMsg(p,"§c§lこの小切手は使えません")
             return
         }
 
-        mysql.execute("update cheque_tbl set used=1,use_date=now(),use_player='${p.name}' where id=$id;")
+        val result = mysql.execute("update cheque_tbl set used=1,use_date=now(),use_player='${p.name}' where id=$id;")
+
+        if (!result){
+            sendMsg(p,"§c§l銀行への問い合わせに失敗しました。運営に報告してください。- 04")
+            return
+        }
 
         val amount = getChequeAmount(item)
 
