@@ -40,7 +40,7 @@ class LoanCommand : CommandExecutor{
         if (args.isEmpty()) {
 
             sendMsg(sender,"§a/mlend <プレイヤー> <金額> <期間(日)> <金利(0.0〜${loanRate})>")
-            sendMsg(sender,"§a金額の${loanFee*100}%を手数料としていただきます")
+            sendMsg(sender,"§a金額の${loanFee*100}％を手数料としていただきます")
             return true
 
         }

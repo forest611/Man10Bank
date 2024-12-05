@@ -134,7 +134,9 @@ class LoanData {
         Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.remove(item) })
 
         val borrowPlayer = Bukkit.getOfflinePlayer(borrow)
-        val isOnline = borrowPlayer.isOnline
+
+
+        val isOnline = Man10Bank.loadedPlayerUUIDs.contains(borrowPlayer.uniqueId)&&borrowPlayer.isOnline
 
         if (debt <= 0.0)return
 
