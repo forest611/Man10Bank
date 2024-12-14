@@ -121,7 +121,7 @@ class LoanData {
             return
         }
 
-        if (!Man10Bank.enableLocalLoan){
+        if (!Man10Bank.enableLocalLoan||Man10Bank.localLoanDisableWorlds.contains(p.world.name)){
             sendMsg(p,"§c§lこのエリアでは個人間借金の取引を行うことはできません。")
             return
         }
