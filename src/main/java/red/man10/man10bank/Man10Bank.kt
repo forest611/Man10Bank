@@ -44,6 +44,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
         var isInstalledShop = false
 
+        val localLoanDisableWorlds=ArrayList<String>()
+
         fun sendMsg(p:Player,msg:String){
             p.sendMessage(prefix+msg)
         }
@@ -119,6 +121,9 @@ class Man10Bank : JavaPlugin(),Listener {
         isInstalledShop = config.getBoolean("isInstalledShop", true)
 
         workWorld = config.getLocation("workWorld",null)
+
+        localLoanDisableWorlds.clear()
+        localLoanDisableWorlds.addAll(config.getStringList("localLoanDisableWorlds"))
 
         val hasShop = plugin.server.pluginManager.getPlugin("Man10ShopV2")!=null
 

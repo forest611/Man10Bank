@@ -32,7 +32,7 @@ class LoanCommand : CommandExecutor{
 
         if (sender !is Player)return true
 
-        if (!sender.hasPermission(OP) && !Man10Bank.enableLocalLoan){
+        if (!sender.hasPermission(OP) && (!Man10Bank.enableLocalLoan||Man10Bank.localLoanDisableWorlds.contains(sender.world.name))){
             sendMsg(sender,"§c§lこのエリアでは個人間借金の取引を行うことはできません。")
             return true
         }
