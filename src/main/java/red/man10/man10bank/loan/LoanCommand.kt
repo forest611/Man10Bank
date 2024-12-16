@@ -89,7 +89,9 @@ class LoanCommand : CommandExecutor{
 
                 val data = LoanData()
 
-                data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)
+                if(!data.create(cache.lend,cache.borrow,cache.amount,cache.rate,cache.day)){
+                    return@Runnable
+                }
 
                 cache.lend.inventory.addItem(data.getNote())
 
