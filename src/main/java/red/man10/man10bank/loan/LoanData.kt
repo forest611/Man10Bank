@@ -83,6 +83,7 @@ class LoanData {
         return true
     }
 
+    @Synchronized
     fun load(id:Int): LoanData? {
 
         val rs = mysql.query("select * from loan_table where id=$id;")?:return null
@@ -103,17 +104,11 @@ class LoanData {
 
     }
 
-    private fun save(amount:Double){
-
-        val mysql = MySQLManager(plugin,"Man10Loan")
-
-        mysql.execute("UPDATE loan_table set amount=$amount where id=$id;")
-
-    }
 
     /**
      * @param p 手形の持ち主
      */
+    @Synchronized
     fun payback(p:Player,item:ItemStack) {
 
         if (!enable){
@@ -142,51 +137,68 @@ class LoanData {
 
         val man10Bank = Bank.getBalance(borrow)
 
+        val mysql = MySQLManager(plugin,"Man10Loan")
+
         val balance = Man10Bank.vault.getBalance(borrow)
 
-        val takeMan10Bank = floor(if (man10Bank<debt)man10Bank else debt)
+        try {
+            val takeMan10Bank = floor(if (man10Bank<debt)man10Bank else debt)
 
-        if (takeMan10Bank != 0.0 && Bank.withdraw(borrow,takeMan10Bank, plugin,"paybackMoney","借金の返済").first == 0){
+            if (takeMan10Bank != 0.0 && Bank.withdraw(borrow,takeMan10Bank, plugin,"paybackMoney","借金の返済").first == 0){
 
-            debt -= takeMan10Bank
+                debt -= takeMan10Bank
 
-            if (takeMan10Bank>0){
-                sendMsg(p,"§eMan10Bankから${Man10Bank.format(takeMan10Bank)}円回収成功しました！")
-                Bank.deposit(p.uniqueId,takeMan10Bank, plugin,"paybackMoneyFromBank","借金の回収")
+                val result = mysql.execute("UPDATE loan_table set amount=$debt where id=$id;")
+
+                //データベースエラーの時は例外を投げる
+                if (!result){
+                    Bank.deposit(borrow,takeMan10Bank, plugin,"paybackMoney","借金の返金")
+                    sendMsg(p,"§c§lデータベースエラーが発生しました。運営に報告してください。- mysql")
+                    throw Exception("[Man10Loan]データベースエラーが発生しました。運営に報告してください。- mysql")
+                }
+
+                if (takeMan10Bank>0){
+                    sendMsg(p,"§eMan10Bankから${Man10Bank.format(takeMan10Bank)}円回収成功しました！")
+                    Bank.deposit(p.uniqueId,takeMan10Bank, plugin,"paybackMoneyFromBank","借金の回収")
+                }
+
             }
 
-        }
+            val takeBalance = floor(if (balance<(debt))balance else debt)
 
-        val takeBalance = floor(if (balance<(debt))balance else debt)
+            if (isOnline && takeBalance != 0.0 && Man10Bank.vault.withdraw(borrow,takeBalance)){
 
-        if (isOnline && takeBalance != 0.0 && Man10Bank.vault.withdraw(borrow,takeBalance)){
+                debt -= floor(takeBalance)
 
-            debt -= floor(takeBalance)
+                val result = mysql.execute("UPDATE loan_table set amount=$debt where id=$id;")
 
-            if (takeBalance>0){
-                sendMsg(p,"§e所持金から${Man10Bank.format(takeBalance)}円回収成功しました！")
-                Bank.deposit(p.uniqueId,takeBalance, plugin,"paybackMoneyFromBalance","借金の回収")
+                //データベースエラーの時は例外を投げる
+                if (!result) {
+                    Man10Bank.vault.deposit(borrow, takeBalance)
+                    sendMsg(p, "§c§lデータベースエラーが発生しました。運営に報告してください。- mysql")
+                    throw Exception("[Man10Loan]データベースエラーが発生しました。運営に報告してください。- mysql")
+                }
+
+                if (takeBalance>0){
+                    sendMsg(p,"§e所持金から${Man10Bank.format(takeBalance)}円回収成功しました！")
+                    Bank.deposit(p.uniqueId,takeBalance, plugin,"paybackMoneyFromBalance","借金の回収")
+                }
+
             }
-
-        }
-
-        if (isOnline){
-            sendMsg(borrowPlayer.player!!,"§e${p.name}から借金の回収が行われました！")
-        }
-
-        if (debt>0){
-
-            Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.addItem(getNote()) })
-
-        }else{
-            sendMsg(p,"§e全額回収し終わりました！")
 
             if (isOnline){
-                sendMsg(borrowPlayer.player!!,"§e全額完済し終わりました！お疲れ様です！")
+                sendMsg(borrowPlayer.player!!,"§e${p.name}から借金の回収が行われました！")
+            }
+        }finally {
+            if (debt>0){
+                Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.addItem(getNote()) })
+            }else{
+                sendMsg(p,"§e全額回収し終わりました！")
+                if (isOnline){
+                    sendMsg(borrowPlayer.player!!,"§e全額完済し終わりました！お疲れ様です！")
+                }
             }
         }
-
-        save(debt)
     }
 
     fun getNote():ItemStack{
