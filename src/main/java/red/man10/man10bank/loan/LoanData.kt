@@ -189,6 +189,8 @@ class LoanData {
             if (isOnline){
                 sendMsg(borrowPlayer.player!!,"§e${p.name}から借金の回収が行われました！")
             }
+        }catch (_:Exception){
+
         }finally {
             if (debt>0){
                 Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.addItem(getNote()) })
