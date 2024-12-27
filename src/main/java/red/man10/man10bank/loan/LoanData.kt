@@ -126,7 +126,7 @@ class LoanData {
             return
         }
 
-        Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.remove(item) })
+//        Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.remove(item) })
 
         val borrowPlayer = Bukkit.getOfflinePlayer(borrow)
 
@@ -193,7 +193,22 @@ class LoanData {
 
         }finally {
             if (debt>0){
-                Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.addItem(getNote()) })
+//                Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.addItem(getNote()) })
+
+                // 手形の更新
+                Bukkit.getScheduler().runTask(plugin, Runnable {
+                    val meta = item.itemMeta
+
+                    meta.lore = mutableListOf(
+                        "§4§l========[Man10Bank]========",
+                        "   §7§l債務者:  ${Bukkit.getOfflinePlayer(borrow).name}",
+                        "   §8§l有効日:  ${SimpleDateFormat("yyyy-MM-dd").format(paybackDate)}",
+                        "   §7§l支払額:  ${Man10Bank.format(debt)}",
+                        "§4§l==========================")
+
+                    item.itemMeta = meta
+                })
+
             }else{
                 sendMsg(p,"§e全額回収し終わりました！")
                 if (isOnline){
