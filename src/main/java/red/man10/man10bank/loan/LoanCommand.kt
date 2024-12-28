@@ -176,17 +176,18 @@ class LoanCommand : CommandExecutor{
             return true
         }
 
-        if (sender.name == args[0] && !sender.hasPermission(OP)){
-            sendMsg(sender,"§c自分に借金はできません")
-            return true
-        }
-
         val borrow = Bukkit.getPlayer(args[0])
 
         if (borrow == null){
             sendMsg(sender,"§c相手はオフラインです")
             return true
         }
+
+        if (sender.name == borrow.name && !sender.hasPermission(OP)){
+            sendMsg(sender,"§c自分に借金はできません")
+            return true
+        }
+
 
         if (!borrow.hasPermission(USER)){
             sendMsg(sender,"§4貸し出す相手に権限がありません")
