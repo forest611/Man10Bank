@@ -128,7 +128,7 @@ object ServerLoan {
         val totalLoginHour = ScoreDatabase.getConnectingSeconds(p.uniqueId)/3600.0
 
         val totalLoginMaximumPrice = maximumOfLoginTime
-            .filter { it.value <= totalLoginHour }
+            .filter { it.key <= totalLoginHour }
             .maxByOrNull { it.value }
             ?.value ?: maxServerLoanAmount
 
