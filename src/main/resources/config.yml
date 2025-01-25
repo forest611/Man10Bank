@@ -25,3 +25,5 @@ revolving:
   revolvingFee: 0.0
   lastPaymentCycle: 0
   enable: true
+  maximumOfLoginTime:
+    - '1,000:100,000'

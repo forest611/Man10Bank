@@ -139,6 +139,11 @@ class Man10Bank : JavaPlugin(),Listener {
         ServerLoan.lastPaymentCycle = config.getInt("revolving.lastPaymentCycle")
         ServerLoan.isEnable = config.getBoolean("revolving.enable",false)
 
+        for (value in config.getStringList("revolving.maximumOfLoginTime")){
+            val time = value.replace(",","").split(":")
+            ServerLoan.maximumOfLoginTime[time[0].toInt()] = time[1].toDoubleOrNull()?:0.0
+        }
+
         ATMData.loadItem()
     }
 

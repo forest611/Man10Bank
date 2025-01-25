@@ -18,6 +18,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.round
 
 
@@ -33,6 +35,8 @@ object ServerLoan {
 
     val shareMap = ConcurrentHashMap<Player,Double>()
     val commandList = mutableListOf<Player>()
+
+    val maximumOfLoginTime = ConcurrentHashMap<Int,Double>()
 
     var maxServerLoanAmount : Double = 1_000_000.0
     var minServerLoanAmount : Double = 50000.0
@@ -51,7 +55,7 @@ object ServerLoan {
 
     fun checkServerLoan(p: Player){
 
-        val maxLoan = getLoanAmount(p)
+        val maxLoan = getMaximumLoanAmount(p)
 
         p.sendMessage("§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(maxServerLoanAmount)}円)")
 
@@ -67,13 +71,13 @@ object ServerLoan {
 
     fun checkServerLoan(sender:Player,p:Player){
 
-        val maxLoan = getLoanAmount(p)
+        val maxLoan = getMaximumLoanAmount(p)
 
         sender.sendMessage("§f§l貸し出し可能上限額:§e§l${format(maxLoan)}円(最大:${format(maxServerLoanAmount)}円)")
 
     }
 
-    private fun getLoanAmount(p:Player):Double{
+    private fun getMaximumLoanAmount(p:Player):Double{
 
         val score = ScoreDatabase.getScore(p.uniqueId)
 
@@ -118,7 +122,16 @@ object ServerLoan {
 
         if (calcAmount<0.0)calcAmount = 0.0
 
-        return if (maxServerLoanAmount < calcAmount) maxServerLoanAmount else calcAmount
+        val totalLoginHour = ScoreDatabase.getConnectingSeconds(p.uniqueId)/3600.0
+
+        val totalLoginMaximumPrice = maximumOfLoginTime
+            .filter { it.value <= totalLoginHour }
+            .maxByOrNull { it.value }
+            ?.value ?: 0.0
+
+        val maxAmount = max(maxServerLoanAmount,totalLoginMaximumPrice)
+
+        return min(calcAmount,maxAmount)
     }
 
     fun getBorrowingAmount(p:Player):Double{
@@ -152,7 +165,7 @@ object ServerLoan {
             return
         }
 
-        val max = getLoanAmount(p)
+        val max = getMaximumLoanAmount(p)
         val borrowing = getBorrowingAmount(p)
 
         val borrowableAmount = max - borrowing
@@ -188,7 +201,7 @@ object ServerLoan {
     @Synchronized
     fun borrow(p:Player, amount:Double){
 
-        val max = getLoanAmount(p)
+        val max = getMaximumLoanAmount(p)
         val borrowing = getBorrowingAmount(p)
 
         if (amount <= 0.0){
