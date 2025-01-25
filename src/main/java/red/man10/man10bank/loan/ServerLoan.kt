@@ -105,7 +105,7 @@ object ServerLoan {
         } else if (list.size % 2 == 0) {
             (list[centerIndex-1] + list[centerIndex]) / 2.0
         } else {
-            list[centerIndex-1]
+            list[max(centerIndex-1,0)]
         }
 
         rs.close()
@@ -114,7 +114,7 @@ object ServerLoan {
         //（無条件で借りられる額）+〔(一カ月の残高中央値-スコアによる天引き)×3.55］＝貸出可能金額
         //債務者のスコア/基準スコア
 
-        var scoreMulti = score.toDouble()/ borrowStandardScore
+        var scoreMulti = score.toDouble()/ max(borrowStandardScore,1)
 
         if (scoreMulti > 1.0) scoreMulti = 1.0
 
@@ -122,15 +122,19 @@ object ServerLoan {
 
         if (calcAmount<0.0)calcAmount = 0.0
 
+        calcAmount += minServerLoanAmount
+
+        //ログイン時間による借りられる額の上限
         val totalLoginHour = ScoreDatabase.getConnectingSeconds(p.uniqueId)/3600.0
 
         val totalLoginMaximumPrice = maximumOfLoginTime
             .filter { it.value <= totalLoginHour }
             .maxByOrNull { it.value }
-            ?.value ?: 0.0
+            ?.value ?: maxServerLoanAmount
 
-        val maxAmount = max(maxServerLoanAmount,totalLoginMaximumPrice)
+        val maxAmount = min(maxServerLoanAmount,totalLoginMaximumPrice)
 
+        //最大借りられる額と計算された借りられる額の小さい方を返す
         return min(calcAmount,maxAmount)
     }
 
