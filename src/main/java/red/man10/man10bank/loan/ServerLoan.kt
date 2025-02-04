@@ -331,6 +331,7 @@ object ServerLoan {
 
     }
 
+    @Synchronized
     fun paymentAll(p:Player){
 
         val mysql = MySQLManager(plugin,"Man10ServerLoan")
@@ -548,6 +549,7 @@ object ServerLoan {
         if (nextDate.second>0 && getBorrowingAmount(p) >0){
             return true
         }
+
 
         return false
 

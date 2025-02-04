@@ -154,6 +154,7 @@ class ServerLoanCommand : CommandExecutor{
 
                 if (!sender.hasPermission(OP))return true
 
+                sendMsg(sender,"Man10リボを有効にしました")
                 ServerLoan.isEnable = true
                 plugin.config.set("revolving.enable",true)
                 plugin.saveConfig()
@@ -162,6 +163,7 @@ class ServerLoanCommand : CommandExecutor{
             "off" ->{
                 if (!sender.hasPermission(OP))return true
 
+                sendMsg(sender,"Man10リボを無効にしました")
                 ServerLoan.isEnable = false
                 plugin.config.set("revolving.enable",false)
                 plugin.saveConfig()
