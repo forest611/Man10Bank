@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
+import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
@@ -145,7 +146,9 @@ object Cheque :Listener{
 
         val amount = getChequeAmount(item)
 
-        vault.deposit(p.uniqueId,amount)
+//        vault.deposit(p.uniqueId,amount)
+
+        Bank.deposit(p.uniqueId,amount, plugin,"Use Cheque <${id}>","小切手の使用")
 
         item.amount = 0
 
