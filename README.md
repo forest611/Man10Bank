@@ -128,7 +128,7 @@ revolving:              # リボルビングローン設定
 
 ## 開発者
 
-- [forest611](https://github.com/forest611)
+- [Man10 Project](https://man10.red)
 
 ## 画像について
 
