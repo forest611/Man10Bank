@@ -11,10 +11,14 @@ import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 class ServerLoanCommand : CommandExecutor{
 
     private val REVO_PERM = "man10bank.revo"
+
+    private val processingPlayers = ConcurrentHashMap<UUID, Boolean>()
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
 
@@ -108,9 +112,19 @@ class ServerLoanCommand : CommandExecutor{
 
                 val amount = args[1].toDoubleOrNull()?:return true
 
+                // すでに処理中の場合は処理しない
+                if (processingPlayers.containsKey(sender.uniqueId)) {
+                    sendMsg(sender,"§c§l処理中です。しばらくお待ちください。")
+                    return true
+                }
+
+                processingPlayers[sender.uniqueId] = true
+                sendMsg(sender,"Man10Bankシステムに問い合わせ中・・・§l§kXX")
+
                 Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-                    sendMsg(sender,"Man10Bankシステムに問い合わせ中・・・§l§kXX")
+                    Thread.sleep(2000)
                     ServerLoan.borrow(sender,amount)
+                    processingPlayers.remove(sender.uniqueId)
                 })
 
             }

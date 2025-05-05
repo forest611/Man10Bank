@@ -205,36 +205,15 @@ object ServerLoan {
     @Synchronized
     fun borrow(p:Player, amount:Double){
 
-        val max = getMaximumLoanAmount(p)
-        val borrowing = getBorrowingAmount(p)
-
-        if (amount <= 0.0){
-            sendMsg(p,"1円以上を入力してください")
-            return
-        }
-
-        if(borrowedSubAccount(p.uniqueId)){
-            sendMsg(p,"§c§lあなたが所有しているアカウントのいずれかで、すでに借金をしているため、このアカウントでお金を借りることはできません！")
-            return
-        }
-
-        val borrowableAmount = max - borrowing
-        val minPaymentAmount = floor((borrowing+amount)*frequency*revolvingFee)
-
-        if (borrowableAmount<amount){
-            sendMsg(p,"§cあなたが借りることができる金額は${format(borrowableAmount)}円までです")
-            p.sendMessage(Component.text("${prefix}§e§l§n[${borrowableAmount}円借りる]").
-            clickEvent(ClickEvent.runCommand("/mrevo borrow $borrowableAmount")))
-            return
-        }
-
         val mysql = MySQLManager(plugin,"Man10ServerLoan")
 
         mysql.lock("server_loan_tbl")
 
-        val rs = mysql.query("SELECT payment_amount From server_loan_tbl where uuid='${p.uniqueId}'")
-
+        val rs = mysql.query("SELECT borrow_amount From server_loan_tbl where uuid='${p.uniqueId}'")
+        
+        // クエリ失敗
         if (rs == null){
+            mysql.unlock()
             sendMsg(p,"§c§l銀行への問い合わせに失敗しました。運営に報告してください。- 01")
             return
         }
@@ -244,8 +223,10 @@ object ServerLoan {
         //初借金の場合
         if (!rs.next()){
 
+            val minimumPaymentAmount = floor(amount*frequency*revolvingFee)
+
             query = "INSERT INTO server_loan_tbl (player, uuid, borrow_date, last_pay_date, borrow_amount, payment_amount) " +
-                    "VALUES ('${p.name}', '${p.uniqueId}', DEFAULT, DEFAULT, ${amount}, ${minPaymentAmount*2})"
+                    "VALUES ('${p.name}', '${p.uniqueId}', DEFAULT, DEFAULT, ${amount}, ${minimumPaymentAmount*2})"
 
             p.sendMessage("""
                 §e§l[返済について]
@@ -256,12 +237,14 @@ object ServerLoan {
             """.trimIndent())
 
         //2回目以降
-        }else if (borrowing==0.0){
-            query = " UPDATE server_loan_tbl SET borrow_amount=${amount}, borrow_date=now(), " +
-                    "last_pay_date=now(),payment_amount=${minPaymentAmount*2} WHERE uuid = '${p.uniqueId}'"
         }else{
-            query = " UPDATE server_loan_tbl SET borrow_amount=borrow_amount+${amount}" +
-                    ",payment_amount=${minPaymentAmount*2} WHERE uuid = '${p.uniqueId}'"
+            
+            val borrowAmount = rs.getDouble("borrow_amount")
+
+            val minimumPaymentAmount = floor((borrowAmount+amount)*frequency*revolvingFee)
+
+            query = " UPDATE server_loan_tbl SET borrow_amount=${borrowAmount+amount}, borrow_date=now()" +
+                    ",payment_amount=${minimumPaymentAmount*2} WHERE uuid = '${p.uniqueId}'"
         }
 
         val ret = mysql.execute(query)
@@ -273,6 +256,7 @@ object ServerLoan {
         }
 
         rs.close()
+        mysql.unlock()
         mysql.close()
 
         sendMsg(p,"§a§lお金を借りることができました！")
