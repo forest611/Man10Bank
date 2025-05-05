@@ -308,7 +308,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
             }
 
-            "bal","balance","money","bank" ->{
+            "bal","balance","money","bank","man10bank:bal","man10bank:balance","man10bank:money","man10bank:bank" ->{
 
                 if (sender !is Player)return false
 
@@ -683,7 +683,7 @@ class Man10Bank : JavaPlugin(),Listener {
                 return true
             }
 
-            "pay" ->{
+            "pay","man10bank:pay" ->{
 //                if (!sender.hasPermission(USER))return true
 
                 if (sender !is Player)return true

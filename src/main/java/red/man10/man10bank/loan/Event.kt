@@ -19,12 +19,15 @@ import java.util.*
 
 class Event : Listener{
 
+    private val playersProcessingNote=Collections.synchronizedList(mutableListOf<UUID>())
+
     @EventHandler
     fun clickNote(e:PlayerInteractEvent){
 
         if (!e.hasItem())return
         if (e.action != Action.RIGHT_CLICK_AIR)return
         if (e.hand != EquipmentSlot.HAND)return
+        if(playersProcessingNote.contains(e.player.uniqueId))return
 
         val item = e.item?:return
         val p = e.player
@@ -35,9 +38,16 @@ class Event : Listener{
         e.isCancelled = true
 
         Thread{
-            val data = LoanData.lendMap[id]?:LoanData().load(id)?:return@Thread
+            synchronized(playersProcessingNote){
+                playersProcessingNote.add(e.player.uniqueId)
+            }
+            val data = LoanData().load(id)?:return@Thread
             Bukkit.getLogger().info("${p.name}が${id}の手形を使用しました")
             data.payback(p,item)
+            Thread.sleep(2000)
+            synchronized(playersProcessingNote){
+                playersProcessingNote.remove(e.player.uniqueId)
+            }
         }.start()
 
     }
