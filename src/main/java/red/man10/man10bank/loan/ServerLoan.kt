@@ -492,7 +492,7 @@ object ServerLoan {
 
 
             val score = ScoreDatabase.getScore(uuid)
-            val name = Bukkit.getOfflinePlayer(uuid).name!!
+            val name = Bukkit.getOfflinePlayer(uuid).name?:continue
 
             if (score<-300){
                 Bukkit.getLogger().info("スコア-300以下なので支払い処理通過 mcid:$name score:$score")
