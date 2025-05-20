@@ -308,6 +308,7 @@ object ServerLoan {
         return ServerLoanRepository.addLastPayTime(who,hour)
     }
 
+    fun getLoanTop(page:Int): MutableList<Pair<String,Double>>{
         return ServerLoanRepository.fetchLoanTop(page)
     }
     //支払い処理
