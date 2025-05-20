@@ -169,6 +169,11 @@ object ServerLoan {
             return
         }
 
+        if (borrowedSubAccount(p.uniqueId)){
+            sendMsg(p,"§c同一IPの他プレイヤーがすでに借入を行っています")
+            return
+        }
+
         val max = getMaximumLoanAmount(p)
         val borrowing = getBorrowingAmount(p)
 
@@ -204,6 +209,11 @@ object ServerLoan {
 
     @Synchronized
     fun borrow(p:Player, amount:Double){
+
+        if (borrowedSubAccount(p.uniqueId)){
+            sendMsg(p,"§c同一IPの他プレイヤーがすでに借入を行っています")
+            return
+        }
 
         val mysql = MySQLManager(plugin,"Man10ServerLoan")
 
