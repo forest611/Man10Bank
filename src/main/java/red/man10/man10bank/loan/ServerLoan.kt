@@ -340,7 +340,7 @@ object ServerLoan {
     private fun batch(){
 
         val now = Date()
-        Bukkit.getScheduler().runTask(plugin) { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理開始")) }
+        Bukkit.getScheduler().runTask(plugin,Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理開始")) })
 
         val records = ServerLoanRepository.fetchActiveLoans()
 
@@ -381,7 +381,7 @@ object ServerLoan {
             }
         }
 
-        Bukkit.getScheduler().runTask(plugin) { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理終了")) }
+        Bukkit.getScheduler().runTask(plugin,Runnable { Bukkit.broadcast(Component.text("§e§lMan10リボの支払い処理終了")) })
 
     }
 

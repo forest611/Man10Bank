@@ -115,7 +115,7 @@ class LocalLoanCommand : CommandExecutor {
                 sendMsg(sender, "借金情報が見つかりません")
                 return@Thread
             }
-            Bukkit.getScheduler().runTask(plugin) { sender.inventory.addItem(data.getNote()) }
+            Bukkit.getScheduler().runTask(plugin, Runnable { sender.inventory.addItem(data.getNote()) })
         }.start()
     }
 
