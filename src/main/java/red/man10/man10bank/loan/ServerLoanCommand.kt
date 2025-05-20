@@ -14,181 +14,125 @@ import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
-class ServerLoanCommand : CommandExecutor{
+class ServerLoanCommand : CommandExecutor {
 
     private val REVO_PERM = "man10bank.revo"
-
     private val processingPlayers = ConcurrentHashMap<UUID, Boolean>()
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
-
-        if (sender !is Player)return false
-
-        if (label != "mrevo")return false
+        if (sender !is Player) return false
+        if (label != "mrevo") return false
 
         if (args.isEmpty()) {
+            showUsage(sender)
+            return false
+        }
 
-            sendMsg(sender,"""
+        when (args[0]) {
+            "check" -> async { ServerLoan.checkServerLoan(sender) }
+            "checkop" -> if (sender.hasPermission(OP) && args.size >= 2) checkOp(sender, args[1])
+            "share" -> share(sender)
+            "borrow" -> if (args.size == 2) borrow(sender, args[1].toDoubleOrNull())
+            "confirm" -> if (args.size == 2) confirm(sender, args[1].toDoubleOrNull())
+            "payment" -> if (args.size == 2) payment(sender, args[1].toDoubleOrNull())
+            "payall" -> async { ServerLoan.paymentAll(sender) }
+            "addtime" -> if (sender.hasPermission(OP) && args.size == 3) addTime(sender, args[1], args[2].toInt())
+            "on" -> if (sender.hasPermission(OP)) toggle(true, sender)
+            "off" -> if (sender.hasPermission(OP)) toggle(false, sender)
+        }
+        return true
+    }
+
+    private fun showUsage(p: Player) {
+        sendMsg(p, """
                        Man10リボ
                 /mrevo check : 借りれる上限額を確かめる
                 /mrevo borrow <金額>: お金を借りる(確認画面を挟みます)
                 /mrevo payment <金額> : リボの支払い額を決める
                 /mrevo payall : 一括返済する
             """.trimIndent())
+    }
 
-            return false
+    private inline fun async(crossinline block: () -> Unit) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { block() })
+    }
 
+    private fun checkOp(sender: Player, name: String) {
+        val p = Bukkit.getPlayer(name)
+        if (p == null) {
+            sendMsg(sender, "ユーザーがオフラインです")
+            return
         }
+        async { ServerLoan.checkServerLoan(sender, p) }
+    }
 
-        when(args[0]){
-
-            "check" ->{
-                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { ServerLoan.checkServerLoan(sender) })
-            }
-
-            "checkop" ->{
-
-                if (!sender.hasPermission(OP))return true
-
-                val p = Bukkit.getPlayer(args[1])
-
-                if (p==null){
-                    sendMsg(sender,"ユーザーがオフラインです")
-                    return true
-                }
-
-                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { ServerLoan.checkServerLoan(sender,p) })
-            }
-
-            "share" ->{
-
-                val amount = ServerLoan.shareMap[sender]?:-1.0
-
-                if (amount == -1.0){
-                    sender.sendMessage("あなたは貸し出し可能金額の審査をしておりません！")
-                    return true
-                }
-
-                Bukkit.broadcast(Component.text("${prefix}§b§l${sender.name}§a§lさんの公的ローン貸し出し可能金額は" +
-                        "・・・§e§l${format(amount)}円§a§lです！"))
-
-                ServerLoan.shareMap.remove(sender)
-            }
-
-            "borrow" ->{
-
-                if (args.size != 2)return true
-
-                if (!sender.hasPermission(REVO_PERM)){
-                    sendMsg(sender,"あなたはまだMan10リボを使うことができません")
-                    return true
-                }
-
-                if (!ServerLoan.isEnable){
-                    sendMsg(sender,"現在新規貸し出しはできません。返済は可能です。")
-                    return true
-
-                }
-
-                val amount = args[1].toDoubleOrNull()?:return true
-
-                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-                    ServerLoan.showBorrowMessage(sender,amount)
-                })
-
-            }
-
-            "confirm" ->{
-
-                if (!ServerLoan.commandList.contains(sender))return false
-
-                if (!ServerLoan.isEnable){
-                    sendMsg(sender,"現在新規貸し出しはできません。返済は可能です。")
-                    return true
-
-                }
-
-                ServerLoan.commandList.remove(sender)
-
-                val amount = args[1].toDoubleOrNull()?:return true
-
-                // すでに処理中の場合は処理しない
-                if (processingPlayers.containsKey(sender.uniqueId)) {
-                    sendMsg(sender,"§c§l処理中です。しばらくお待ちください。")
-                    return true
-                }
-
-                processingPlayers[sender.uniqueId] = true
-                sendMsg(sender,"Man10Bankシステムに問い合わせ中・・・§l§kXX")
-
-                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-                    Thread.sleep(2000)
-                    ServerLoan.borrow(sender,amount)
-                    processingPlayers.remove(sender.uniqueId)
-                })
-
-            }
-
-            "payment" ->{
-
-                if (args.size != 2)return true
-
-                val amount = args[1].toDoubleOrNull()?:return true
-
-                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-                    ServerLoan.setPaymentAmount(sender,amount)
-                })
-
-            }
-
-            "payall" ->{
-                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable { ServerLoan.paymentAll(sender) })
-            }
-
-            "addtime" ->{//mrevo addtime <player/all> <hour>
-
-                if (!sender.hasPermission(OP))return true
-
-                if (args.size != 3){
-                    sendMsg(sender,"/mrevo addtime <player/all> <hour>")
-                    return true
-                }
-
-                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-
-                    when(ServerLoan.addLastPayTime(args[1],args[2].toInt())){
-                        0 ->{ sendMsg(sender,"設定完了！${args[2]}時間追加しました") }
-                        1 ->{ sendMsg(sender,"存在しないプレイヤーです")}
-                    }
-
-                })
-            }
-
-            "on" ->{
-
-                if (!sender.hasPermission(OP))return true
-
-                sendMsg(sender,"Man10リボを有効にしました")
-                ServerLoan.isEnable = true
-                plugin.config.set("revolving.enable",true)
-                plugin.saveConfig()
-            }
-
-            "off" ->{
-                if (!sender.hasPermission(OP))return true
-
-                sendMsg(sender,"Man10リボを無効にしました")
-                ServerLoan.isEnable = false
-                plugin.config.set("revolving.enable",false)
-                plugin.saveConfig()
-
-            }
-
-
+    private fun share(sender: Player) {
+        val amount = ServerLoan.shareMap[sender] ?: -1.0
+        if (amount == -1.0) {
+            sender.sendMessage("あなたは貸し出し可能金額の審査をしておりません！")
+            return
         }
+        Bukkit.broadcast(Component.text("${prefix}§b§l${sender.name}§a§lさんの公的ローン貸し出し可能金額は" +
+                "・・・§e§l${format(amount)}円§a§lです！"))
+        ServerLoan.shareMap.remove(sender)
+    }
 
+    private fun borrow(sender: Player, amount: Double?) {
+        if (amount == null) return
+        if (!sender.hasPermission(REVO_PERM)) {
+            sendMsg(sender, "あなたはまだMan10リボを使うことができません")
+            return
+        }
+        if (!ServerLoan.isEnable) {
+            sendMsg(sender, "現在新規貸し出しはできません。返済は可能です。")
+            return
+        }
+        async { ServerLoan.showBorrowMessage(sender, amount) }
+    }
 
+    private fun confirm(sender: Player, amount: Double?) {
+        if (amount == null) return
+        if (!ServerLoan.commandList.contains(sender)) return
+        if (!ServerLoan.isEnable) {
+            sendMsg(sender, "現在新規貸し出しはできません。返済は可能です。")
+            return
+        }
+        ServerLoan.commandList.remove(sender)
+        if (processingPlayers.containsKey(sender.uniqueId)) {
+            sendMsg(sender, "§c§l処理中です。しばらくお待ちください。")
+            return
+        }
+        processingPlayers[sender.uniqueId] = true
+        sendMsg(sender, "Man10Bankシステムに問い合わせ中・・・§l§kXX")
+        async {
+            Thread.sleep(2000)
+            ServerLoan.borrow(sender, amount)
+            processingPlayers.remove(sender.uniqueId)
+        }
+    }
 
-        return false
+    private fun payment(sender: Player, amount: Double?) {
+        if (amount == null) return
+        async { ServerLoan.setPaymentAmount(sender, amount) }
+    }
+
+    private fun addTime(sender: Player, who: String, hour: Int) {
+        async {
+            when (ServerLoan.addLastPayTime(who, hour)) {
+                0 -> sendMsg(sender, "設定完了！${hour}時間追加しました")
+                1 -> sendMsg(sender, "存在しないプレイヤーです")
+            }
+        }
+    }
+
+    private fun toggle(enable: Boolean, sender: Player) {
+        ServerLoan.isEnable = enable
+        if (enable) {
+            sendMsg(sender, "Man10リボを有効にしました")
+        } else {
+            sendMsg(sender, "Man10リボを無効にしました")
+        }
+        plugin.config.set("revolving.enable", enable)
+        plugin.saveConfig()
     }
 }
