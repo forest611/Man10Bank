@@ -93,7 +93,7 @@ class Man10Bank : JavaPlugin(),Listener {
         server.pluginManager.registerEvents(ATMListener,this)
         server.pluginManager.registerEvents(Cheque,this)
 
-        getCommand("mlend")!!.setExecutor(LoanCommand())
+        getCommand("mlend")!!.setExecutor(LocalLoanCommand())
         getCommand("mrevo")!!.setExecutor(ServerLoanCommand())
 
     }
