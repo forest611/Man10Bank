@@ -11,7 +11,7 @@ import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
-import red.man10.man10bank.MySQLManager
+import red.man10.man10bank.loan.repository.LocalLoanRepository
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -25,7 +25,6 @@ class LoanData {
     var debt : Double = 0.0
     private var id : Int = 0
 
-    private val mysql = MySQLManager(plugin,"Man10Loan")
 
     @Synchronized
     fun create(lend:Player, borrow: Player, borrowedAmount : Double, rate:Double, paybackDay:Int):Boolean{
@@ -35,45 +34,24 @@ class LoanData {
         this.borrow = borrow.uniqueId
         paybackDate = calcDate(paybackDay)
 
-        if (!mysql.lock("loan_table")){
-            sendMsg(lend,"§c§lただいま窓口が混雑しているようです。しばらくお待ちください。")
-            return false
-        }
-
         if (Bank.withdraw(lend.uniqueId, borrowedAmount+(borrowedAmount * Man10Bank.loanFee), plugin,"LoanCreate","借金の貸し出し").first!=0){
             sendMsg(lend,"§c§lお金が足りません！")
             return false
         }
 
-        val result = mysql.execute("INSERT INTO loan_table " +
-                "(lend_player, lend_uuid, borrow_player, borrow_uuid, borrow_date, payback_date, amount) " +
-                "VALUES ('${lend.name}', " +
-                "'${lend.uniqueId}', " +
-                "'${borrow.name}', " +
-                "'${borrow.uniqueId}', " +
-                "now(), " +
-                "'${SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(paybackDate.time)}', " +
-                "$debt);")
-
-        if (!result){
-            mysql.unlock()
+        val insertedId = LocalLoanRepository.insertLoan(
+            lend.name,
+            lend.uniqueId,
+            borrow.name,
+            borrow.uniqueId,
+            paybackDate,
+            debt
+        ) ?: run {
             sendMsg(lend,"§c§lデータベースエラーが発生しました。運営に報告してください。- 01")
             return false
         }
 
-        val rs = mysql.query("SELECT id from loan_table order by id desc limit 1;")
-
-        if (rs == null || !rs.next()){
-            mysql.unlock()
-            sendMsg(lend,"§c§lデータベースエラーが発生しました。運営に報告してください。- 02")
-            return false
-        }
-        id = rs.getInt("id")
-
-        mysql.close()
-
-        rs.close()
-        mysql.close()
+        id = insertedId
 
         Bank.deposit(borrow.uniqueId, borrowedAmount, plugin, "LoanCreate","借金の借り入れ")
 
@@ -86,17 +64,12 @@ class LoanData {
     @Synchronized
     fun load(id:Int): LoanData? {
 
-        val rs = mysql.query("select * from loan_table where id=$id;")?:return null
+        val record = LocalLoanRepository.fetchLoan(id) ?: return null
 
-        if (!rs.next())return null
-
-        borrow = UUID.fromString(rs.getString("borrow_uuid"))
-        debt = rs.getDouble("amount")
-        paybackDate = rs.getDate("payback_date")
-        this.id = rs.getInt("id")
-
-        rs.close()
-        mysql.close()
+        borrow = record.borrowUUID
+        debt = record.amount
+        paybackDate = record.paybackDate
+        this.id = record.id
 
         lendMap[id] = this
 
@@ -137,8 +110,6 @@ class LoanData {
 
         val man10Bank = Bank.getBalance(borrow)
 
-        val mysql = MySQLManager(plugin,"Man10Loan")
-
         val balance = Man10Bank.vault.getBalance(borrow)
 
         try {
@@ -148,7 +119,7 @@ class LoanData {
 
                 debt -= takeMan10Bank
 
-                val result = mysql.execute("UPDATE loan_table set amount=$debt where id=$id;")
+                val result = LocalLoanRepository.updateAmount(id, debt)
 
                 //データベースエラーの時は例外を投げる
                 if (!result){
@@ -170,7 +141,7 @@ class LoanData {
 
                 debt -= floor(takeBalance)
 
-                val result = mysql.execute("UPDATE loan_table set amount=$debt where id=$id;")
+                val result = LocalLoanRepository.updateAmount(id, debt)
 
                 //データベースエラーの時は例外を投げる
                 if (!result) {
@@ -253,32 +224,11 @@ class LoanData {
         }
 
         fun getTotalLoan(p:Player):Double{
-
-            val mysql = MySQLManager(plugin,"Man10Bank")
-            val rs = mysql.query("select SUM(amount) from loan_table where borrow_uuid='${p.uniqueId}';")?:return 0.0
-            rs.next()
-            val amount = rs.getDouble(1)
-
-            rs.close()
-            mysql.close()
-
-            return amount
+            return LocalLoanRepository.fetchTotalLoan(p.uniqueId)
         }
 
         fun getLoanData(uuid: UUID):Set<Pair<Int,Double>>{
-
-            val mysql = MySQLManager(plugin,"Man10Bank")
-            val rs = mysql.query("select id,amount from loan_table where borrow_uuid='${uuid}';")?:return Collections.emptySet()
-
-            val set = mutableSetOf<Pair<Int,Double>>()
-
-            while (rs.next()){
-                set.add(Pair(rs.getInt("id"),rs.getDouble("amount")))
-            }
-
-            rs.close()
-            mysql.close()
-            return set
+            return LocalLoanRepository.fetchLoanData(uuid)
         }
 
         val lendMap = ConcurrentHashMap<Int,LoanData>()
