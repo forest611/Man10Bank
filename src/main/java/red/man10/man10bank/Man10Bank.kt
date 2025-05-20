@@ -851,7 +851,7 @@ class Man10Bank : JavaPlugin(),Listener {
 
         val normalize = Normalizer.normalize(number, Normalizer.Form.NFKC)
 
-        return normalize.toDoubleOrNull() ?: return -1.0
+        return normalize.toDoubleOrNull() ?: -1.0
     }
 
     private fun showBalance(sender:Player,p:Player){

@@ -173,7 +173,7 @@ class LocalLoanCommand : CommandExecutor {
         sendMsg(borrow, "§e貸し出す人:${sender.name}")
         sendMsg(borrow, "§e貸し出される金額:${format(amount)}")
         sendMsg(borrow, "§e返す金額:${format(LoanData.calcRate(amount, day, rate))}")
-        sendMsg(borrow, "§e返す日:$${sdf.format(LoanData.calcDate(day))}")
+        sendMsg(borrow, "§e返す日:${sdf.format(LoanData.calcDate(day))}")
         borrow.sendMessage(allowOrDeny)
         sendMsg(borrow, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
         val cache = Cache().apply {
