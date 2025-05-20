@@ -461,231 +461,32 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                 }
     
                 "deposit" ->{
-    
+
                     if (sender !is Player)return false
-    
-                    if (!bankEnable)return false
-    
-                    if (args.isEmpty()){
-                        sendMsg(sender,"§c§l/deposit <金額> : 銀行に電子マネーを入れる")
-                        return true
-                    }
-    
-                    //入金額
-                    val amount : Double = if (args[0] == "all"){
-                        vault.getBalance(sender.uniqueId)
-                    }else{
-    
-                        val a = args[0].replace(",","")
-    
-                        val b = ZenkakuToHankaku(a)
-    
-                        if (b == -1.0){
-                            sendMsg(sender,"§c§l数字で入力してください！")
-                            return true
-                        }
-                        b
-                    }
-    
-                    if (amount < 1){
-                        sendMsg(sender,"§c§l1円以上を入力してください！")
-                        return true
-                    }
-    
-                    if (!vault.withdraw(sender.uniqueId,amount)){
-                        sendMsg(sender,"§c§l電子マネーが足りません！")
-                        return true
-    
-                    }
-    
-                    Bank.asyncDeposit(sender.uniqueId,amount,plugin,"PlayerDepositOnCommand","/depositによる入金"){ code:Int,_:Double,_:String ->
-    
-                        if (code != 0){
-                            sendMsg(sender,"入金エラーが発生しました")
-                            vault.deposit(sender.uniqueId,amount)
-                            return@asyncDeposit
-                        }
-    
-                        if (code == 0){ sendMsg(sender,"§a§l入金できました！") }
-                    }
-    
-                    return true
-    
-    
+
+                    return handleDeposit(sender, args)
+
                 }
     
                 "withdraw" ->{
-    
+
                     if (sender !is Player)return false
-    
-                    if (!bankEnable)return false
-    
-                    if (args.isEmpty()){
-                        sendMsg(sender,"§c§l/withdraw <金額> : 銀行から電子マネーを出す")
-                        return true
-                    }
-    
-                    Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-                        val amount = if (args[0] == "all"){
-                            Bank.getBalance(sender.uniqueId)
-                        }else{
-    
-                            val a = args[0].replace(",","")
-    
-                            val b = ZenkakuToHankaku(a)
-    
-                            if (b == -1.0){
-                                sendMsg(sender,"§c§l数字で入力してください！")
-                                return@Runnable
-                            }
-                            b
-                        }
-    
-                        if (amount < 1){
-                            sendMsg(sender,"§c§l1円以上を入力してください！")
-                            return@Runnable
-                        }
-    
-    
-                        Bank.asyncWithdraw(sender.uniqueId,amount,plugin,"PlayerWithdrawOnCommand","/withdrawによる出金") { code: Int, _: Double, _: String ->
-                            if (code == 2){
-                                sendMsg(sender,"§c§l銀行のお金が足りません！")
-                                return@asyncWithdraw
-                            }
-                            vault.deposit(sender.uniqueId,amount)
-                            sendMsg(sender,"§a§l出金できました！")
-                        }
-    
-                    })
-    
-    
-                    return true
+
+                    return handleWithdraw(sender, args)
                 }
     
                 "pay","man10bank:pay" ->{
-    //                if (!sender.hasPermission(USER))return true
-    
                     if (sender !is Player)return true
-    
-                    if (!isEnabled)return true
-    
-                    if (args.size != 2){
-                        sendMsg(sender,"§c§l/pay <送る相手> <金額> : 電子マネーを友達に振り込む")
-                        return true
-                    }
-    
-                    val a = args[1].replace(",","")
-    
-                    val amount = ZenkakuToHankaku(a)
-    
-                    if (amount == -1.0){
-                        sendMsg(sender,"§c§l/pay <送る相手> <金額> : 電子マネーを友達に振り込む")
-                        return true
-                    }
-    
-                    if (amount <1){
-                        sendMsg(sender,"§c§l1円以上を入力してください！")
-                        return true
-                    }
-    
-                    if (checking[sender] == null||checking[sender]!! != command){
-    
-                        sendMsg(sender,"§7§l送る電子マネー:${format(amount)}円")
-                        sendMsg(sender,"§7§l送る相手:${args[0]}")
-                        sendMsg(sender,"§7§l確認のため、同じコマンドをもう一度入力してください")
-    
-                        checking[sender] = command
-    
-                        return true
-                    }
-    
-                    checking.remove(sender)
-    
-                    val p = Bukkit.getPlayer(args[0])
-    
-                    if (p==null){
-                        sendMsg(sender,"§c§l送る相手がオフラインかもしれません")
-                        return true
-                    }
-    
-                    if (!vault.withdraw(sender.uniqueId,amount)){
-                        sendMsg(sender,"§c§l送る電子マネーが足りません！")
-                        return true
-                    }
-    
-                    vault.deposit(p.uniqueId,amount)
-    
-                    sendMsg(sender,"§a§l送金できました！")
-                    sendMsg(p,"§a${sender.name}さんから${format(amount)}円送られました！")
-    
-                    return true
-    
+
+                    return handlePay(sender, command, args)
+
                 }
     
                 "mpay" ->{
-    //                if (!sender.hasPermission(USER))return true
-    
                     if (sender !is Player)return true
-    
-                    if (!isEnabled)return true
-    
-                    if (args.size != 2){
-                        sendMsg(sender,"§c§l/mpay <送る相手> <金額> : 銀行のお金を友達に振り込む")
-                        return false
-                    }
-    
-                    val a = args[1].replace(",","")
-    
-                    val amount = ZenkakuToHankaku(a)
-    
-                    if (amount == -1.0){
-                        sendMsg(sender,"§c§l/mpay <送る相手> <金額> : 銀行のお金を友達に振り込む")
-                        return true
-                    }
-    
-                    if (amount <1){
-                        sendMsg(sender,"§c§l1円以上を入力してください！")
-                        return true
-                    }
-    
-                    if (checking[sender] == null||checking[sender]!! != command){
-    
-                        sendMsg(sender,"§7§l送る銀行のお金:${format(amount)}円")
-                        sendMsg(sender,"§7§l送る相手:${args[0]}")
-                        sendMsg(sender,"§7§l確認のため、同じコマンドをもう一度入力してください")
-    
-                        checking[sender] = command
-    
-                        return true
-                    }
-    
-                    checking.remove(sender)
-    
-                    Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable  {
-                        val uuid = Bank.getUUID(args[0])
-    
-                        if (uuid == null){
-                            sendMsg(sender,"§c§l送金失敗！まだman10サーバーにきたことがない人かもしれません！")
-                            return@Runnable
-                        }
-    
-    
-                        if (Bank.withdraw(sender.uniqueId,amount,plugin,"RemittanceTo${args[0]}","${args[0]}へ送金").first != 0){
-                            sendMsg(sender,"§c§l送金する銀行のお金が足りません！")
-                            return@Runnable
-    
-                        }
-    
-                        Bank.deposit(uuid,amount,plugin,"RemittanceFrom${sender.name}","${sender.name}からの送金")
-    
-                        sendMsg(sender,"§a§l送金成功！")
-    
-                        val p = Bukkit.getPlayer(uuid)?:return@Runnable
-                        sendMsg(p,"§a${sender.name}さんから${format(amount)}円送られました！")
-                    })
-    
-                    return true
-    
+
+                    return handleMpay(sender, command, args)
+
                 }
     
                 "ballog" -> {
@@ -726,12 +527,189 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
             return true
         }
     
-        private fun ZenkakuToHankaku(number: String): Double {
-    
-            val normalize = Normalizer.normalize(number, Normalizer.Form.NFKC)
-    
-            return normalize.toDoubleOrNull() ?: -1.0
+    private fun ZenkakuToHankaku(number: String): Double {
+
+        val normalize = Normalizer.normalize(number, Normalizer.Form.NFKC)
+
+        return normalize.toDoubleOrNull() ?: -1.0
+    }
+
+    private fun parseAmount(value: String): Double? {
+        val num = ZenkakuToHankaku(value.replace(",", ""))
+        return if (num == -1.0) null else num
+    }
+
+    private fun handleDeposit(sender: Player, args: Array<out String>): Boolean {
+        if (!bankEnable) return false
+
+        if (args.isEmpty()) {
+            sendMsg(sender, "§c§l/deposit <金額> : 銀行に電子マネーを入れる")
+            return true
         }
+
+        val amount = if (args[0] == "all") {
+            vault.getBalance(sender.uniqueId)
+        } else {
+            val a = parseAmount(args[0]) ?: run {
+                sendMsg(sender, "§c§l数字で入力してください！")
+                return true
+            }
+            a
+        }
+
+        if (amount < 1) {
+            sendMsg(sender, "§c§l1円以上を入力してください！")
+            return true
+        }
+
+        if (!vault.withdraw(sender.uniqueId, amount)) {
+            sendMsg(sender, "§c§l電子マネーが足りません！")
+            return true
+        }
+
+        Bank.asyncDeposit(sender.uniqueId, amount, plugin, "PlayerDepositOnCommand", "/depositによる入金") { code, _, _ ->
+            if (code != 0) {
+                sendMsg(sender, "入金エラーが発生しました")
+                vault.deposit(sender.uniqueId, amount)
+                return@asyncDeposit
+            }
+            sendMsg(sender, "§a§l入金できました！")
+        }
+
+        return true
+    }
+
+    private fun handleWithdraw(sender: Player, args: Array<out String>): Boolean {
+        if (!bankEnable) return false
+
+        if (args.isEmpty()) {
+            sendMsg(sender, "§c§l/withdraw <金額> : 銀行から電子マネーを出す")
+            return true
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
+            val amount = if (args[0] == "all") {
+                Bank.getBalance(sender.uniqueId)
+            } else {
+                val a = parseAmount(args[0]) ?: run {
+                    sendMsg(sender, "§c§l数字で入力してください！")
+                    return@Runnable
+                }
+                a
+            }
+
+            if (amount < 1) {
+                sendMsg(sender, "§c§l1円以上を入力してください！")
+                return@Runnable
+            }
+
+            Bank.asyncWithdraw(sender.uniqueId, amount, plugin, "PlayerWithdrawOnCommand", "/withdrawによる出金") { code, _, _ ->
+                if (code == 2) {
+                    sendMsg(sender, "§c§l銀行のお金が足りません！")
+                    return@asyncWithdraw
+                }
+                vault.deposit(sender.uniqueId, amount)
+                sendMsg(sender, "§a§l出金できました！")
+            }
+        })
+
+        return true
+    }
+
+    private fun handlePay(sender: Player, command: Command, args: Array<out String>): Boolean {
+        if (!isEnabled) return true
+
+        if (args.size != 2) {
+            sendMsg(sender, "§c§l/pay <送る相手> <金額> : 電子マネーを友達に振り込む")
+            return true
+        }
+
+        val amount = parseAmount(args[1]) ?: run {
+            sendMsg(sender, "§c§l/pay <送る相手> <金額> : 電子マネーを友達に振り込む")
+            return true
+        }
+
+        if (amount < 1) {
+            sendMsg(sender, "§c§l1円以上を入力してください！")
+            return true
+        }
+
+        if (checking[sender] == null || checking[sender] != command) {
+            sendMsg(sender, "§7§l送る電子マネー:${format(amount)}円")
+            sendMsg(sender, "§7§l送る相手:${args[0]}")
+            sendMsg(sender, "§7§l確認のため、同じコマンドをもう一度入力してください")
+            checking[sender] = command
+            return true
+        }
+
+        checking.remove(sender)
+
+        val p = Bukkit.getPlayer(args[0])
+        if (p == null) {
+            sendMsg(sender, "§c§l送る相手がオフラインかもしれません")
+            return true
+        }
+
+        if (!vault.withdraw(sender.uniqueId, amount)) {
+            sendMsg(sender, "§c§l送る電子マネーが足りません！")
+            return true
+        }
+
+        vault.deposit(p.uniqueId, amount)
+        sendMsg(sender, "§a§l送金できました！")
+        sendMsg(p, "§a${sender.name}さんから${format(amount)}円送られました！")
+
+        return true
+    }
+
+    private fun handleMpay(sender: Player, command: Command, args: Array<out String>): Boolean {
+        if (!isEnabled) return true
+
+        if (args.size != 2) {
+            sendMsg(sender, "§c§l/mpay <送る相手> <金額> : 銀行のお金を友達に振り込む")
+            return false
+        }
+
+        val amount = parseAmount(args[1]) ?: run {
+            sendMsg(sender, "§c§l/mpay <送る相手> <金額> : 銀行のお金を友達に振り込む")
+            return true
+        }
+
+        if (amount < 1) {
+            sendMsg(sender, "§c§l1円以上を入力してください！")
+            return true
+        }
+
+        if (checking[sender] == null || checking[sender] != command) {
+            sendMsg(sender, "§7§l送る銀行のお金:${format(amount)}円")
+            sendMsg(sender, "§7§l送る相手:${args[0]}")
+            sendMsg(sender, "§7§l確認のため、同じコマンドをもう一度入力してください")
+            checking[sender] = command
+            return true
+        }
+
+        checking.remove(sender)
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
+            val uuid = Bank.getUUID(args[0]) ?: run {
+                sendMsg(sender, "§c§l送金失敗！まだman10サーバーにきたことがない人かもしれません！")
+                return@Runnable
+            }
+
+            if (Bank.withdraw(sender.uniqueId, amount, plugin, "RemittanceTo${args[0]}", "${args[0]}へ送金").first != 0) {
+                sendMsg(sender, "§c§l送金する銀行のお金が足りません！")
+                return@Runnable
+            }
+
+            Bank.deposit(uuid, amount, plugin, "RemittanceFrom${sender.name}", "${sender.name}からの送金")
+            sendMsg(sender, "§a§l送金成功！")
+
+            val p = Bukkit.getPlayer(uuid) ?: return@Runnable
+            sendMsg(p, "§a${sender.name}さんから${format(amount)}円送られました！")
+        })
+
+        return true
+    }
     
         fun showBalance(sender:Player,p:Player){
     
