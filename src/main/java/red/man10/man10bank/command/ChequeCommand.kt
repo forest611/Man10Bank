@@ -1,4 +1,4 @@
-package red.man10.man10bank.cheque
+package red.man10.man10bank.command
 
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
@@ -9,6 +9,7 @@ import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.ISSUE_CHEQUE
 import red.man10.man10bank.Man10Bank.Companion.OP
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
+import red.man10.man10bank.cheque.Cheque
 import kotlin.math.floor
 import java.text.Normalizer
 

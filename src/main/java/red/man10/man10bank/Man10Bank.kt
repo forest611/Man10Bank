@@ -15,7 +15,7 @@ import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
 import red.man10.man10bank.atm.ATMListener
 import red.man10.man10bank.cheque.Cheque
-import red.man10.man10bank.cheque.ChequeCommand
+import red.man10.man10bank.command.ChequeCommand
 import red.man10.man10bank.command.BankCommand
 import red.man10.man10bank.command.LocalLoanCommand
 import red.man10.man10bank.command.ServerLoanCommand

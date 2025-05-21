@@ -140,6 +140,52 @@ object Bank {
     }
 
     /**
+     * オフライン口座に入出金する共通処理
+     */
+    private fun updateBalanceQueue(
+        uuid: UUID,
+        amount: Double,
+        plugin: String,
+        note: String,
+        displayNote: String?,
+        isDeposit: Boolean
+    ): Int {
+
+        val p = Bukkit.getOfflinePlayer(uuid)
+        if (!bankEnable) {
+            if (!isDeposit) {
+                Bukkit.getLogger().warning("[出金エラー]Man10Bankが閉じています ユーザー:${p.name}")
+            }
+            return 1
+        }
+
+        val finalAmount = if (isDeposit) floor(amount) else ceil(amount)
+
+        if (!isDeposit) {
+            val balance = getBalanceQueue(uuid).first
+            if (balance < finalAmount) {
+                return 2
+            }
+        }
+
+        val op = if (isDeposit) "+" else "-"
+        val ret = mysql.execute("update user_bank set balance=balance${op}${finalAmount} where uuid='$uuid';")
+
+        if (!ret) {
+            return if (isDeposit) 2 else 3
+        }
+
+        addLog(uuid, plugin, note, displayNote ?: note, finalAmount, isDeposit)
+
+        if (p.isOnline) {
+            val msg = if (isDeposit) "§e${format(amount)}円入金がありました。" else "§e${format(amount)}円出金されました。"
+            sendMsg(p.player!!, msg)
+        }
+
+        return 0
+    }
+
+    /**
      * オフライン口座に入金する
      *
      * @param plugin 入金したプラグイン
@@ -148,21 +194,7 @@ object Bank {
      *
      */
     private fun depositQueue(uuid: UUID, amount: Double, plugin: String, note:String,displayNote:String?):Int{
-
-        val p = Bukkit.getOfflinePlayer(uuid)
-        if (!bankEnable){ return 1 }
-
-        val finalAmount = floor(amount)
-
-        val ret = mysql.execute("update user_bank set balance=balance+$finalAmount where uuid='$uuid';")
-
-        if (!ret){ return 2 }
-
-        addLog(uuid,plugin, note,displayNote?:note, finalAmount,true)
-
-        if (p.isOnline){ sendMsg(p.player!!,"§e${format(amount)}円入金がありました。") }
-
-        return 0
+        return updateBalanceQueue(uuid, amount, plugin, note, displayNote, true)
     }
 
     /**
@@ -173,32 +205,9 @@ object Bank {
      * @param amount 出金額(マイナスだった場合、入金処理は行われない)
      *
      * @return　出金成功でtrue
-     */
+    */
     private fun withdrawQueue(uuid: UUID, amount: Double, plugin: String, note:String,displayNote:String?):Int{
-
-        val p = Bukkit.getOfflinePlayer(uuid)
-
-        if (!bankEnable){
-            Bukkit.getLogger().warning("[出金エラー]Man10Bankが閉じています ユーザー:${p.name}")
-            return 1
-        }
-
-//        if (!hasAccount(uuid))return false
-
-        val finalAmount = ceil(amount)
-        val balance = getBalanceQueue(uuid).first
-
-        if (balance < finalAmount){ return 2 }
-
-        val ret = mysql.execute("update user_bank set balance=balance-${finalAmount} where uuid='$uuid';")
-
-        if (!ret){ return 3 }
-
-        addLog(uuid,plugin, note,displayNote?:note, finalAmount,false)
-
-        if (p.isOnline){ sendMsg(p.player!!,"§e${format(amount)}円出金されました。") }
-
-        return 0
+        return updateBalanceQueue(uuid, amount, plugin, note, displayNote, false)
     }
 
     /**
