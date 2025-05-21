@@ -1,4 +1,4 @@
-package red.man10.man10bank.loan
+package red.man10.man10bank.command
 
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
@@ -11,6 +11,7 @@ import red.man10.man10bank.Man10Bank.Companion.format
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
+import red.man10.man10bank.loan.ServerLoan
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
