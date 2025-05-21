@@ -12,7 +12,6 @@ import red.man10.man10bank.*
 import red.man10.man10bank.Man10Bank.Companion.*
 import red.man10.man10bank.atm.ATMData
 import red.man10.man10bank.atm.ATMInventory
-import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.history.EstateData
 import red.man10.man10bank.loan.*
 import red.man10.man10score.ScoreDatabase
@@ -31,49 +30,7 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
     
             when(label){
     
-                "mchequeop" ->{//mchequeop amount <memo>
-                    if (sender !is Player)return false
-                    if (!sender.hasPermission(OP))return false
-    
-                    val amount = args[0].toDoubleOrNull()?:return false
-                    val note = if (args.size>1)args[1] else null
-    
-                    Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-                        sendMsg(sender,"§a§l銀行に問い合わせ中...§k§lXX")
-                        Cheque.createCheque(sender,amount,note,true)
-                    })
-    
-                    return true
-                }
-    
-                "mcheque" ->{//mcheque amount <memo>
-                    if (sender !is Player)return false
-                    if (!sender.hasPermission(ISSUE_CHEQUE)){
-                        sendMsg(sender,"§cあなたは小切手を発行する権限がありません")
-                        return false
-                    }
-    
-                    if (args.isEmpty()){
-                        sendMsg(sender,"§e§l/mcheque <金額> <メモ>")
-                        return true
-                    }
-    
-                    val amount = floor(ZenkakuToHankaku(args[0]))
-    
-                    if (amount<=0.0){
-                        sendMsg(sender,"金額を1以上にしてください")
-                        return true
-                    }
-    
-                    val note = if (args.size>1)args[1] else null
-    
-                    Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-                        sendMsg(sender,"§a§l銀行に問い合わせ中...§k§lXX")
-                        Cheque.createCheque(sender,amount,note,false)
-                    })
-    
-                    return true
-                }
+
     
                 "atm" ->{
                     if (sender !is Player)return false
