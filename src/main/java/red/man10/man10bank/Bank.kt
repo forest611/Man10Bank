@@ -16,6 +16,7 @@ import red.man10.man10bank.history.EstateData
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.CompletableFuture
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -344,17 +345,13 @@ object Bank {
      */
     fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?): Triple<Int, Double, String> {
 
-        var ret = Triple(-1,0.0,"")
-
-        val lock = Lock()
+        val future = CompletableFuture<Triple<Int, Double, String>>()
 
         asyncDeposit(uuid,amount,plugin,note,displayNote) { _code: Int, _amount: Double, _message: String ->
-            ret = Triple(_code,_amount,_message)
-            lock.unlock()
+            future.complete(Triple(_code,_amount,_message))
         }
 
-        lock.lock()
-        return ret
+        return future.get()
     }
 
     fun asyncWithdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?,callback: ResultTransaction){
@@ -371,18 +368,13 @@ object Bank {
      */
     fun withdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?): Triple<Int, Double, String> {
 
-        var ret = Triple(-1,0.0,"")
-
-        val lock = Lock()
+        val future = CompletableFuture<Triple<Int, Double, String>>()
 
         asyncWithdraw(uuid,amount,plugin,note,displayNote) { _code: Int, _amount: Double, _message: String ->
-            ret = Triple(_code,_amount,_message)
-            lock.unlock()
+            future.complete(Triple(_code,_amount,_message))
         }
 
-        lock.lock()
-
-        return ret
+        return future.get()
     }
 
     /**
@@ -401,18 +393,13 @@ object Bank {
      * 金額を取得する処理
      */
     fun getBalance(uuid: UUID):Double{
-        var amount = -1.0
-
-        val lock = Lock()
+        val future = CompletableFuture<Double>()
 
         asyncGetBalance(uuid){ _, _amount, _ ->
-            amount = _amount
-            lock.unlock()
+            future.complete(_amount)
         }
 
-        lock.lock()
-
-        return amount
+        return future.get()
 
     }
 
@@ -438,22 +425,6 @@ object Bank {
         var note = ""
         var dateFormat = ""
         var plugin = ""
-
-    }
-
-    class Lock{
-
-        @Volatile
-        private  var isLock = false
-
-        fun lock(){
-            synchronized(this){ isLock = true }
-            while (isLock){ Thread.sleep(1) }
-        }
-
-        fun unlock(){
-            synchronized(this){ isLock = false }
-        }
 
     }
 
