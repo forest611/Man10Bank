@@ -1,4 +1,4 @@
-package red.man10.man10bank.loan
+package red.man10.man10bank.command
 
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent.runCommand
@@ -15,6 +15,7 @@ import red.man10.man10bank.Man10Bank.Companion.loanRate
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
+import red.man10.man10bank.loan.LoanData
 import java.text.SimpleDateFormat
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor

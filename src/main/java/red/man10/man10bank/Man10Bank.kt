@@ -22,6 +22,8 @@ import red.man10.man10bank.atm.ATMInventory
 import red.man10.man10bank.atm.ATMListener
 import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.command.BankCommand
+import red.man10.man10bank.command.LocalLoanCommand
+import red.man10.man10bank.command.ServerLoanCommand
 import red.man10.man10bank.history.EstateData
 import red.man10.man10bank.loan.*
 import red.man10.man10score.ScoreDatabase
