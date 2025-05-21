@@ -30,7 +30,6 @@ import red.man10.man10bank.loan.*
 import red.man10.man10score.ScoreDatabase
 import java.text.Normalizer
 import java.text.SimpleDateFormat
-import java.util.UUID
 import kotlin.math.abs
 import kotlin.math.floor
 
@@ -39,8 +38,7 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
     private val checking = HashMap<Player, Command>()
 
         override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
-    
-    
+
             when(label){
     
                 "mchequeop" ->{//mchequeop amount <memo>
@@ -97,7 +95,6 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                     }
     
                     when(args[0]){
-    
                         "setmoney"->{
     
                             if (!sender.hasPermission(OP))return false
@@ -111,11 +108,9 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                             }
                         }
                     }
-    
                 }
     
                 "mbaltop" ->{
-    
                     val page = if (args.isEmpty()) 1 else args[0].toIntOrNull()?:1
     
                     Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
@@ -150,6 +145,7 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                             sender.sendMessage("§7§l${i}.§b§l${data.first} : §e§l${format(data.second)}円")
                             i++
                         }
+
                         sender.sendMessage("§e§l電子マネーの合計:${format(total.vault)}円")
                         sender.sendMessage("§e§l現金の合計:${format(total.estate)}円")
                         sender.sendMessage("§e§l銀行口座の合計:${format(total.bank)}円")
@@ -157,13 +153,10 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                         sender.sendMessage("§e§lその他資産の合計:${format(total.estate)}円")
                         sender.sendMessage("§c§l公的ローンの合計:${format(total.loan)}円")
                         sender.sendMessage("§e§l全ての合計:${format(total.total())}円")
-    
                     })
-    
                 }
     
                 "mloantop" ->{
-    
                     val page = if (args.isEmpty()) 1 else args[0].toIntOrNull()?:1
     
                     Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
@@ -173,7 +166,6 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                         var i = (page*10)-9
     
                         if (sender is Player){
-    
                             sendMsg(sender,"§4§k§lXX§c§l借金トップ${page*10}§4§k§lXX")
     
                             for (data in loanTop){
@@ -182,7 +174,6 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                             }
     
                             sendMsg(sender,"§c§l公的ローンの合計:${format(total.loan)}円")
-    
                             return@Runnable
                         }
     
@@ -194,13 +185,10 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                         }
     
                         sender.sendMessage("§c§l公的ローンの合計:${format(total.loan)}円")
-    
                     })
-    
                 }
     
                 "bal","balance","money","bank","man10bank:bal","man10bank:balance","man10bank:money","man10bank:bank" ->{
-    
                     if (sender !is Player)return false
     
                     if (args.isEmpty()){
@@ -209,7 +197,6 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                     }
     
                     when(args[0]){
-    
                         "help" ->{
                             showCommand(sender)
                         }
@@ -244,14 +231,11 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                                 }else text("")
     
                                 sender.sendMessage(previous.append(next))
-    
                             })
-    
                             return true
                         }
     
                         "logop" ->{
-    
                             if (!sender.hasPermission(OP))return false
     
                             val p = if (args.size >= 2)Bukkit.getPlayer(args[1]) else sender
@@ -270,7 +254,6 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
     
                                     val tag = if (data.isDeposit) "§a[入金]" else "§c[出金]"
                                     sendMsg(sender,"$tag §e${data.dateFormat} ${data.note} ${format(data.amount)}")
-    
                                 }
     
                                 val previous = if (page!=0) {
@@ -282,9 +265,7 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                                 }else text("")
     
                                 sender.sendMessage(previous.append(next))
-    
                             })
-    
                         }
     
                         "init" ->{
@@ -303,9 +284,7 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                                 sendMsg(sender,"${args[1]}のデータを初期化しました")
     
                             })
-    
                             checking.remove(sender)
-    
                         }
     
                         "take" ->{
@@ -335,11 +314,8 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                                 }
                                 sendMsg(sender,"§a${format(amount)}円回収しました")
                                 sendMsg(sender,"§a現在の残高：${format(Bank.getBalance(uuid))}")
-    
                             })
-    
                             return true
-    
                         }
     
                         "give"->{
@@ -366,9 +342,7 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
     
                                 sendMsg(sender,"§a${format(amount)}円入金しました")
                                 sendMsg(sender,"§a現在の残高：${format(Bank.getBalance(uuid))}")
-    
                             })
-    
                         }
     
                         "set"->{
@@ -394,7 +368,6 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                                 Bank.setBalance(uuid,amount)
     
                                 sendMsg(sender,"§a${format(amount)}円に設定しました")
-    
                             })
                         }
     
@@ -405,7 +378,6 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
     
                             Bukkit.broadcast(text("§e§lMan10Bankが開きました！"))
                             return true
-    
                         }
     
                         "off" ->{
@@ -414,15 +386,14 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                             bankEnable = false
                             Bukkit.broadcast(text("§e§lMan10Bankが閉じました！"))
                             return true
-    
                         }
     
                         "reload" ->{
                             if (!sender.hasPermission(OP))return false
     
                             Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-                                reloadConfig()
-                                loadConfig()
+                                plugin.reloadConfig()
+                                plugin.loadConfig()
                                 Bank.reload()
                                 sendMsg(sender,"リロード完了")
     
@@ -437,17 +408,15 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                                 sendMsg(sender,"minServerLoanAmount:${ServerLoan.minServerLoanAmount}")
                                 sendMsg(sender,"maxServerLoanAmount:${ServerLoan.maxServerLoanAmount}")
                                 sendMsg(sender,"revoFee:${ServerLoan.revolvingFee}")
-    
                             })
-    
                         }
     
                         "work" ->{
                             if (!sender.hasPermission(OP))return false
     
                             workWorld = sender.location
-                            config.set("workWorld", workWorld)
-                            saveConfig()
+                            plugin.config.set("workWorld", workWorld)
+                            plugin.saveConfig()
                         }
     
     
@@ -466,22 +435,17 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                             })
     
                             return true
-    
                         }
                     }
-    
                 }
     
                 "deposit" ->{
-
                     if (sender !is Player)return false
 
                     return handleDeposit(sender, args)
-
                 }
     
                 "withdraw" ->{
-
                     if (sender !is Player)return false
 
                     return handleWithdraw(sender, args)
@@ -491,18 +455,15 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                     if (sender !is Player)return true
 
                     return handlePay(sender, command, args)
-
                 }
     
                 "mpay" ->{
                     if (sender !is Player)return true
 
                     return handleMpay(sender, command, args)
-
                 }
     
                 "ballog" -> {
-    
                     if (sender !is Player)return false
     
                     val page = if (args.isNotEmpty()) args[0].toIntOrNull()?:0 else 0
@@ -529,10 +490,7 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
                         sender.sendMessage(previous.append(next))
     
                     })
-    
                     return true
-    
-    
                 }
             }
     
@@ -540,7 +498,6 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
         }
     
     private fun ZenkakuToHankaku(number: String): Double {
-
         val normalize = Normalizer.normalize(number, Normalizer.Form.NFKC)
 
         return normalize.toDoubleOrNull() ?: -1.0
@@ -603,11 +560,11 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
             val amount = if (args[0] == "all") {
                 Bank.getBalance(sender.uniqueId)
             } else {
-                val a = parseAmount(args[0]) ?: run {
+                val amount = parseAmount(args[0]) ?: run {
                     sendMsg(sender, "§c§l数字で入力してください！")
                     return@Runnable
                 }
-                a
+                amount
             }
 
             if (amount < 1) {
@@ -629,7 +586,7 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
     }
 
     private fun handlePay(sender: Player, command: Command, args: Array<out String>): Boolean {
-        if (!isEnabled) return true
+        if (!bankEnable) return true
 
         if (args.size != 2) {
             sendMsg(sender, "§c§l/pay <送る相手> <金額> : 電子マネーを友達に振り込む")
@@ -675,7 +632,7 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
     }
 
     private fun handleMpay(sender: Player, command: Command, args: Array<out String>): Boolean {
-        if (!isEnabled) return true
+        if (!bankEnable) return true
 
         if (args.size != 2) {
             sendMsg(sender, "§c§l/mpay <送る相手> <金額> : 銀行のお金を友達に振り込む")
@@ -723,83 +680,75 @@ class BankCommand(private val plugin: Man10Bank) : CommandExecutor {
         return true
     }
     
-        fun showBalance(sender:Player,p:Player){
-    
-            //時差による表示ずれ対策で、一旦所持金を呼び出す
-    
-            val loan = ServerLoan.getBorrowingAmount(p)
-            val payment = ServerLoan.getPaymentAmount(p)
-            val nextDate = ServerLoan.getNextPayTime(p)
-            val score = ScoreDatabase.getScore(p.uniqueId)
-    
-            val bankAmount = Bank.getBalance(p.uniqueId)
-    
-            val cash: Double = EstateData.getCash(p)
-            val estate: Double = EstateData.getEstate(p)
-    
-            sendMsg(sender,"§e§l==========${p.name}のお金==========")
-            sendMsg(sender," §b§l電子マネー:  §e§l${format(vault.getBalance(p.uniqueId))}円")
-            sendMsg(sender," §b§l銀行:  §e§l${format(bankAmount)}円")
-            if (cash>0.0){ sendMsg(sender," §b§l現金:  §e§l${format(cash)}円") }
-            if (estate>0.0){ sendMsg(sender," §b§lその他の資産:  §e§l${format(estate)}円") }
-            if(EstateData.getShopTotalBalance(p) > 0.0) sendMsg(sender, " §b§lショップ口座:  §e§l${format(EstateData.getShopTotalBalance(p))}円")
-    
-            sendMsg(sender," §b§lスコア: §a§l${format(score.toDouble())}")
-    
-            if (loan!=0.0 && nextDate!=null){
-                sendMsg(sender," §b§lまんじゅうリボ:  §c§l${format(loan)}円")
-                sendMsg(sender," §b§l支払額:  §c§l${format(payment)}円")
-                sendMsg(sender," §b§l次の支払日: §c§l${SimpleDateFormat("yyyy-MM-dd").format(nextDate.first)}")
-                if (nextDate.second>0){
-                    sendMsg(sender," §c§lMan10リボの支払いに失敗しました(失敗回数:${nextDate.second})。支払いに失敗するとスコアの減少やJailがあります")
-                }
+    fun showBalance(sender:Player,p:Player){
+        //時差による表示ずれ対策で、一旦所持金を呼び出す
+        val loan = ServerLoan.getBorrowingAmount(p)
+        val payment = ServerLoan.getPaymentAmount(p)
+        val nextDate = ServerLoan.getNextPayTime(p)
+        val score = ScoreDatabase.getScore(p.uniqueId)
+
+        val bankAmount = Bank.getBalance(p.uniqueId)
+
+        val cash: Double = EstateData.getCash(p)
+        val estate: Double = EstateData.getEstate(p)
+
+        sendMsg(sender,"§e§l==========${p.name}のお金==========")
+        sendMsg(sender," §b§l電子マネー:  §e§l${format(vault.getBalance(p.uniqueId))}円")
+        sendMsg(sender," §b§l銀行:  §e§l${format(bankAmount)}円")
+        if (cash>0.0){ sendMsg(sender," §b§l現金:  §e§l${format(cash)}円") }
+        if (estate>0.0){ sendMsg(sender," §b§lその他の資産:  §e§l${format(estate)}円") }
+        if(EstateData.getShopTotalBalance(p) > 0.0) sendMsg(sender, " §b§lショップ口座:  §e§l${format(EstateData.getShopTotalBalance(p))}円")
+
+        sendMsg(sender," §b§lスコア: §a§l${format(score.toDouble())}")
+
+        if (loan!=0.0 && nextDate!=null){
+            sendMsg(sender," §b§lまんじゅうリボ:  §c§l${format(loan)}円")
+            sendMsg(sender," §b§l支払額:  §c§l${format(payment)}円")
+            sendMsg(sender," §b§l次の支払日: §c§l${SimpleDateFormat("yyyy-MM-dd").format(nextDate.first)}")
+            if (nextDate.second>0){
+                sendMsg(sender," §c§lMan10リボの支払いに失敗しました(失敗回数:${nextDate.second})。支払いに失敗するとスコアの減少やJailがあります")
             }
-    
-            sender.sendMessage(text("$prefix §a§l§n[ここをクリックでコマンドをみる]").clickEvent(ClickEvent.runCommand("/bank help")))
-    
-        }
-    
-        private fun showBalanceSheet(sender:Player,p:Player){
-    
-            val serverLoan = ServerLoan.getBorrowingAmount(p)
-            val userLoan = LoanData.getTotalLoan(p)
-            val bankAmount = Bank.getBalance(p.uniqueId)
-            val cash: Double = EstateData.getCash(p)
-            val estate: Double = EstateData.getEstate(p)
-            val bal = vault.getBalance(p.uniqueId)
-    
-            val assets = bankAmount+cash+estate+bal
-            val liability = serverLoan + userLoan
-            val equity = assets-liability
-            val symbol = if (equity<0) { "△" } else {""}
-    
-            sender.sendMessage("§e§l===============${p.name}のバランスシート=================")
-            sender.sendMessage(String.format(" §b現金:        %14s §f| §c個人間借金:            §c%14s", format(cash), format(userLoan)))
-            sender.sendMessage(String.format(" §b電子マネー:   %14s §f| §cMan10リボ:            §c%14s", format(bal), format(serverLoan)))
-            sender.sendMessage(String.format(" §b銀行:        %14s §f| §c合計負債:              §c%14s", format(bankAmount), format(liability)))
-            sender.sendMessage(String.format(" §bその他:      %14s §f| §a純資産:                §a%14s", format(estate), "${format(abs(equity))}${symbol}"))
-            sender.sendMessage(String.format(" §b合計資産:     %14s §f| §c負債と純資産:          §b%14s", format(assets), format(liability+equity)))
-    
-        }
-    
-    
-        private fun showCommand(sender:Player){
-            val pay = text("$prefix §e[電子マネーを友達に送る]  §n/pay").clickEvent(ClickEvent.suggestCommand("/pay "))
-            val atm = text("$prefix §a[電子マネーのチャージ・現金化]  §n/atm").clickEvent(ClickEvent.runCommand("/atm"))
-            val deposit = text("$prefix §b[電子マネーを銀行に入れる]  §n/deposit").clickEvent(ClickEvent.suggestCommand("/deposit "))
-            val withdraw = text("$prefix §c[電子マネーを銀行から出す]  §n/withdraw").clickEvent(ClickEvent.suggestCommand("/withdraw "))
-            val revolving = text("$prefix §e[Man10リボを使う]  §n/mrevo borrow").clickEvent(ClickEvent.suggestCommand("/mrevo borrow "))
-            val ranking = text("$prefix §6[お金持ちランキング]  §n/mbaltop").clickEvent(ClickEvent.runCommand("/mbaltop"))
-            val log = text("$prefix §7[銀行の履歴]  §n/ballog").clickEvent(ClickEvent.runCommand("/ballog"))
-    
-            sender.sendMessage(pay)
-            sender.sendMessage(atm)
-            sender.sendMessage(deposit)
-            sender.sendMessage(withdraw)
-            sender.sendMessage(revolving)
-            sender.sendMessage(ranking)
-            sender.sendMessage(log)
-    
         }
 
+        sender.sendMessage(text("$prefix §a§l§n[ここをクリックでコマンドをみる]").clickEvent(ClickEvent.runCommand("/bank help")))
+    }
+
+    private fun showBalanceSheet(sender:Player,p:Player){
+        val serverLoan = ServerLoan.getBorrowingAmount(p)
+        val userLoan = LoanData.getTotalLoan(p)
+        val bankAmount = Bank.getBalance(p.uniqueId)
+        val cash: Double = EstateData.getCash(p)
+        val estate: Double = EstateData.getEstate(p)
+        val bal = vault.getBalance(p.uniqueId)
+
+        val assets = bankAmount+cash+estate+bal
+        val liability = serverLoan + userLoan
+        val equity = assets-liability
+        val symbol = if (equity<0) { "△" } else {""}
+
+        sender.sendMessage("§e§l===============${p.name}のバランスシート=================")
+        sender.sendMessage(String.format(" §b現金:        %14s §f| §c個人間借金:            §c%14s", format(cash), format(userLoan)))
+        sender.sendMessage(String.format(" §b電子マネー:   %14s §f| §cMan10リボ:            §c%14s", format(bal), format(serverLoan)))
+        sender.sendMessage(String.format(" §b銀行:        %14s §f| §c合計負債:              §c%14s", format(bankAmount), format(liability)))
+        sender.sendMessage(String.format(" §bその他:      %14s §f| §a純資産:                §a%14s", format(estate), "${format(abs(equity))}${symbol}"))
+        sender.sendMessage(String.format(" §b合計資産:     %14s §f| §c負債と純資産:          §b%14s", format(assets), format(liability+equity)))
+    }
+
+    private fun showCommand(sender:Player){
+        val pay = text("$prefix §e[電子マネーを友達に送る]  §n/pay").clickEvent(ClickEvent.suggestCommand("/pay "))
+        val atm = text("$prefix §a[電子マネーのチャージ・現金化]  §n/atm").clickEvent(ClickEvent.runCommand("/atm"))
+        val deposit = text("$prefix §b[電子マネーを銀行に入れる]  §n/deposit").clickEvent(ClickEvent.suggestCommand("/deposit "))
+        val withdraw = text("$prefix §c[電子マネーを銀行から出す]  §n/withdraw").clickEvent(ClickEvent.suggestCommand("/withdraw "))
+        val revolving = text("$prefix §e[Man10リボを使う]  §n/mrevo borrow").clickEvent(ClickEvent.suggestCommand("/mrevo borrow "))
+        val ranking = text("$prefix §6[お金持ちランキング]  §n/mbaltop").clickEvent(ClickEvent.runCommand("/mbaltop"))
+        val log = text("$prefix §7[銀行の履歴]  §n/ballog").clickEvent(ClickEvent.runCommand("/ballog"))
+
+        sender.sendMessage(pay)
+        sender.sendMessage(atm)
+        sender.sendMessage(deposit)
+        sender.sendMessage(withdraw)
+        sender.sendMessage(revolving)
+        sender.sendMessage(ranking)
+        sender.sendMessage(log)
+    }
 }

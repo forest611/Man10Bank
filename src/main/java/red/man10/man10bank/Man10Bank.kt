@@ -1,12 +1,7 @@
 package red.man10.man10bank
 
-import net.kyori.adventure.text.Component.text
-import net.kyori.adventure.text.event.ClickEvent
-import org.apache.commons.lang.math.NumberUtils
 import org.bukkit.Bukkit
 import org.bukkit.Location
-import org.bukkit.command.Command
-import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -18,20 +13,15 @@ import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
-import red.man10.man10bank.atm.ATMInventory
 import red.man10.man10bank.atm.ATMListener
 import red.man10.man10bank.cheque.Cheque
 import red.man10.man10bank.command.BankCommand
 import red.man10.man10bank.command.LocalLoanCommand
 import red.man10.man10bank.command.ServerLoanCommand
 import red.man10.man10bank.history.EstateData
-import red.man10.man10bank.loan.*
-import red.man10.man10score.ScoreDatabase
-import java.text.Normalizer
-import java.text.SimpleDateFormat
-import java.util.UUID
-import kotlin.math.abs
-import kotlin.math.floor
+import red.man10.man10bank.loan.Event
+import red.man10.man10bank.loan.ServerLoan
+import java.util.*
 
 
 class Man10Bank : JavaPlugin(),Listener {
@@ -113,7 +103,7 @@ class Man10Bank : JavaPlugin(),Listener {
         Bukkit.getScheduler().cancelTasks(this)
     }
 
-    private fun loadConfig(){
+    fun loadConfig(){
 
         reloadConfig()
 
