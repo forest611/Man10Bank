@@ -84,14 +84,25 @@ object ServerLoanRepository {
         mysql.close()
     }
 
-    fun addLastPayTime(who: String, hour: Int): Int {
+    fun addLastPayTime(uuidOrAll: String, hour: Int): Int {
         val mysql = MySQLManager(plugin, "Man10ServerLoan")
-        if (who == "all") {
+        if (uuidOrAll == "all") {
             mysql.execute("update server_loan_tbl set last_pay_date=DATE_ADD(last_pay_date,INTERVAL $hour HOUR)")
             return 0
         }
-        val uuid = Bank.getUUID(who) ?: return 1
+        val uuid = Bank.getUUID(uuidOrAll) ?: return 1
         mysql.execute("update server_loan_tbl set last_pay_date=DATE_ADD(last_pay_date,INTERVAL $hour HOUR) Where uuid='${uuid}'")
+        return 0
+    }
+
+    fun setLastPayTime(uuidOrAll: String, time: Long): Int {
+        val mysql = MySQLManager(plugin, "Man10ServerLoan")
+        if (uuidOrAll == "all") {
+            mysql.execute("update server_loan_tbl set last_pay_date=FROM_UNIXTIME($time)")
+            return 0
+        }
+        val uuid = Bank.getUUID(uuidOrAll) ?: return 1
+        mysql.execute("update server_loan_tbl set last_pay_date=FROM_UNIXTIME($time) Where uuid='${uuid}'")
         return 0
     }
 

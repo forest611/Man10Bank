@@ -3,6 +3,7 @@ package red.man10.man10bank.loan
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import org.bukkit.Bukkit
+import org.bukkit.Server
 import org.bukkit.entity.Player
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
@@ -16,6 +17,8 @@ import red.man10.man10bank.loan.repository.ServerLoanRepository
 import red.man10.man10score.ScoreDatabase
 import red.man10.man10score.ScoreDatabase.giveScore
 import java.text.SimpleDateFormat
+import java.time.Duration
+import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
@@ -218,7 +221,7 @@ object ServerLoan {
             val minimumPaymentAmount = floor(amount * frequency * revolvingFee)
             val created = ServerLoanRepository.insertLoan(p.name, p.uniqueId, amount, minimumPaymentAmount * 2)
             if (!created) {
-                sendMsg(p, "§c§l銀行への問い合わせに失敗しました。運営に報告してください。- 01")
+                sendMsg(p, "§c§l銀行への問い合わせに失敗しました。時間をおいて再度お試しください。")
                 return
             }
 
@@ -231,9 +234,13 @@ object ServerLoan {
             """.trimIndent())
         } else {
             val minimumPaymentAmount = floor((record.borrowAmount + amount) * frequency * revolvingFee)
+            // 現在の借入額が0円の場合、最後の支払日をリセット
+            if (record.borrowAmount <= 0.0) {
+                ServerLoanRepository.setLastPayTime(p.uniqueId.toString(), Date().time)
+            }
             val updated = ServerLoanRepository.updateLoan(p.uniqueId, record.borrowAmount + amount, minimumPaymentAmount * 2)
             if (!updated) {
-                sendMsg(p, "§c§l銀行への問い合わせに失敗しました。運営に報告してください。- 02")
+                sendMsg(p, "§c§l銀行への問い合わせに失敗しました。 時間をおいて再度お試しください。")
                 return
             }
         }
@@ -290,19 +297,16 @@ object ServerLoan {
             return
         }
 
-//        val diffDay = round(((Date().time - record.lastPayDate.time).toDouble() / (1000*60*60*24))).toInt()
-//        val payment = record.borrowAmount + (record.borrowAmount * revolvingFee * diffDay)
+        val diffDay = dateDiffOfDay(record.lastPayDate, Date())
+        val payment = record.borrowAmount + (record.borrowAmount * revolvingFee * diffDay)
 
-        val payment = record.borrowAmount
-
-        if (Bank.withdraw(p.uniqueId,payment, plugin,"Man10Revo","Man10リボの一括支払い").first==0){
+        if (Bank.withdraw(p.uniqueId,payment, plugin,"Man10Revo","Man10リボの一括支払い+(金利${diffDay}日分)").first==0){
             ServerLoanRepository.setBorrowAmountZero(p.uniqueId)
             sendMsg(p,"§a§l支払い完了！")
             return
         }
 
         sendMsg(p,"所持金が足りません！銀行に${format(payment)}円以上入金してください！")
-
     }
 
     fun getNextPayTime(p:Player): Pair<Date,Int>? {
@@ -359,7 +363,7 @@ object ServerLoan {
         for (record in records) {
             val uuid = record.uuid
             val p = Bukkit.getOfflinePlayer(uuid)
-            val diffDay = dateDiff(record.lastPayDate, now)
+            val diffDay = dateDiffOfDay(record.lastPayDate, now)
             if (diffDay < frequency) continue
 
             val interest = record.borrowAmount * revolvingFee * diffDay
@@ -421,10 +425,11 @@ object ServerLoan {
         return false
     }
 
-    private fun dateDiff(from: Date, to: Date): Int {
+    private fun dateDiffOfDay(from: Date, to: Date): Int {
         // 差分の日数を計算する
-        val dateTimeTo = to.time
-        val dateTimeFrom = from.time
-        return (dateTimeTo / (1000 * 60 * 60 * 24)).toInt() - (dateTimeFrom / (1000 * 60 * 60 * 24)).toInt()
+        val fromLDT = LocalDateTime.ofInstant(from.toInstant(), TimeZone.getDefault().toZoneId())
+        val toLDT = LocalDateTime.ofInstant(to.toInstant(), TimeZone.getDefault().toZoneId())
+
+        return Duration.between(fromLDT, toLDT).toDays().toInt()
     }
 }
