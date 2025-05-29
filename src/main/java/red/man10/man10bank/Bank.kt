@@ -16,6 +16,7 @@ import red.man10.man10bank.history.EstateData
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.CompletableFuture
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -140,6 +141,52 @@ object Bank {
     }
 
     /**
+     * オフライン口座に入出金する共通処理
+     */
+    private fun updateBalanceQueue(
+        uuid: UUID,
+        amount: Double,
+        plugin: String,
+        note: String,
+        displayNote: String?,
+        isDeposit: Boolean
+    ): Int {
+
+        val p = Bukkit.getOfflinePlayer(uuid)
+        if (!bankEnable) {
+            if (!isDeposit) {
+                Bukkit.getLogger().warning("[出金エラー]Man10Bankが閉じています ユーザー:${p.name}")
+            }
+            return 1
+        }
+
+        val finalAmount = if (isDeposit) floor(amount) else ceil(amount)
+
+        if (!isDeposit) {
+            val balance = getBalanceQueue(uuid).first
+            if (balance < finalAmount) {
+                return 2
+            }
+        }
+
+        val op = if (isDeposit) "+" else "-"
+        val ret = mysql.execute("update user_bank set balance=balance${op}${finalAmount} where uuid='$uuid';")
+
+        if (!ret) {
+            return if (isDeposit) 2 else 3
+        }
+
+        addLog(uuid, plugin, note, displayNote ?: note, finalAmount, isDeposit)
+
+        if (p.isOnline) {
+            val msg = if (isDeposit) "§e${format(amount)}円入金がありました。" else "§e${format(amount)}円出金されました。"
+            sendMsg(p.player!!, msg)
+        }
+
+        return 0
+    }
+
+    /**
      * オフライン口座に入金する
      *
      * @param plugin 入金したプラグイン
@@ -148,21 +195,7 @@ object Bank {
      *
      */
     private fun depositQueue(uuid: UUID, amount: Double, plugin: String, note:String,displayNote:String?):Int{
-
-        val p = Bukkit.getOfflinePlayer(uuid)
-        if (!bankEnable){ return 1 }
-
-        val finalAmount = floor(amount)
-
-        val ret = mysql.execute("update user_bank set balance=balance+$finalAmount where uuid='$uuid';")
-
-        if (!ret){ return 2 }
-
-        addLog(uuid,plugin, note,displayNote?:note, finalAmount,true)
-
-        if (p.isOnline){ sendMsg(p.player!!,"§e${format(amount)}円入金がありました。") }
-
-        return 0
+        return updateBalanceQueue(uuid, amount, plugin, note, displayNote, true)
     }
 
     /**
@@ -173,32 +206,9 @@ object Bank {
      * @param amount 出金額(マイナスだった場合、入金処理は行われない)
      *
      * @return　出金成功でtrue
-     */
+    */
     private fun withdrawQueue(uuid: UUID, amount: Double, plugin: String, note:String,displayNote:String?):Int{
-
-        val p = Bukkit.getOfflinePlayer(uuid)
-
-        if (!bankEnable){
-            Bukkit.getLogger().warning("[出金エラー]Man10Bankが閉じています ユーザー:${p.name}")
-            return 1
-        }
-
-//        if (!hasAccount(uuid))return false
-
-        val finalAmount = ceil(amount)
-        val balance = getBalanceQueue(uuid).first
-
-        if (balance < finalAmount){ return 2 }
-
-        val ret = mysql.execute("update user_bank set balance=balance-${finalAmount} where uuid='$uuid';")
-
-        if (!ret){ return 3 }
-
-        addLog(uuid,plugin, note,displayNote?:note, finalAmount,false)
-
-        if (p.isOnline){ sendMsg(p.player!!,"§e${format(amount)}円出金されました。") }
-
-        return 0
+        return updateBalanceQueue(uuid, amount, plugin, note, displayNote, false)
     }
 
     /**
@@ -335,17 +345,13 @@ object Bank {
      */
     fun deposit(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?): Triple<Int, Double, String> {
 
-        var ret = Triple(-1,0.0,"")
-
-        val lock = Lock()
+        val future = CompletableFuture<Triple<Int, Double, String>>()
 
         asyncDeposit(uuid,amount,plugin,note,displayNote) { _code: Int, _amount: Double, _message: String ->
-            ret = Triple(_code,_amount,_message)
-            lock.unlock()
+            future.complete(Triple(_code,_amount,_message))
         }
 
-        lock.lock()
-        return ret
+        return future.get()
     }
 
     fun asyncWithdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?,callback: ResultTransaction){
@@ -362,18 +368,13 @@ object Bank {
      */
     fun withdraw(uuid: UUID, amount: Double, plugin: JavaPlugin, note:String,displayNote:String?): Triple<Int, Double, String> {
 
-        var ret = Triple(-1,0.0,"")
-
-        val lock = Lock()
+        val future = CompletableFuture<Triple<Int, Double, String>>()
 
         asyncWithdraw(uuid,amount,plugin,note,displayNote) { _code: Int, _amount: Double, _message: String ->
-            ret = Triple(_code,_amount,_message)
-            lock.unlock()
+            future.complete(Triple(_code,_amount,_message))
         }
 
-        lock.lock()
-
-        return ret
+        return future.get()
     }
 
     /**
@@ -392,18 +393,13 @@ object Bank {
      * 金額を取得する処理
      */
     fun getBalance(uuid: UUID):Double{
-        var amount = -1.0
-
-        val lock = Lock()
+        val future = CompletableFuture<Double>()
 
         asyncGetBalance(uuid){ _, _amount, _ ->
-            amount = _amount
-            lock.unlock()
+            future.complete(_amount)
         }
 
-        lock.lock()
-
-        return amount
+        return future.get()
 
     }
 
@@ -429,22 +425,6 @@ object Bank {
         var note = ""
         var dateFormat = ""
         var plugin = ""
-
-    }
-
-    class Lock{
-
-        @Volatile
-        private  var isLock = false
-
-        fun lock(){
-            synchronized(this){ isLock = true }
-            while (isLock){ Thread.sleep(1) }
-        }
-
-        fun unlock(){
-            synchronized(this){ isLock = false }
-        }
 
     }
 

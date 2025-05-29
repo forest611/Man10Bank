@@ -15,6 +15,7 @@ import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
 import red.man10.man10bank.atm.ATMListener
 import red.man10.man10bank.cheque.Cheque
+import red.man10.man10bank.command.ChequeCommand
 import red.man10.man10bank.command.BankCommand
 import red.man10.man10bank.command.LocalLoanCommand
 import red.man10.man10bank.command.ServerLoanCommand
@@ -91,9 +92,12 @@ class Man10Bank : JavaPlugin(),Listener {
 
         bankCommand = BankCommand(this)
         val executor = bankCommand
-        arrayOf("bal","balance","money","bank","mbal","atm","mpay","mbaltop","mloantop","pay","deposit","withdraw","mchequeop","mcheque","ballog").forEach {
+        arrayOf("bal","balance","money","bank","mbal","atm","mpay","mbaltop","mloantop","pay","deposit","withdraw","ballog").forEach {
             getCommand(it)?.setExecutor(executor)
         }
+
+        val chequeCommand = ChequeCommand(this)
+        arrayOf("mchequeop", "mcheque").forEach { getCommand(it)?.setExecutor(chequeCommand) }
 
     }
 
