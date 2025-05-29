@@ -204,6 +204,16 @@ object ServerLoan {
 
         val record = ServerLoanRepository.fetchLoan(p.uniqueId)
 
+        val max = getMaximumLoanAmount(p)
+        val borrowing = record?.borrowAmount ?: 0.0
+
+        val borrowableAmount = max - borrowing
+
+        if (borrowableAmount<0.0){
+            sendMsg(p,"§cあなたはもうお金を借りることができません！")
+            return
+        }
+
         if (record == null) {
             val minimumPaymentAmount = floor(amount * frequency * revolvingFee)
             val created = ServerLoanRepository.insertLoan(p.name, p.uniqueId, amount, minimumPaymentAmount * 2)
@@ -393,13 +403,7 @@ object ServerLoan {
 
         val nextDate = getNextPayTime(p) ?:return false
 
-        if (nextDate.second>0 && getBorrowingAmount(p) >0){
-            return true
-        }
-
-
-        return false
-
+        return nextDate.second>0 && getBorrowingAmount(p) >0
     }
 
     fun borrowedSubAccount(uuid: UUID):Boolean{
