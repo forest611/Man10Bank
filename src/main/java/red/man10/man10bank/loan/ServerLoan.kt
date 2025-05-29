@@ -290,8 +290,10 @@ object ServerLoan {
             return
         }
 
-        val diffDay = round(((Date().time - record.lastPayDate.time).toDouble() / (1000*60*60*24))).toInt()
-        val payment = record.borrowAmount + (record.borrowAmount * revolvingFee * diffDay)
+//        val diffDay = round(((Date().time - record.lastPayDate.time).toDouble() / (1000*60*60*24))).toInt()
+//        val payment = record.borrowAmount + (record.borrowAmount * revolvingFee * diffDay)
+
+        val payment = record.borrowAmount
 
         if (Bank.withdraw(p.uniqueId,payment, plugin,"Man10Revo","Man10リボの一括支払い").first==0){
             ServerLoanRepository.setBorrowAmountZero(p.uniqueId)
