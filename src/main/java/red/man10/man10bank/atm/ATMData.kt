@@ -10,12 +10,15 @@ import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.Man10Bank.Companion.vault
 import red.man10.man10bank.MySQLManager
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 object ATMData {
 
     val moneyItems = ConcurrentHashMap<Double,ItemStack>()
     val moneyAmount = listOf(10.0,100.0,1000.0,10000.0,100000.0,1000000.0)//100〜100万
+
+    private val cooldownMap = mutableMapOf<UUID, Long>() //プレイヤーごとのクールダウン時間を保持
 
     fun loadItem(){
         for (money in moneyAmount){
@@ -78,6 +81,10 @@ object ATMData {
 
         if (!moneyAmount.contains(amount))return
 
+        val cooldown = cooldownMap[p.uniqueId] ?: 0L
+
+        if (System.currentTimeMillis() - cooldown <= 1000) { return }
+
         if (p.inventory.firstEmpty()==-1) {
             sendMsg(p, "§c§lインベントリが満タンです！")
             return
@@ -85,6 +92,7 @@ object ATMData {
 
         if (vault.withdraw(p.uniqueId,amount)){
             p.inventory.addItem(moneyItems[amount]!!)
+            cooldownMap[p.uniqueId] = System.currentTimeMillis() // クールダウン時間を更新
             addLog(p,amount,false)
         }
     }
