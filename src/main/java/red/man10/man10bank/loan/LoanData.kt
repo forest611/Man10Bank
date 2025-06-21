@@ -84,11 +84,6 @@ class LoanData {
     @Synchronized
     fun payback(p:Player,item:ItemStack) {
 
-        if (!enable){
-            sendMsg(p, "§a現在借金の貸し出しなどはできません！")
-            return
-        }
-
         if (!Man10Bank.enableLocalLoan||Man10Bank.localLoanDisableWorlds.contains(p.world.name)){
             sendMsg(p,"§c§lこのエリアでは個人間借金の取引を行うことはできません。")
             return
@@ -232,8 +227,6 @@ class LoanData {
         }
 
         val lendMap = ConcurrentHashMap<Int,LoanData>()
-
-        var enable = true
     }
 
 }

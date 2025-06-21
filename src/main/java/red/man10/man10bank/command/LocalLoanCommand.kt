@@ -42,8 +42,18 @@ class LocalLoanCommand : CommandExecutor {
         }
 
         return when (args[0]) {
-            "off" -> { if (sender.hasPermission(OP)) LoanData.enable = false; true }
-            "on" -> { if (sender.hasPermission(OP)) LoanData.enable = true; true }
+            "off" -> { if (sender.hasPermission(OP)) {
+                Man10Bank.enableLocalLoan = false
+                plugin.config.set("enableLocalLoan",true)
+                plugin.saveConfig()
+                sendMsg(sender, "§c§l個人間借金の取引を無効化しました")
+            } ; true }
+            "on" -> { if (sender.hasPermission(OP)) {
+                Man10Bank.enableLocalLoan = true
+                plugin.config.set("enableLocalLoan",true)
+                plugin.saveConfig()
+                sendMsg(sender, "§a§l個人間借金の取引を有効化しました")
+            }; true }
             "allow" -> { allow(sender); true }
             "deny" -> { deny(sender); true }
             "userdata" -> { if (args.size >= 2) userData(sender, args[1]); true }
