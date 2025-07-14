@@ -8,5 +8,6 @@ data class LocalLoanRecord(
     val lendUUID: UUID,
     val borrowUUID: UUID,
     val paybackDate: Date,
-    var amount: Double
+    var amount: Double,
+    val collateralItem: String? = null  // 担保アイテム(Base64)
 )

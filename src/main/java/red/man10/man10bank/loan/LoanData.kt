@@ -7,11 +7,15 @@ import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
+import org.bukkit.util.io.BukkitObjectInputStream
+import org.bukkit.util.io.BukkitObjectOutputStream
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.plugin
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.loan.repository.LocalLoanRepository
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -24,15 +28,19 @@ class LoanData {
     private lateinit var borrow: UUID
     var debt : Double = 0.0
     private var id : Int = 0
+    private var collateralItem: String? = null  // 担保アイテム(Base64)
+    private var collateralItems: List<ItemStack>? = null  // 担保アイテムのリスト
 
 
     @Synchronized
-    fun create(lend:Player, borrow: Player, borrowedAmount : Double, paybackAmount: Double, paybackDay:Int):Boolean{
+    fun create(lend:Player, borrow: Player, borrowedAmount : Double, paybackAmount: Double, paybackDay:Int, collateralItems: List<ItemStack>? = null):Boolean{
 
         //返済金額を直接設定
-        debt = paybackAmount
+        this.debt = paybackAmount
         this.borrow = borrow.uniqueId
-        paybackDate = calcDate(paybackDay)
+        this.paybackDate = calcDate(paybackDay)
+        this.collateralItems = collateralItems
+        this.collateralItem = collateralItems?.let { itemsToBase64(it) }
 
         if (Bank.withdraw(lend.uniqueId, borrowedAmount+(borrowedAmount * Man10Bank.loanFee), plugin,"LoanCreate","借金の貸し出し").first!=0){
             sendMsg(lend,"§c§lお金が足りません！")
@@ -45,7 +53,8 @@ class LoanData {
             borrow.name,
             borrow.uniqueId,
             paybackDate,
-            debt
+            debt,
+            collateralItem
         ) ?: run {
             sendMsg(lend,"§c§lデータベースエラーが発生しました。運営に報告してください。- 01")
             return false
@@ -66,10 +75,12 @@ class LoanData {
 
         val record = LocalLoanRepository.fetchLoan(id) ?: return null
 
-        borrow = record.borrowUUID
-        debt = record.amount
-        paybackDate = record.paybackDate
+        this.borrow = record.borrowUUID
+        this.debt = record.amount
+        this.paybackDate = record.paybackDate
         this.id = record.id
+        this.collateralItem = record.collateralItem
+        this.collateralItems = record.collateralItem?.let { base64ToItems(it) }
 
         lendMap[id] = this
 
@@ -216,6 +227,31 @@ class LoanData {
 
         fun calcRate(amount:Double,day:Int,rate:Double): Double {
             return floor(amount * (1.0+(day/30*rate)))
+        }
+
+        // ItemStackのリストをBase64文字列に変換
+        fun itemsToBase64(items: List<ItemStack>): String {
+            val outputStream = ByteArrayOutputStream()
+            BukkitObjectOutputStream(outputStream).use { objectOutputStream ->
+                objectOutputStream.writeInt(items.size)
+                for (item in items) {
+                    objectOutputStream.writeObject(item)
+                }
+            }
+            return Base64.getEncoder().encodeToString(outputStream.toByteArray())
+        }
+
+        // Base64文字列をItemStackのリストに変換
+        fun base64ToItems(base64: String): List<ItemStack> {
+            val inputStream = ByteArrayInputStream(Base64.getDecoder().decode(base64))
+            return BukkitObjectInputStream(inputStream).use { objectInputStream ->
+                val size = objectInputStream.readInt()
+                val items = mutableListOf<ItemStack>()
+                for (i in 0 until size) {
+                    items.add(objectInputStream.readObject() as ItemStack)
+                }
+                items
+            }
         }
 
         fun getTotalLoan(p:Player):Double{

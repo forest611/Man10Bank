@@ -40,6 +40,7 @@ create table loan_table
 	borrow_date datetime default now() null,
 	payback_date datetime null,
 	amount double default 0.0 not null,
+	collateral_item text null comment '担保アイテム(Base64)',
 	constraint loan_table_pk
 		primary key (id)
 );

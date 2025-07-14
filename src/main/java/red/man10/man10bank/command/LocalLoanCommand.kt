@@ -170,6 +170,10 @@ class LocalLoanCommand : CommandExecutor {
                 sendMsg(sender, "§c返済金額は貸出金額以上に設定してください！")
                 return true
             }
+            if (paybackAmount > amount * 2) {
+                sendMsg(sender, "§c返済金額は貸出金額の2倍以下に設定してください！")
+                return true
+            }
         } catch (e: Exception) {
             sendMsg(sender, "§c入力に問題があります！")
             return true

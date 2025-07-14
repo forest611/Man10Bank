@@ -13,16 +13,18 @@ object LocalLoanRepository {
         borrowName: String,
         borrowUUID: UUID,
         paybackDate: Date,
-        amount: Double
+        amount: Double,
+        collateralItem: String? = null
     ): Int? {
         val mysql = MySQLManager(plugin, "Man10Loan")
         if (!mysql.lock("loan_table")) {
             return null
         }
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        val collateralValue = if (collateralItem != null) "'$collateralItem'" else "NULL"
         val query = "INSERT INTO loan_table " +
-            "(lend_player, lend_uuid, borrow_player, borrow_uuid, borrow_date, payback_date, amount) " +
-            "VALUES ('$lendName', '$lendUUID', '$borrowName', '$borrowUUID', now(), '${sdf.format(paybackDate.time)}', $amount);"
+            "(lend_player, lend_uuid, borrow_player, borrow_uuid, borrow_date, payback_date, amount, collateral_item) " +
+            "VALUES ('$lendName', '$lendUUID', '$borrowName', '$borrowUUID', now(), '${sdf.format(paybackDate.time)}', $amount, $collateralValue);"
         val result = mysql.execute(query)
         if (!result) {
             mysql.unlock()
@@ -46,7 +48,8 @@ object LocalLoanRepository {
                 UUID.fromString(rs.getString("lend_uuid")),
                 UUID.fromString(rs.getString("borrow_uuid")),
                 rs.getTimestamp("payback_date"),
-                rs.getDouble("amount")
+                rs.getDouble("amount"),
+                rs.getString("collateral_item")
             )
         } else null
         rs.close()
