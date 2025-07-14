@@ -95,7 +95,7 @@ class LocalLoanCommand : CommandExecutor {
             sendMsg(sender, "§c§l貸し手がオフラインになりました")
             return
         }
-        
+
         sendMsg(cache.lend, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
         sendMsg(cache.lend, "§b§l${sender.name}が借金を受け入れました！")
         if (cache.collateralItems.isNotEmpty()) {
