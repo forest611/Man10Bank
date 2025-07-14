@@ -27,10 +27,10 @@ class LoanData {
 
 
     @Synchronized
-    fun create(lend:Player, borrow: Player, borrowedAmount : Double, rate:Double, paybackDay:Int):Boolean{
+    fun create(lend:Player, borrow: Player, borrowedAmount : Double, paybackAmount: Double, paybackDay:Int):Boolean{
 
-        //30日を基準に金利が設定される
-        debt = calcRate(borrowedAmount,paybackDay,rate)
+        //返済金額を直接設定
+        debt = paybackAmount
         this.borrow = borrow.uniqueId
         paybackDate = calcDate(paybackDay)
 

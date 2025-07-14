@@ -69,8 +69,8 @@ class LocalLoanCommand : CommandExecutor {
     }
 
     private fun showUsage(p: Player) {
-        sendMsg(p, "§a/mlend <プレイヤー> <金額> <期間(日)> <金利(0.0〜${loanRate})>")
-        sendMsg(p, "§a金額の${loanFee * 100}%を手数料としていただきます")
+        sendMsg(p, "§a/mlend <プレイヤー> <貸出金額> <返済金額> <期間(日)>")
+        sendMsg(p, "§a貸出金額の${loanFee * 100}%を手数料としていただきます")
     }
 
     private fun allow(sender: Player) {
@@ -86,7 +86,7 @@ class LocalLoanCommand : CommandExecutor {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
             sendMsg(sender, "Man10Bankシステムに問い合わせ中・・・§l§kXX")
             val data = LoanData()
-            if (!data.create(cache.lend, cache.borrow, cache.amount, cache.rate, cache.day)) return@Runnable
+            if (!data.create(cache.lend, cache.borrow, cache.amount, cache.paybackAmount, cache.day)) return@Runnable
             cache.lend.inventory.addItem(data.getNote())
             sendMsg(sender, "§a§l借金の契約が成立しました！")
             sendMsg(cache.lend, "§a§l借金の契約が成立しました！")
@@ -152,22 +152,22 @@ class LocalLoanCommand : CommandExecutor {
         }
 
         val amount: Double
+        val paybackAmount: Double
         val day: Int
-        val rate: Double
         try {
             amount = floor(args[1].toDouble())
-            day = args[2].toInt()
-            rate = args[3].toDouble()
-            if (rate > loanRate || rate < 0.0) {
-                sendMsg(sender, "§c金利は0以上、${loanRate}以下にしてください！")
-                return true
-            }
+            paybackAmount = floor(args[2].toDouble())
+            day = args[3].toInt()
             if (day > 365 || day <= 0) {
                 sendMsg(sender, "§c返済期限は１日以上、一年以内にしてください！")
                 return true
             }
             if (amount > Man10Bank.loanMax || amount < 1) {
-                sendMsg(sender, "§貸出金額は1円以上、${format(Man10Bank.loanMax)}円以下に設定してください！")
+                sendMsg(sender, "§c貸出金額は1円以上、${format(Man10Bank.loanMax)}円以下に設定してください！")
+                return true
+            }
+            if (paybackAmount < amount) {
+                sendMsg(sender, "§c返済金額は貸出金額以上に設定してください！")
                 return true
             }
         } catch (e: Exception) {
@@ -183,13 +183,13 @@ class LocalLoanCommand : CommandExecutor {
         sendMsg(borrow, "§e§kXX§b§l借金の提案§e§kXX")
         sendMsg(borrow, "§e貸し出す人:${sender.name}")
         sendMsg(borrow, "§e貸し出される金額:${format(amount)}")
-        sendMsg(borrow, "§e返す金額:${format(LoanData.calcRate(amount, day, rate))}")
+        sendMsg(borrow, "§e返す金額:${format(paybackAmount)}")
         sendMsg(borrow, "§e返す日:${sdf.format(LoanData.calcDate(day))}")
         borrow.sendMessage(allowOrDeny)
         sendMsg(borrow, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
         val cache = Cache().apply {
             this.amount = amount
-            this.rate = rate
+            this.paybackAmount = paybackAmount
             this.day = day
             this.borrow = borrow
             this.lend = sender
@@ -201,7 +201,7 @@ class LocalLoanCommand : CommandExecutor {
     class Cache {
         var day = 0
         var amount = 0.0
-        var rate = 0.0
+        var paybackAmount = 0.0
         lateinit var lend: Player
         lateinit var borrow: Player
     }
