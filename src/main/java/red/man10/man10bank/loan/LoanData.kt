@@ -34,7 +34,6 @@ class LoanData {
 
     @Synchronized
     fun create(lend:Player, borrow: Player, borrowedAmount : Double, paybackAmount: Double, paybackDay:Int, collateralItems: List<ItemStack>? = null):Boolean{
-
         //返済金額を直接設定
         this.debt = paybackAmount
         this.borrow = borrow.uniqueId
@@ -64,7 +63,6 @@ class LoanData {
 
         Bank.deposit(borrow.uniqueId, borrowedAmount, plugin, "LoanCreate","借金の借り入れ")
 
-
         lendMap[id] = this
 
         return true
@@ -72,7 +70,6 @@ class LoanData {
 
     @Synchronized
     fun load(id:Int): LoanData? {
-
         val record = LocalLoanRepository.fetchLoan(id) ?: return null
 
         this.borrow = record.borrowUUID
@@ -85,16 +82,13 @@ class LoanData {
         lendMap[id] = this
 
         return this
-
     }
-
 
     /**
      * @param p 手形の持ち主
      */
     @Synchronized
     fun payback(p:Player,item:ItemStack) {
-
         if (!Man10Bank.enableLocalLoan||Man10Bank.localLoanDisableWorlds.contains(p.world.name)){
             sendMsg(p,"§c§lこのエリアでは個人間借金の取引を行うことはできません。")
             return
@@ -105,10 +99,7 @@ class LoanData {
             return
         }
 
-//        Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.remove(item) })
-
         val borrowPlayer = Bukkit.getOfflinePlayer(borrow)
-
 
         val isOnline = Man10Bank.loadedPlayerUUIDs.contains(borrowPlayer.uniqueId)&&borrowPlayer.isOnline
 
@@ -122,7 +113,6 @@ class LoanData {
             val takeMan10Bank = floor(if (man10Bank<debt)man10Bank else debt)
 
             if (takeMan10Bank != 0.0 && Bank.withdraw(borrow,takeMan10Bank, plugin,"paybackMoney","借金の返済").first == 0){
-
                 debt -= takeMan10Bank
 
                 val result = LocalLoanRepository.updateAmount(id, debt)
@@ -138,13 +128,11 @@ class LoanData {
                     sendMsg(p,"§eMan10Bankから${Man10Bank.format(takeMan10Bank)}円回収成功しました！")
                     Bank.deposit(p.uniqueId,takeMan10Bank, plugin,"paybackMoneyFromBank","借金の回収")
                 }
-
             }
 
             val takeBalance = floor(if (balance<(debt))balance else debt)
 
             if (isOnline && takeBalance != 0.0 && Man10Bank.vault.withdraw(borrow,takeBalance)){
-
                 debt -= floor(takeBalance)
 
                 val result = LocalLoanRepository.updateAmount(id, debt)
@@ -160,16 +148,13 @@ class LoanData {
                     sendMsg(p,"§e所持金から${Man10Bank.format(takeBalance)}円回収成功しました！")
                     Bank.deposit(p.uniqueId,takeBalance, plugin,"paybackMoneyFromBalance","借金の回収")
                 }
-
             }
 
             if (isOnline){
                 sendMsg(borrowPlayer.player!!,"§e${p.name}から借金の回収が行われました！")
             }
         }catch (_:Exception){
-
         }finally {
-
             // 手形の更新
             Bukkit.getScheduler().runTask(plugin, Runnable {
                 val meta = item.itemMeta
@@ -185,7 +170,6 @@ class LoanData {
             })
 
             if (debt<=0){
-//                Bukkit.getScheduler().runTask(plugin, Runnable { p.inventory.addItem(getNote()) })
                 sendMsg(p,"§e全額回収し終わりました！")
                 if (isOnline){
                     sendMsg(borrowPlayer.player!!,"§e全額完済し終わりました！お疲れ様です！")
@@ -195,7 +179,6 @@ class LoanData {
     }
 
     fun getNote():ItemStack{
-
         val note = ItemStack(Material.PAPER)
         val meta = note.itemMeta
 
@@ -223,10 +206,6 @@ class LoanData {
             cal.add(Calendar.DAY_OF_YEAR,day)
 
             return cal.time
-        }
-
-        fun calcRate(amount:Double,day:Int,rate:Double): Double {
-            return floor(amount * (1.0+(day/30*rate)))
         }
 
         // ItemStackのリストをBase64文字列に変換
