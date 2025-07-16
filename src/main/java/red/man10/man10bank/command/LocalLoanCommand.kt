@@ -128,6 +128,7 @@ class LocalLoanCommand : CommandExecutor {
             return
         }
 
+        //TODO:増殖の可能性がある
         Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
             sendMsg(sender, "Man10Bankシステムに問い合わせ中・・・§l§kXX")
             val data = LoanData()

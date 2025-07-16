@@ -86,6 +86,84 @@ class LoanData {
 
     /**
      * @param p 手形の持ち主
+     * 担保を回収して借金を完済扱いにする
+     */
+    @Synchronized
+    fun collectCollateral(p:Player, item:ItemStack) {
+        if (!Man10Bank.enableLocalLoan || Man10Bank.localLoanDisableWorlds.contains(p.world.name)) {
+            sendMsg(p, "§c§lこのエリアでは個人間借金の取引を行うことはできません。")
+            return
+        }
+
+        if (Date().before(paybackDate)) {
+            sendMsg(p, "§cこの手形はまだ有効ではありません！")
+            return
+        }
+
+        if (debt <= 0.0) {
+            sendMsg(p, "§cこの借金は既に完済されています。")
+            return
+        }
+
+        if (collateralItems.isNullOrEmpty()) {
+            sendMsg(p, "§cこの借金には担保が設定されていません。")
+            return
+        }
+
+        val borrowPlayer = Bukkit.getOfflinePlayer(borrow)
+        val isOnline = Man10Bank.loadedPlayerUUIDs.contains(borrowPlayer.uniqueId) && borrowPlayer.isOnline
+
+        try {
+            // インベントリの空きスロット数を確認
+            val emptySlots = p.inventory.contents.count { it == null }
+            val requiredSlots = collateralItems!!.size
+            
+            if (emptySlots < requiredSlots) {
+                sendMsg(p, "§c§lインベントリに空きが足りません！（必要: ${requiredSlots}スロット、空き: ${emptySlots}スロット）")
+                return
+            }
+            
+            // 担保アイテムをプレイヤーに付与
+            collateralItems!!.forEach { collateralItem ->
+                p.inventory.addItem(collateralItem)
+            }
+
+            // 借金を完済扱いにする
+            debt = 0.0
+            val result = LocalLoanRepository.updateAmount(id, debt)
+
+            if (!result) {
+                sendMsg(p, "§c§lデータベースエラーが発生しました。運営に報告してください。")
+                return
+            }
+
+            sendMsg(p, "§a§l担保を回収しました！借金は完済扱いになりました。")
+
+            if (isOnline) {
+                sendMsg(borrowPlayer.player!!, "§c§l${p.name}によって担保が回収されました！")
+            }
+        } catch (e: Exception) {
+            sendMsg(p, "§c§l担保回収中にエラーが発生しました。")
+        } finally {
+            // 手形の更新
+            Bukkit.getScheduler().runTask(plugin, Runnable {
+                val meta = item.itemMeta
+
+                meta.lore = mutableListOf(
+                    "§4§l========[Man10Bank]========",
+                    "   §7§l債務者:  ${Bukkit.getOfflinePlayer(borrow).name}",
+                    "   §8§l有効日:  ${SimpleDateFormat("yyyy-MM-dd").format(paybackDate)}",
+                    "   §7§l支払額:  ${Man10Bank.format(debt)}",
+                    "   §a§l状態:  完済済み（担保回収）",
+                    "§4§l==========================")
+
+                item.itemMeta = meta
+            })
+        }
+    }
+
+    /**
+     * @param p 手形の持ち主
      */
     @Synchronized
     fun payback(p:Player,item:ItemStack) {
