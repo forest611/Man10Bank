@@ -47,7 +47,6 @@ object ServerLoan {
 
     var revolvingFee = 0.1 //日率の割合
     private var frequency = 3
-    var lastPaymentCycle = 0
 
 
     init {
@@ -329,28 +328,27 @@ object ServerLoan {
     }
     //支払い処理
     private fun paymentThread(){
-
-        val now = Calendar.getInstance()
-
         while (true){
+            try {
+                plugin.reloadConfig()
 
-            now.time = Date()
+                val now = Calendar.getInstance()
+                now.time = Date()
 
-            val nowValue = now.get(Calendar.DAY_OF_YEAR)
+                val last = Calendar.getInstance()
+                last.timeInMillis  = plugin.config.getLong("revolving.lastPaymentCycle",Date().time)
 
-            if (nowValue != lastPaymentCycle){
-
-                lastPaymentCycle = nowValue
-                plugin.config.set("revolving.lastPaymentCycle",nowValue)
-                plugin.saveConfig()
-
-                batch()
+                if (now.get(Calendar.DAY_OF_YEAR) != last.get(Calendar.DAY_OF_YEAR)){
+                    plugin.config.set("revolving.lastPaymentCycle",Date().time)
+                    plugin.saveConfig()
+                    batch()
+                }
+            } catch (e: Exception) {
+                Bukkit.getLogger().severe("Man10リボの支払い処理でエラーが発生しました")
+                e.printStackTrace()
             }
-
-            Thread.sleep(60000)
-
+            Thread.sleep(60*1000)
         }
-
     }
 
     private fun batch(){

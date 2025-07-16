@@ -139,7 +139,6 @@ class Man10Bank : JavaPlugin(),Listener {
         ServerLoan.minServerLoanAmount = config.getDouble("revolving.minServerLoan")
         ServerLoan.maxServerLoanAmount = config.getDouble("revolving.maxServerLoan")
         ServerLoan.revolvingFee = config.getDouble("revolving.revolvingFee")
-        ServerLoan.lastPaymentCycle = config.getInt("revolving.lastPaymentCycle")
         ServerLoan.isEnable = config.getBoolean("revolving.enable",false)
 
         for (value in config.getStringList("revolving.maximumOfLoginTime")){
