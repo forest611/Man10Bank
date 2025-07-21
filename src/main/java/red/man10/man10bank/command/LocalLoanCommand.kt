@@ -116,6 +116,18 @@ class LocalLoanCommand : CommandExecutor {
             sendMsg(sender, "§cあなたに借金の提案は来ていません！")
             return
         }
+        // 担保が設定されていた場合、借り手に返却
+        if (cache.collateralItems.isNotEmpty()) {
+            cache.collateralItems.forEach { item ->
+                if (cache.borrow.inventory.firstEmpty() == -1) {
+                    cache.borrow.world.dropItem(cache.borrow.location, item)
+                } else {
+                    cache.borrow.inventory.addItem(item)
+                }
+            }
+            sendMsg(cache.borrow, "§e担保アイテムが返却されました。")
+        }
+        
         sendMsg(sender, "§c借金の提案を断りました！")
         cache.lend.sendMessage("§c相手が借金の提案を拒否しました！")
         cacheMap.remove(sender)
@@ -127,8 +139,9 @@ class LocalLoanCommand : CommandExecutor {
             sendMsg(sender, "§c承認する借金の提案がありません")
             return
         }
+        //　増殖対策で先にキャッシュを削除しておく
+        cacheMap.remove(cache.borrow)
 
-        //TODO:増殖の可能性がある
         Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
             sendMsg(sender, "Man10Bankシステムに問い合わせ中・・・§l§kXX")
             val data = LoanData()
@@ -136,7 +149,6 @@ class LocalLoanCommand : CommandExecutor {
             cache.lend.inventory.addItem(data.getNote())
             sendMsg(cache.borrow, "§a§l借金の契約が成立しました！")
             sendMsg(cache.lend, "§a§l借金の契約が成立しました！")
-            cacheMap.remove(cache.borrow)
         })
     }
 
@@ -194,22 +206,22 @@ class LocalLoanCommand : CommandExecutor {
     private fun propose(sender: Player, args: Array<out String>): Boolean {
         if (!sender.hasPermission(USER)) {
             sendMsg(sender, "§4お金を貸す権限がありません！")
-            return true
+            return false
         }
 
         val borrow = Bukkit.getPlayer(args[0]) ?: run {
             sendMsg(sender, "§c相手はオフラインです")
-            return true
+            return false
         }
 
         if (sender.name == borrow.name && !sender.hasPermission(OP)) {
             sendMsg(sender, "§c自分に借金はできません")
-            return true
+            return false
         }
 
         if (!borrow.hasPermission(USER)) {
             sendMsg(sender, "§4貸し出す相手に権限がありません")
-            return true
+            return false
         }
 
         val amount: Double
@@ -221,23 +233,23 @@ class LocalLoanCommand : CommandExecutor {
             day = args[3].toInt()
             if (day > 365 || day <= 0) {
                 sendMsg(sender, "§c返済期限は１日以上、一年以内にしてください！")
-                return true
+                return false
             }
             if (amount > Man10Bank.loanMax || amount < 1) {
                 sendMsg(sender, "§c貸出金額は1円以上、${format(Man10Bank.loanMax)}円以下に設定してください！")
-                return true
+                return false
             }
             if (paybackAmount < amount) {
                 sendMsg(sender, "§c返済金額は貸出金額以上に設定してください！")
-                return true
+                return false
             }
             if (paybackAmount > amount * 2) {
                 sendMsg(sender, "§c返済金額は貸出金額の2倍以下に設定してください！")
-                return true
+                return false
             }
         } catch (e: Exception) {
             sendMsg(sender, "§c入力に問題があります！")
-            return true
+            return false
         }
 
         sendMsg(sender, "§a§l借金の提案を相手に提示しました")
@@ -247,29 +259,32 @@ class LocalLoanCommand : CommandExecutor {
         sendMsg(borrow, "§e貸し出される金額:${format(amount)}")
         sendMsg(borrow, "§e返す金額:${format(paybackAmount)}")
         sendMsg(borrow, "§e返す日:${sdf.format(LoanData.calcDate(day))}")
+
         val setCollateralButton = text("§6§l§n[担保を設定する] ").clickEvent(runCommand("/mlend setcollateral"))
         val allowOrDeny = text("${prefix}§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow"))
             .append(text("§c§l§n[借りない]").clickEvent(runCommand("/mlend deny")))
         borrow.sendMessage(setCollateralButton)
         borrow.sendMessage(allowOrDeny)
+
         sendMsg(borrow, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
-        val cache = Cache().apply {
-            this.amount = amount
-            this.paybackAmount = paybackAmount
-            this.day = day
-            this.borrow = borrow
-            this.lend = sender
-        }
+
+        val cache = Cache(
+            amount = amount,
+            paybackAmount = paybackAmount,
+            day = day,
+            borrow = borrow,
+            lend = sender
+        )
         cacheMap[borrow] = cache
         return true
     }
 
-    class Cache {
-        var day = 0
-        var amount = 0.0
-        var paybackAmount = 0.0
-        var collateralItems: MutableList<ItemStack> = mutableListOf()  // 担保アイテムリスト
-        lateinit var lend: Player
-        lateinit var borrow: Player
-    }
+    data class Cache(
+        var day: Int = 0,
+        var amount: Double = 0.0,
+        var paybackAmount: Double = 0.0,
+        var collateralItems: MutableList<ItemStack> = mutableListOf(),  // 担保アイテムリスト
+        var lend: Player,
+        var borrow: Player
+    )
 }
