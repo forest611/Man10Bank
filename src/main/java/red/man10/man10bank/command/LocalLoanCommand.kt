@@ -57,11 +57,11 @@ class LocalLoanCommand : CommandExecutor {
                 plugin.saveConfig()
                 sendMsg(sender, "§a§l個人間借金の取引を有効化しました")
             }; true }
-            "allow" -> { allow(sender); true }
-            "deny" -> { deny(sender); true }
+            "allow" -> { onAllowed(sender); true }
+            "deny" -> { onDenied(sender); true }
             "collateral" -> { showCollateral(sender); true }
             "setcollateral" -> { setCollateral(sender); true }
-            "confirm" -> { confirm(sender); true }
+            "confirm" -> { onConfirmed(sender); true }
             "userdata" -> { if (args.size >= 2) userData(sender, args[1]); true }
             "reissue" -> {
                 if (args.size >= 2) {
@@ -70,7 +70,7 @@ class LocalLoanCommand : CommandExecutor {
                 }
                 true
             }
-            else -> propose(sender, args)
+            else -> onPropose(sender, args)
         }
     }
 
@@ -79,7 +79,7 @@ class LocalLoanCommand : CommandExecutor {
         sendMsg(p, "§a貸出金額の${loanFee * 100}%を手数料としていただきます")
     }
 
-    private fun allow(sender: Player) {
+    private fun onAllowed(sender: Player) {
         if (!sender.hasPermission(USER)) return
         val cache = cacheMap[sender] ?: run {
             sendMsg(sender, "§cあなたに借金の提案は来ていません！")
@@ -111,7 +111,7 @@ class LocalLoanCommand : CommandExecutor {
         sendMsg(cache.lend, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
     }
 
-    private fun deny(sender: Player) {
+    private fun onDenied(sender: Player) {
         val cache = cacheMap[sender] ?: run {
             sendMsg(sender, "§cあなたに借金の提案は来ていません！")
             return
@@ -133,7 +133,7 @@ class LocalLoanCommand : CommandExecutor {
         cacheMap.remove(sender)
     }
 
-    private fun confirm(sender: Player) {
+    private fun onConfirmed(sender: Player) {
         // 貸し手として最終承認を行う
         val cache = cacheMap.values.find { it.lend == sender } ?: run {
             sendMsg(sender, "§c承認する借金の提案がありません")
@@ -203,7 +203,7 @@ class LocalLoanCommand : CommandExecutor {
         CollateralGUI.openCollateralGUI(sender, cache)
     }
 
-    private fun propose(sender: Player, args: Array<out String>): Boolean {
+    private fun onPropose(sender: Player, args: Array<out String>): Boolean {
         if (!sender.hasPermission(USER)) {
             sendMsg(sender, "§4お金を貸す権限がありません！")
             return false
