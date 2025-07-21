@@ -149,8 +149,4 @@ class CollateralGUI : Listener {
             }
         }
     }
-    
-    init {
-        plugin.server.pluginManager.registerEvents(this, plugin)
-    }
 }

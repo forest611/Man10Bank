@@ -20,6 +20,7 @@ import red.man10.man10bank.command.BankCommand
 import red.man10.man10bank.command.LocalLoanCommand
 import red.man10.man10bank.command.ServerLoanCommand
 import red.man10.man10bank.history.EstateData
+import red.man10.man10bank.loan.CollateralGUI
 import red.man10.man10bank.loan.Event
 import red.man10.man10bank.loan.ServerLoan
 import java.util.*
@@ -86,6 +87,7 @@ class Man10Bank : JavaPlugin(),Listener {
         server.pluginManager.registerEvents(Event(),this)
         server.pluginManager.registerEvents(ATMListener,this)
         server.pluginManager.registerEvents(Cheque,this)
+        plugin.server.pluginManager.registerEvents(CollateralGUI(), plugin)
 
         getCommand("mlend")!!.setExecutor(LocalLoanCommand())
         getCommand("mrevo")!!.setExecutor(ServerLoanCommand())
