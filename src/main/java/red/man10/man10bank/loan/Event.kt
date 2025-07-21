@@ -16,6 +16,7 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.persistence.PersistentDataType
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.plugin
+import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import java.util.*
 
@@ -38,7 +39,7 @@ class Event : Listener{
         // お金回収ボタンと担保回収ボタンをチャット欄に横一列で表示させる
         sendMsg(p, "§e§l＝＝＝＝＝＝ 手形操作 ＝＝＝＝＝＝")
         
-        val collectButton = text("§a§l[お金を回収する] ")
+        val collectButton = text("${prefix}§a§l[お金を回収する] ")
             .clickEvent(ClickEvent.runCommand("/mlend collect"))
         val collateralButton = text("§6§l[担保を回収する]")
             .clickEvent(ClickEvent.runCommand("/mlend collectcollateral"))

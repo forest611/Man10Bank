@@ -84,8 +84,6 @@ class LocalLoanCommand : CommandExecutor {
     private fun showUsage(p: Player) {
         sendMsg(p, "§a/mlend <プレイヤー> <貸出金額> <返済金額> <期間(日)>")
         sendMsg(p, "§a貸出金額の${loanFee * 100}%を手数料としていただきます")
-        sendMsg(p, "§a/mlend collect - 手に持っている手形の借金を回収")
-        sendMsg(p, "§a/mlend collectcollateral - 手に持っている手形の担保を回収")
     }
 
     private fun onPropose(sender: Player, args: Array<out String>): Boolean {
@@ -140,12 +138,12 @@ class LocalLoanCommand : CommandExecutor {
         sendMsg(sender, "§a§l借金の提案を相手に提示しました")
         sendMsg(borrow, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
         sendMsg(borrow, "§e§kXX§b§l借金の提案§e§kXX")
-        sendMsg(borrow, "§e貸し出す人:${sender.name}")
-        sendMsg(borrow, "§e貸し出される金額:${format(amount)}")
-        sendMsg(borrow, "§e返す金額:${format(paybackAmount)}")
-        sendMsg(borrow, "§e返す日:${sdf.format(LoanData.calcDate(day))}")
+        sendMsg(borrow, "§e貸し出す人:§l${sender.name}")
+        sendMsg(borrow, "§e貸し出される金額: §l${format(amount)}円")
+        sendMsg(borrow, "§e返す金額: §l${format(paybackAmount)}円")
+        sendMsg(borrow, "§e返す日: §l${sdf.format(LoanData.calcDate(day))}")
 
-        val setCollateralButton = text("§6§l§n[担保を設定する] ").clickEvent(runCommand("/mlend setcollateral"))
+        val setCollateralButton = text("${prefix}§6§l§n[担保を設定する] ").clickEvent(runCommand("/mlend setcollateral"))
         val allowOrDeny = text("${prefix}§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow"))
             .append(text("§c§l§n[借りない]").clickEvent(runCommand("/mlend deny")))
         borrow.sendMessage(setCollateralButton)
@@ -185,12 +183,12 @@ class LocalLoanCommand : CommandExecutor {
         sendMsg(cache.lend, "§b§l${sender.name}が借金を受け入れました！")
         if (cache.collateralItems.isNotEmpty()) {
             sendMsg(cache.lend, "§e担保: ${cache.collateralItems.size}個のアイテム")
-            val viewCollateralButton = text("§6§l§n[担保を確認する] ").clickEvent(runCommand("/mlend collateral"))
+            val viewCollateralButton = text("${prefix}§6§l§n[担保を確認する] ").clickEvent(runCommand("/mlend collateral"))
             cache.lend.sendMessage(viewCollateralButton)
         } else {
             sendMsg(cache.lend, "§c担保: なし")
         }
-        val confirmDenyButtons = text("§a§l§n[最終承認] ").clickEvent(runCommand("/mlend confirm"))
+        val confirmDenyButtons = text("${prefix}§a§l§n[最終承認] ").clickEvent(runCommand("/mlend confirm"))
             .append(text("§c§l§n[拒否]").clickEvent(runCommand("/mlend deny")))
         cache.lend.sendMessage(confirmDenyButtons)
         sendMsg(cache.lend, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")

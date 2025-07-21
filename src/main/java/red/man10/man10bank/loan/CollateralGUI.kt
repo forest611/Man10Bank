@@ -93,10 +93,7 @@ class CollateralGUI : Listener {
             e.isCancelled = true
             return
         }
-        
-        // 編集可能モードでタイトルが一致する場合のみ処理
-        if (e.view.title() != text(TITLE)) return
-        
+
         // 確定ボタンをクリック
         if (clickedSlot == CONFIRM_SLOT) {
             e.isCancelled = true
