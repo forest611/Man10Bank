@@ -126,11 +126,7 @@ class CollateralGUI : Listener {
         // 読み取り専用モードの場合は何もしない
         if (!holder.isEditable) return
         
-        // 編集可能モードでタイトルが一致する場合のみ処理
-        if (e.view.title() != text(TITLE)) return
-        
         val cache = holder.cache
-        
         // 閉じた時に担保アイテムを保存（確定ボタン以外の7スロット）
         cache.collateralItems.clear()
         for (i in 0 until 7) {
@@ -139,14 +135,8 @@ class CollateralGUI : Listener {
                 cache.collateralItems.add(item.clone())
             }
         }
-        
-        // アイテムをプレイヤーに返却
-        for (i in 0 until 7) {
-            val item = e.inventory.getItem(i)
-            if (item != null && item.type != Material.AIR) {
-                val leftover = player.inventory.addItem(item)
-                leftover.values.forEach { player.world.dropItem(player.location, it) }
-            }
-        }
+
+        sendMsg(player, "§a担保を設定しました（${cache.collateralItems.size}個のアイテム）")
+        return
     }
 }
