@@ -144,7 +144,6 @@ class LoanData {
             // 手形の更新
             Bukkit.getScheduler().runTask(plugin, Runnable {
                 val meta = item.itemMeta
-
                 meta.lore = mutableListOf(
                     "§4§l========[Man10Bank]========",
                     "   §7§l債務者:  ${Bukkit.getOfflinePlayer(borrow).name}",
@@ -224,7 +223,6 @@ class LoanData {
             // 手形の更新
             Bukkit.getScheduler().runTask(plugin, Runnable {
                 val meta = item.itemMeta
-
                 meta.lore = mutableListOf(
                     "§4§l========[Man10Bank]========",
                     "   §7§l債務者:  ${Bukkit.getOfflinePlayer(borrow).name}",
@@ -234,12 +232,6 @@ class LoanData {
 
                 item.itemMeta = meta
             })
-            if (debt<=0){
-                sendMsg(p,"§e全額回収し終わりました！")
-                if (isOnline){
-                    sendMsg(borrowPlayer.player!!,"§e全額完済し終わりました！お疲れ様です！")
-                }
-            }
         }
     }
 

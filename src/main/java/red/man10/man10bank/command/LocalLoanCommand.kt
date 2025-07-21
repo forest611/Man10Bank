@@ -30,6 +30,9 @@ class LocalLoanCommand : CommandExecutor {
     private val OP = "man10lend.op"
 
     private val sdf = SimpleDateFormat("yyyy-MM-dd")
+    
+    // 手形IDごとの処理中フラグを管理（排他制御用）
+    private val processingNotes = ConcurrentHashMap<Int, Boolean>()
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (label != "mlend") return false
@@ -300,16 +303,21 @@ class LocalLoanCommand : CommandExecutor {
             return
         }
 
-        //TODO:増殖の可能性
+        // 排他制御：同じ手形で複数の処理が同時に実行されないようにする
+        if (processingNotes.putIfAbsent(id, true) != null) {
+            sendMsg(sender, "§c§lこの手形は現在処理中です。しばらくお待ちください。")
+            return
+        }
         Thread {
-            val data = LoanData.lendMap[id] ?: LoanData().load(id) ?: run {
-                sendMsg(sender, "§c手形情報が見つかりません")
-                return@Thread
-            }
-            
-            Bukkit.getScheduler().runTask(plugin, Runnable {
+            try {
+                val data = LoanData.lendMap[id] ?: LoanData().load(id) ?: run {
+                    sendMsg(sender, "§c手形情報が見つかりません")
+                    return@Thread
+                }
                 data.collect(sender, item)
-            })
+            } finally {
+                processingNotes.remove(id)
+            }
         }.start()
     }
 
@@ -328,16 +336,21 @@ class LocalLoanCommand : CommandExecutor {
             return
         }
 
-        //TODO:増殖の可能性
+        // 排他制御：同じ手形で複数の処理が同時に実行されないようにする
+        if (processingNotes.putIfAbsent(id, true) != null) {
+            sendMsg(sender, "§c§lこの手形は現在処理中です。しばらくお待ちください。")
+            return
+        }
         Thread {
-            val data = LoanData.lendMap[id] ?: LoanData().load(id) ?: run {
-                sendMsg(sender, "§c手形情報が見つかりません")
-                return@Thread
-            }
-            
-            Bukkit.getScheduler().runTask(plugin, Runnable {
+            try {
+                val data = LoanData.lendMap[id] ?: LoanData().load(id) ?: run {
+                    sendMsg(sender, "§c手形情報が見つかりません")
+                    return@Thread
+                }
                 data.collectCollateral(sender, item)
-            })
+            } finally {
+                processingNotes.remove(id)
+            }
         }.start()
     }
 
