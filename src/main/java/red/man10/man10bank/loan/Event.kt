@@ -2,6 +2,8 @@ package red.man10.man10bank.loan
 
 import com.destroystokyo.paper.event.player.PlayerElytraBoostEvent
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.Component.text
+import net.kyori.adventure.text.event.ClickEvent
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.event.EventHandler
@@ -19,37 +21,30 @@ import java.util.*
 
 class Event : Listener{
 
-    private val playersProcessingNote=Collections.synchronizedList(mutableListOf<UUID>())
-
     @EventHandler
     fun clickNote(e:PlayerInteractEvent){
-
         if (!e.hasItem())return
         if (e.action != Action.RIGHT_CLICK_AIR)return
         if (e.hand != EquipmentSlot.HAND)return
-        if(playersProcessingNote.contains(e.player.uniqueId))return
 
         val item = e.item?:return
-        val p = e.player
 
         if (!item.hasItemMeta())return
-        val id = item.itemMeta.persistentDataContainer[NamespacedKey(plugin,"id"), PersistentDataType.INTEGER]?:return
-
+        if (!item.itemMeta.persistentDataContainer.has(NamespacedKey(plugin,"id"), PersistentDataType.INTEGER)) return
         e.isCancelled = true
 
-        Thread{
-            synchronized(playersProcessingNote){
-                playersProcessingNote.add(e.player.uniqueId)
-            }
-            val data = LoanData().load(id)?:return@Thread
-            Bukkit.getLogger().info("${p.name}が${id}の手形を使用しました")
-            data.collect(p,item)
-            Thread.sleep(2000)
-            synchronized(playersProcessingNote){
-                playersProcessingNote.remove(e.player.uniqueId)
-            }
-        }.start()
+        val p = e.player
 
+        // お金回収ボタンと担保回収ボタンをチャット欄に横一列で表示させる
+        sendMsg(p, "§e§l＝＝＝＝＝＝ 手形操作 ＝＝＝＝＝＝")
+        
+        val collectButton = text("§a§l[お金を回収する] ")
+            .clickEvent(ClickEvent.runCommand("/mlend collect"))
+        val collateralButton = text("§6§l[担保を回収する]")
+            .clickEvent(ClickEvent.runCommand("/mlend collectcollateral"))
+            
+        p.sendMessage(collectButton.append(collateralButton))
+        sendMsg(p, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
     }
 
     @EventHandler
