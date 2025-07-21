@@ -308,7 +308,7 @@ class LocalLoanCommand : CommandExecutor {
         }
         Thread {
             try {
-                val data = LoanData.lendMap[id] ?: LoanData().load(id) ?: run {
+                val data = LoanData().load(id) ?: run {
                     sendMsg(sender, "§c手形情報が見つかりません")
                     return@Thread
                 }
@@ -341,7 +341,7 @@ class LocalLoanCommand : CommandExecutor {
         }
         Thread {
             try {
-                val data = LoanData.lendMap[id] ?: LoanData().load(id) ?: run {
+                val data = LoanData().load(id) ?: run {
                     sendMsg(sender, "§c手形情報が見つかりません")
                     return@Thread
                 }

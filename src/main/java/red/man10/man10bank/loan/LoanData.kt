@@ -43,8 +43,6 @@ class LoanData {
         this.collateralItem = record.collateralItem
         this.collateralItems = record.collateralItem?.let { base64ToItems(it) }
 
-        lendMap[id] = this
-
         return this
     }
 
@@ -78,8 +76,6 @@ class LoanData {
         id = insertedId
 
         Bank.deposit(borrow.uniqueId, borrowedAmount, plugin, "LoanCreate","借金の借り入れ")
-
-        lendMap[id] = this
 
         return true
     }
@@ -149,7 +145,6 @@ class LoanData {
                     "   §7§l債務者:  ${Bukkit.getOfflinePlayer(borrow).name}",
                     "   §8§l有効日:  ${SimpleDateFormat("yyyy-MM-dd").format(paybackDate)}",
                     "   §7§l支払額:  ${Man10Bank.format(debt)}",
-                    "   §a§l状態:  完済済み（担保回収）",
                     "§4§l==========================")
 
                 item.itemMeta = meta
@@ -297,7 +292,5 @@ class LoanData {
         fun getLoanData(uuid: UUID):Set<Pair<Int,Double>>{
             return LocalLoanRepository.fetchLoanData(uuid)
         }
-
-        val lendMap = ConcurrentHashMap<Int,LoanData>()
     }
 }
