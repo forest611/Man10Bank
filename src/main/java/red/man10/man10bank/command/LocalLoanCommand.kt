@@ -8,6 +8,8 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
+import org.bukkit.persistence.PersistentDataType
+import org.bukkit.NamespacedKey
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.format
@@ -70,6 +72,8 @@ class LocalLoanCommand : CommandExecutor {
                 }
                 true
             }
+            "collect" -> { collectDebt(sender); true }
+            "collectcollateral" -> { collectCollateral(sender); true }
             else -> onPropose(sender, args)
         }
     }
@@ -77,6 +81,84 @@ class LocalLoanCommand : CommandExecutor {
     private fun showUsage(p: Player) {
         sendMsg(p, "§a/mlend <プレイヤー> <貸出金額> <返済金額> <期間(日)>")
         sendMsg(p, "§a貸出金額の${loanFee * 100}%を手数料としていただきます")
+        sendMsg(p, "§a/mlend collect - 手に持っている手形の借金を回収")
+        sendMsg(p, "§a/mlend collectcollateral - 手に持っている手形の担保を回収")
+    }
+
+    private fun onPropose(sender: Player, args: Array<out String>): Boolean {
+        if (!sender.hasPermission(USER)) {
+            sendMsg(sender, "§4お金を貸す権限がありません！")
+            return false
+        }
+
+        val borrow = Bukkit.getPlayer(args[0]) ?: run {
+            sendMsg(sender, "§c相手はオフラインです")
+            return false
+        }
+
+        if (sender.name == borrow.name && !sender.hasPermission(OP)) {
+            sendMsg(sender, "§c自分に借金はできません")
+            return false
+        }
+
+        if (!borrow.hasPermission(USER)) {
+            sendMsg(sender, "§4貸し出す相手に権限がありません")
+            return false
+        }
+
+        val amount: Double
+        val paybackAmount: Double
+        val day: Int
+        try {
+            amount = floor(args[1].toDouble())
+            paybackAmount = floor(args[2].toDouble())
+            day = args[3].toInt()
+            if (day > 365 || day <= 0) {
+                sendMsg(sender, "§c返済期限は１日以上、一年以内にしてください！")
+                return false
+            }
+            if (amount > Man10Bank.loanMax || amount < 1) {
+                sendMsg(sender, "§c貸出金額は1円以上、${format(Man10Bank.loanMax)}円以下に設定してください！")
+                return false
+            }
+            if (paybackAmount < amount) {
+                sendMsg(sender, "§c返済金額は貸出金額以上に設定してください！")
+                return false
+            }
+            if (paybackAmount > amount * 2) {
+                sendMsg(sender, "§c返済金額は貸出金額の2倍以下に設定してください！")
+                return false
+            }
+        } catch (e: Exception) {
+            sendMsg(sender, "§c入力に問題があります！")
+            return false
+        }
+
+        sendMsg(sender, "§a§l借金の提案を相手に提示しました")
+        sendMsg(borrow, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
+        sendMsg(borrow, "§e§kXX§b§l借金の提案§e§kXX")
+        sendMsg(borrow, "§e貸し出す人:${sender.name}")
+        sendMsg(borrow, "§e貸し出される金額:${format(amount)}")
+        sendMsg(borrow, "§e返す金額:${format(paybackAmount)}")
+        sendMsg(borrow, "§e返す日:${sdf.format(LoanData.calcDate(day))}")
+
+        val setCollateralButton = text("§6§l§n[担保を設定する] ").clickEvent(runCommand("/mlend setcollateral"))
+        val allowOrDeny = text("${prefix}§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow"))
+            .append(text("§c§l§n[借りない]").clickEvent(runCommand("/mlend deny")))
+        borrow.sendMessage(setCollateralButton)
+        borrow.sendMessage(allowOrDeny)
+
+        sendMsg(borrow, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
+
+        val cache = Cache(
+            amount = amount,
+            paybackAmount = paybackAmount,
+            day = day,
+            borrow = borrow,
+            lend = sender
+        )
+        cacheMap[borrow] = cache
+        return true
     }
 
     private fun onAllowed(sender: Player) {
@@ -203,80 +285,60 @@ class LocalLoanCommand : CommandExecutor {
         CollateralGUI.openCollateralGUI(sender, cache)
     }
 
-    private fun onPropose(sender: Player, args: Array<out String>): Boolean {
-        if (!sender.hasPermission(USER)) {
-            sendMsg(sender, "§4お金を貸す権限がありません！")
-            return false
+    private fun collectDebt(sender: Player) {
+        if (!sender.hasPermission(USER)) return
+        
+        val item = sender.inventory.itemInMainHand
+        if (item.type.isAir) {
+            sendMsg(sender, "§c手に手形を持ってください")
+            return
+        }
+        
+        val meta = item.itemMeta ?: return
+        val id = meta.persistentDataContainer.get(NamespacedKey(plugin, "id"), PersistentDataType.INTEGER) ?: run {
+            sendMsg(sender, "§cこれは有効な手形ではありません")
+            return
         }
 
-        val borrow = Bukkit.getPlayer(args[0]) ?: run {
-            sendMsg(sender, "§c相手はオフラインです")
-            return false
-        }
-
-        if (sender.name == borrow.name && !sender.hasPermission(OP)) {
-            sendMsg(sender, "§c自分に借金はできません")
-            return false
-        }
-
-        if (!borrow.hasPermission(USER)) {
-            sendMsg(sender, "§4貸し出す相手に権限がありません")
-            return false
-        }
-
-        val amount: Double
-        val paybackAmount: Double
-        val day: Int
-        try {
-            amount = floor(args[1].toDouble())
-            paybackAmount = floor(args[2].toDouble())
-            day = args[3].toInt()
-            if (day > 365 || day <= 0) {
-                sendMsg(sender, "§c返済期限は１日以上、一年以内にしてください！")
-                return false
+        //TODO:増殖の可能性
+        Thread {
+            val data = LoanData.lendMap[id] ?: LoanData().load(id) ?: run {
+                sendMsg(sender, "§c手形情報が見つかりません")
+                return@Thread
             }
-            if (amount > Man10Bank.loanMax || amount < 1) {
-                sendMsg(sender, "§c貸出金額は1円以上、${format(Man10Bank.loanMax)}円以下に設定してください！")
-                return false
-            }
-            if (paybackAmount < amount) {
-                sendMsg(sender, "§c返済金額は貸出金額以上に設定してください！")
-                return false
-            }
-            if (paybackAmount > amount * 2) {
-                sendMsg(sender, "§c返済金額は貸出金額の2倍以下に設定してください！")
-                return false
-            }
-        } catch (e: Exception) {
-            sendMsg(sender, "§c入力に問題があります！")
-            return false
+            
+            Bukkit.getScheduler().runTask(plugin, Runnable {
+                data.collect(sender, item)
+            })
+        }.start()
+    }
+
+    private fun collectCollateral(sender: Player) {
+        if (!sender.hasPermission(USER)) return
+        
+        val item = sender.inventory.itemInMainHand
+        if (item.type.isAir) {
+            sendMsg(sender, "§c手に手形を持ってください")
+            return
+        }
+        
+        val meta = item.itemMeta ?: return
+        val id = meta.persistentDataContainer.get(NamespacedKey(plugin, "id"), PersistentDataType.INTEGER) ?: run {
+            sendMsg(sender, "§cこれは有効な手形ではありません")
+            return
         }
 
-        sendMsg(sender, "§a§l借金の提案を相手に提示しました")
-        sendMsg(borrow, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
-        sendMsg(borrow, "§e§kXX§b§l借金の提案§e§kXX")
-        sendMsg(borrow, "§e貸し出す人:${sender.name}")
-        sendMsg(borrow, "§e貸し出される金額:${format(amount)}")
-        sendMsg(borrow, "§e返す金額:${format(paybackAmount)}")
-        sendMsg(borrow, "§e返す日:${sdf.format(LoanData.calcDate(day))}")
-
-        val setCollateralButton = text("§6§l§n[担保を設定する] ").clickEvent(runCommand("/mlend setcollateral"))
-        val allowOrDeny = text("${prefix}§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow"))
-            .append(text("§c§l§n[借りない]").clickEvent(runCommand("/mlend deny")))
-        borrow.sendMessage(setCollateralButton)
-        borrow.sendMessage(allowOrDeny)
-
-        sendMsg(borrow, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
-
-        val cache = Cache(
-            amount = amount,
-            paybackAmount = paybackAmount,
-            day = day,
-            borrow = borrow,
-            lend = sender
-        )
-        cacheMap[borrow] = cache
-        return true
+        //TODO:増殖の可能性
+        Thread {
+            val data = LoanData.lendMap[id] ?: LoanData().load(id) ?: run {
+                sendMsg(sender, "§c手形情報が見つかりません")
+                return@Thread
+            }
+            
+            Bukkit.getScheduler().runTask(plugin, Runnable {
+                data.collectCollateral(sender, item)
+            })
+        }.start()
     }
 
     data class Cache(

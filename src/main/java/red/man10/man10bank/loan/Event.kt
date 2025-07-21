@@ -43,7 +43,7 @@ class Event : Listener{
             }
             val data = LoanData().load(id)?:return@Thread
             Bukkit.getLogger().info("${p.name}が${id}の手形を使用しました")
-            data.payback(p,item)
+            data.collect(p,item)
             Thread.sleep(2000)
             synchronized(playersProcessingNote){
                 playersProcessingNote.remove(e.player.uniqueId)

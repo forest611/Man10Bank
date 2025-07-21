@@ -33,6 +33,22 @@ class LoanData {
 
 
     @Synchronized
+    fun load(id:Int): LoanData? {
+        val record = LocalLoanRepository.fetchLoan(id) ?: return null
+
+        this.borrow = record.borrowUUID
+        this.debt = record.amount
+        this.paybackDate = record.paybackDate
+        this.id = record.id
+        this.collateralItem = record.collateralItem
+        this.collateralItems = record.collateralItem?.let { base64ToItems(it) }
+
+        lendMap[id] = this
+
+        return this
+    }
+
+    @Synchronized
     fun create(lend:Player, borrow: Player, borrowedAmount : Double, paybackAmount: Double, paybackDay:Int, collateralItems: List<ItemStack>? = null):Boolean{
         //返済金額を直接設定
         this.debt = paybackAmount
@@ -68,22 +84,6 @@ class LoanData {
         return true
     }
 
-    @Synchronized
-    fun load(id:Int): LoanData? {
-        val record = LocalLoanRepository.fetchLoan(id) ?: return null
-
-        this.borrow = record.borrowUUID
-        this.debt = record.amount
-        this.paybackDate = record.paybackDate
-        this.id = record.id
-        this.collateralItem = record.collateralItem
-        this.collateralItems = record.collateralItem?.let { base64ToItems(it) }
-
-        lendMap[id] = this
-
-        return this
-    }
-
     /**
      * @param p 手形の持ち主
      * 担保を回収して借金を完済扱いにする
@@ -94,22 +94,18 @@ class LoanData {
             sendMsg(p, "§c§lこのエリアでは個人間借金の取引を行うことはできません。")
             return
         }
-
         if (Date().before(paybackDate)) {
             sendMsg(p, "§cこの手形はまだ有効ではありません！")
             return
         }
-
         if (debt <= 0.0) {
             sendMsg(p, "§cこの借金は既に完済されています。")
             return
         }
-
         if (collateralItems.isNullOrEmpty()) {
             sendMsg(p, "§cこの借金には担保が設定されていません。")
             return
         }
-
         val borrowPlayer = Bukkit.getOfflinePlayer(borrow)
         val isOnline = Man10Bank.loadedPlayerUUIDs.contains(borrowPlayer.uniqueId) && borrowPlayer.isOnline
 
@@ -166,68 +162,60 @@ class LoanData {
      * @param p 手形の持ち主
      */
     @Synchronized
-    fun payback(p:Player,item:ItemStack) {
+    fun collect(p:Player, item:ItemStack) {
         if (!Man10Bank.enableLocalLoan||Man10Bank.localLoanDisableWorlds.contains(p.world.name)){
             sendMsg(p,"§c§lこのエリアでは個人間借金の取引を行うことはできません。")
             return
         }
-
         if (Date().before(paybackDate)){
             sendMsg(p,"§cこの手形はまだ有効ではありません！")
             return
         }
-
+        if (debt <= 0.0){
+            sendMsg(p,"§cこの借金は既に完済されています。")
+            return
+        }
         val borrowPlayer = Bukkit.getOfflinePlayer(borrow)
-
         val isOnline = Man10Bank.loadedPlayerUUIDs.contains(borrowPlayer.uniqueId)&&borrowPlayer.isOnline
-
-        if (debt <= 0.0)return
-
-        val man10Bank = Bank.getBalance(borrow)
-
-        val balance = Man10Bank.vault.getBalance(borrow)
+        val bankBalance = Bank.getBalance(borrow)
+        val vaultBalance = Man10Bank.vault.getBalance(borrow)
 
         try {
-            val takeMan10Bank = floor(if (man10Bank<debt)man10Bank else debt)
+            val takeBankBalance = floor(if (bankBalance<debt)bankBalance else debt)
 
-            if (takeMan10Bank != 0.0 && Bank.withdraw(borrow,takeMan10Bank, plugin,"paybackMoney","借金の返済").first == 0){
-                debt -= takeMan10Bank
+            if (takeBankBalance != 0.0 && Bank.withdraw(borrow,takeBankBalance, plugin,"paybackMoney","借金の返済").first == 0){
+                debt -= takeBankBalance
 
                 val result = LocalLoanRepository.updateAmount(id, debt)
-
                 //データベースエラーの時は例外を投げる
                 if (!result){
-                    Bank.deposit(borrow,takeMan10Bank, plugin,"paybackMoney","借金の返金")
+                    Bank.deposit(borrow,takeBankBalance, plugin,"paybackMoney","借金の返金")
                     sendMsg(p,"§c§lデータベースエラーが発生しました。運営に報告してください。- mysql")
                     throw Exception("[Man10Loan]データベースエラーが発生しました。運営に報告してください。- mysql")
                 }
-
-                if (takeMan10Bank>0){
-                    sendMsg(p,"§eMan10Bankから${Man10Bank.format(takeMan10Bank)}円回収成功しました！")
-                    Bank.deposit(p.uniqueId,takeMan10Bank, plugin,"paybackMoneyFromBank","借金の回収")
+                if (takeBankBalance>0){
+                    sendMsg(p,"§eMan10Bankから${Man10Bank.format(takeBankBalance)}円回収成功しました！")
+                    Bank.deposit(p.uniqueId,takeBankBalance, plugin,"paybackMoneyFromBank","借金の回収")
                 }
             }
+            val takeVaultBalance = floor(if (vaultBalance<(debt))vaultBalance else debt)
 
-            val takeBalance = floor(if (balance<(debt))balance else debt)
-
-            if (isOnline && takeBalance != 0.0 && Man10Bank.vault.withdraw(borrow,takeBalance)){
-                debt -= floor(takeBalance)
+            if (isOnline && takeVaultBalance != 0.0 && Man10Bank.vault.withdraw(borrow,takeVaultBalance)){
+                debt -= floor(takeVaultBalance)
 
                 val result = LocalLoanRepository.updateAmount(id, debt)
 
                 //データベースエラーの時は例外を投げる
                 if (!result) {
-                    Man10Bank.vault.deposit(borrow, takeBalance)
+                    Man10Bank.vault.deposit(borrow, takeVaultBalance)
                     sendMsg(p, "§c§lデータベースエラーが発生しました。運営に報告してください。- mysql")
                     throw Exception("[Man10Loan]データベースエラーが発生しました。運営に報告してください。- mysql")
                 }
-
-                if (takeBalance>0){
-                    sendMsg(p,"§e所持金から${Man10Bank.format(takeBalance)}円回収成功しました！")
-                    Bank.deposit(p.uniqueId,takeBalance, plugin,"paybackMoneyFromBalance","借金の回収")
+                if (takeVaultBalance>0){
+                    sendMsg(p,"§e所持金から${Man10Bank.format(takeVaultBalance)}円回収成功しました！")
+                    Bank.deposit(p.uniqueId,takeVaultBalance, plugin,"paybackMoneyFromBalance","借金の回収")
                 }
             }
-
             if (isOnline){
                 sendMsg(borrowPlayer.player!!,"§e${p.name}から借金の回収が行われました！")
             }
@@ -246,7 +234,6 @@ class LoanData {
 
                 item.itemMeta = meta
             })
-
             if (debt<=0){
                 sendMsg(p,"§e全額回収し終わりました！")
                 if (isOnline){
@@ -321,5 +308,4 @@ class LoanData {
 
         val lendMap = ConcurrentHashMap<Int,LoanData>()
     }
-
 }
