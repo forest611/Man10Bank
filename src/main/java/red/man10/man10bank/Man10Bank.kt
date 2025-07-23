@@ -162,7 +162,6 @@ class Man10Bank : JavaPlugin(),Listener {
         Bukkit.getScheduler().runTaskAsynchronously(this, Runnable Thread@{
             Thread.sleep(3000)
             bankCommand.showBalance(p, p)
-            LoanData.showCollateralLoanList(p)
 
             if(server.onlinePlayers.contains(p)) loadedPlayerUUIDs.add(p.uniqueId)
         })

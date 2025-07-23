@@ -50,41 +50,53 @@ class LocalLoanCommand : CommandExecutor {
         }
 
         return when (args[0]) {
-            "off" -> { if (sender.hasPermission(OP)) {
-                Man10Bank.enableLocalLoan = false
-                plugin.config.set("enableLocalLoan",true)
-                plugin.saveConfig()
-                sendMsg(sender, "§c§l個人間借金の取引を無効化しました")
-            } ; true }
-            "on" -> { if (sender.hasPermission(OP)) {
-                Man10Bank.enableLocalLoan = true
-                plugin.config.set("enableLocalLoan",true)
-                plugin.saveConfig()
-                sendMsg(sender, "§a§l個人間借金の取引を有効化しました")
-            }; true }
-            "allow" -> { onAllowed(sender); true }
-            "deny" -> { onDenied(sender); true }
-            "collateral" -> { showCollateral(sender); true }
-            "setcollateral" -> { setCollateral(sender); true }
-            "confirm" -> { onConfirmed(sender); true }
-            "userdata" -> { if (args.size >= 2) userData(sender, args[1]); true }
-            "reissue" -> {
+            "off" ->            {
+                if (sender.hasPermission(OP)) {
+                    Man10Bank.enableLocalLoan = false
+                    plugin.config.set("enableLocalLoan",true)
+                    plugin.saveConfig()
+                    sendMsg(sender, "§c§l個人間借金の取引を無効化しました")
+                }
+                true
+            }
+            "on" ->             {
+                if (sender.hasPermission(OP)) {
+                    Man10Bank.enableLocalLoan = true
+                    plugin.config.set("enableLocalLoan",true)
+                    plugin.saveConfig()
+                    sendMsg(sender, "§a§l個人間借金の取引を有効化しました")
+                }
+                true
+            }
+            "allow" ->          { onAllowed(sender); true }
+            "deny" ->           { onDenied(sender); true }
+            "collateral" ->     { showCollateral(sender); true }
+            "setcollateral" ->  { setCollateral(sender); true }
+            "confirm" ->        { onConfirmed(sender); true }
+            "userdata" ->       {
+                if (args.size >= 2){
+                    userData(sender, args[1])
+                }
+                true
+            }
+            "reissue" ->        {
                 if (args.size >= 2) {
                     args[1].toIntOrNull()?.let { reissue(sender, it) }
                         ?: sendMsg(sender, "数字を入力してください")
                 }
                 true
             }
-            "collect" -> { collectDebt(sender); true }
+            "collect" ->        { collectDebt(sender); true }
             "collectcollateral" -> { collectCollateral(sender); true }
             "receivecollateral" -> { receiveCollateral(sender,args); true }
-            else -> onPropose(sender, args)
+            else ->                {onPropose(sender, args)}
         }
     }
 
     private fun showUsage(p: Player) {
         sendMsg(p, "§a/mlend <プレイヤー> <貸出金額> <返済金額> <期間(日)>")
         sendMsg(p, "§a貸出金額の${loanFee * 100}%を手数料としていただきます")
+        sendMsg(p,"§a/mlend receivecollateral 担保を取り戻す")
     }
 
     private fun onPropose(sender: Player, args: Array<out String>): Boolean {
@@ -108,7 +120,7 @@ class LocalLoanCommand : CommandExecutor {
             return false
         }
 
-        if (getLendCache(sender) != null){
+        if (getLendPlayerCache(sender) != null){
             sendMsg(sender, "§c§lあなたはすでに借金の提案を行っています！")
             return false
         }
@@ -148,7 +160,7 @@ class LocalLoanCommand : CommandExecutor {
 
         sendMsg(sender, "§a§l借金の提案を相手に提示しました")
         sendMsg(borrow, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
-        sendMsg(borrow, "§e§kXX§b§l借金の提案§e§kXX")
+        sendMsg(borrow, "§e§kXX§b§l借金の提案(3分以内に設定してください)§e§kXX")
         sendMsg(borrow, "§e貸し出す人:§l${sender.name}")
         sendMsg(borrow, "§e貸し出される金額: §l${format(amount)}円")
         sendMsg(borrow, "§e返す金額: §l${format(paybackAmount)}円")
@@ -170,28 +182,49 @@ class LocalLoanCommand : CommandExecutor {
             lend = sender
         )
         cacheMap[borrow] = cache
+
+        // 3分後に借り手がまだ許可していなければ拒否する
+        Bukkit.getScheduler().runTaskLater(plugin, Runnable {
+            val cacheLater = cacheMap[borrow] ?: return@Runnable
+            if (!cacheLater.allowed) {
+                sendMsg(borrow, "§c§l借金の提案を拒否しました。3分以内に許可しなかったため")
+                onDenied(borrow)
+            }
+        }, 3600L) // 3分後に自動キャンセル
         return true
     }
 
-    private fun onAllowed(sender: Player) {
-        if (!sender.hasPermission(USER)) return
-        val cache = cacheMap[sender] ?: run {
-            sendMsg(sender, "§cあなたに借金の提案は来ていません！")
+    private fun onAllowed(borrow: Player) {
+        if (!borrow.hasPermission(USER)) return
+        val cache = cacheMap[borrow] ?: run {
+            sendMsg(borrow, "§cあなたに借金の提案は来ていません！")
             return
         }
+
+        // 承認フラグ
+        if (cache.allowed) {
+            sendMsg(borrow, "§c§lあなたはすでに借りることを許可しています！")
+            return
+        }
+        cache.allowed = true
+        cacheMap[borrow] = cache // 更新
+
+        // 提案者がログアウトしたら拒否する
         if (!cache.lend.isOnline) {
-            sendMsg(sender, "§c§l提案者がログアウトしました")
+            sendMsg(borrow, "§c§l提案者がログアウトしました")
+            onDenied(borrow)
             return
         }
         // 借り手が「借りる」をクリックした時点で、貸し手に担保確認を促す
-        sendMsg(sender, "§a§l借金の申請を受け付けました。貸し手の承認を待っています...")
+        sendMsg(borrow, "§a§l借金の申請を受け付けました。貸し手の承認を待っています...")
         if (!cache.lend.isOnline) {
-            sendMsg(sender, "§c§l貸し手がオフラインになりました")
+            sendMsg(borrow, "§c§l貸し手がオフラインになりました")
             return
         }
 
         sendMsg(cache.lend, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
-        sendMsg(cache.lend, "§b§l${sender.name}が借金を受け入れました！1分以内に承認か拒否を行ってください")
+        sendMsg(cache.lend, "§b§l${borrow.name}が借金を受け入れました！1分以内に承認か拒否を行ってください")
+
         if (cache.collateralItems.isNotEmpty()) {
             sendMsg(cache.lend, "§e担保: ${cache.collateralItems.size}個のアイテム")
             val viewCollateralButton = text("${prefix}§6§l§n[担保を確認する] ").clickEvent(runCommand("/mlend collateral"))
@@ -199,19 +232,21 @@ class LocalLoanCommand : CommandExecutor {
         } else {
             sendMsg(cache.lend, "§c担保: なし")
         }
+
         val confirmDenyButtons = text("${prefix}§a§l§n[最終承認] ").clickEvent(runCommand("/mlend confirm"))
             .append(text("§c§l§n[拒否]").clickEvent(runCommand("/mlend deny")))
         cache.lend.sendMessage(confirmDenyButtons)
         sendMsg(cache.lend, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
 
+        // 1分後に自動キャンセル
         Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-            val cacheLater = cacheMap[sender] ?: return@Runnable
-            cacheLater.lend.performCommand("/mlend deny") // 1分後に自動で拒否
-        }, 1200L) // 1分後に自動キャンセル
+            val cacheLater = cacheMap[borrow] ?: return@Runnable
+            cacheLater.lend.performCommand("/mlend deny")
+        }, 1200L)
     }
 
     private fun onDenied(sender: Player) {
-        val cache = cacheMap[sender] ?: getLendCache(sender) ?: run {
+        val cache = cacheMap[sender] ?: getLendPlayerCache(sender) ?: run {
             sendMsg(sender, "§cあなたに借金の提案は来ていません！")
             return
         }
@@ -236,7 +271,14 @@ class LocalLoanCommand : CommandExecutor {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
             sendMsg(sender, "Man10Bankシステムに問い合わせ中・・・§l§kXX")
             val data = LoanData()
-            if (!data.create(cache.lend, cache.borrow, cache.amount, cache.paybackAmount, cache.day, cache.collateralItems.takeIf { it.isNotEmpty() })) return@Runnable
+            // 貸出処理。失敗したら担保を返す
+            if (!data.create(cache.lend, cache.borrow, cache.amount, cache.paybackAmount, cache.day, cache.collateralItems.takeIf { it.isNotEmpty() })) {
+                if (cache.collateralItems.isNotEmpty()) {
+                    sendInventoryAndDrop(cache.borrow, cache.collateralItems)
+                    sendMsg(cache.lend, "§c§l借金の契約に失敗しました。担保を返却しました。")
+                }
+                return@Runnable
+            }
             cache.lend.inventory.addItem(data.getNote())
             sendMsg(cache.borrow, "§a§l借金の契約が成立しました！")
             sendMsg(cache.lend, "§a§l借金の契約が成立しました！")
@@ -271,7 +313,7 @@ class LocalLoanCommand : CommandExecutor {
 
     private fun showCollateral(sender: Player) {
         // 借り手または貸し手として担保を確認
-        val cache = cacheMap[sender] ?: getLendCache(sender) ?: run {
+        val cache = cacheMap[sender] ?: getLendPlayerCache(sender) ?: run {
             sendMsg(sender, "§c借金の提案がありません")
             return
         }
@@ -289,6 +331,10 @@ class LocalLoanCommand : CommandExecutor {
         }
         if (cache.borrow != sender) {
             sendMsg(sender, "§c借り手のみが担保を設定できます")
+            return
+        }
+        if (cache.allowed) {
+            sendMsg(sender, "§c§lすでに借りることを許可しています。担保を設定することはできません。")
             return
         }
         CollateralGUI.openCollateralGUI(sender, cache)
@@ -391,7 +437,7 @@ class LocalLoanCommand : CommandExecutor {
         }.start()
     }
 
-    private fun getLendCache(player: Player): Cache? {
+    private fun getLendPlayerCache(player: Player): Cache? {
         return cacheMap[player] ?: cacheMap.values.find { it.lend.uniqueId == player.uniqueId }
     }
 
@@ -401,7 +447,8 @@ class LocalLoanCommand : CommandExecutor {
         var paybackAmount: Double = 0.0,
         var collateralItems: MutableList<ItemStack> = mutableListOf(),  // 担保アイテムリスト
         var lend: Player,
-        var borrow: Player
+        var borrow: Player,
+        var allowed: Boolean = false  // 借り手が借りることを許可したかどうか
     )
 
     companion object {

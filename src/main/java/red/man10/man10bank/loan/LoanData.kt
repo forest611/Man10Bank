@@ -1,6 +1,5 @@
 package red.man10.man10bank.loan
 
-import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.Component.*
 import net.kyori.adventure.text.event.ClickEvent.*
 import net.kyori.adventure.text.event.HoverEvent.*
@@ -31,7 +30,7 @@ class LoanData {
     private lateinit var borrow: UUID
     var debt : Double = 0.0
     private var id : Int = 0
-    private var collateralItem: String? = null  // 担保アイテム(Base64)
+    private var collateralItemBase64: String? = null  // 担保アイテム(Base64)
     private var collateralItems: List<ItemStack>? = null  // 担保アイテムのリスト
 
 
@@ -43,7 +42,7 @@ class LoanData {
         this.debt = record.amount
         this.paybackDate = record.paybackDate
         this.id = record.id
-        this.collateralItem = record.collateralItem
+        this.collateralItemBase64 = record.collateralItem
         this.collateralItems = record.collateralItem?.let { base64ToItems(it) }
 
         return this
@@ -56,7 +55,7 @@ class LoanData {
         this.borrow = borrow.uniqueId
         this.paybackDate = calcDate(paybackDay)
         this.collateralItems = collateralItems
-        this.collateralItem = collateralItems?.let { itemsToBase64(it) }
+        this.collateralItemBase64 = collateralItems?.let { itemsToBase64(it) }
 
         if (Bank.withdraw(lend.uniqueId, borrowedAmount+(borrowedAmount * Man10Bank.loanFee), plugin,"LoanCreate","借金の貸し出し").first!=0){
             sendMsg(lend,"§c§lお金が足りません！")
@@ -70,7 +69,7 @@ class LoanData {
             borrow.uniqueId,
             paybackDate,
             debt,
-            collateralItem
+            collateralItemBase64
         ) ?: run {
             sendMsg(lend,"§c§lデータベースエラーが発生しました。運営に報告してください。- 01")
             return false
@@ -113,7 +112,6 @@ class LoanData {
                 sendMsg(p, "§c§l担保アイテムを受け取るためのインベントリの空きがありません。")
                 return
             }
-
             // 借金を完済扱いにする
             debt = 0.0
             val result = LocalLoanRepository.updateAmount(id, debt)
@@ -122,9 +120,7 @@ class LoanData {
                 sendMsg(p, "§c§lデータベースエラーが発生しました。運営に報告してください。")
                 return
             }
-
             sendMsg(p, "§a§l担保を回収しました！借金は完済扱いになりました。")
-
             if (isOnline) {
                 sendMsg(borrowPlayer.player!!, "§c§l${p.name}によって担保が回収されました！")
             }
@@ -345,7 +341,7 @@ class LoanData {
             sendMsg(p,"§e§l取り戻せる担保の一覧[クリックで担保を受け取る]")
             for (data in dataList) {
                 val loanData = LoanData().load(data.first) ?: continue
-                if (loanData.collateralItems.isNullOrEmpty() && loanData.debt > 0.0) continue
+                if (loanData.collateralItems.isNullOrEmpty() || loanData.debt > 0.0) continue
 
                 val paybackStr = SimpleDateFormat("yyyy-MM-dd").format(loanData.paybackDate)
 
