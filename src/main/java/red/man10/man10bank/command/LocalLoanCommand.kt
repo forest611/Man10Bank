@@ -24,8 +24,9 @@ import red.man10.man10bank.loan.LoanData.Companion.getLoanDataList
 import java.text.SimpleDateFormat
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
+import org.bukkit.command.TabCompleter
 
-class LocalLoanCommand : CommandExecutor {
+class LocalLoanCommand : CommandExecutor, TabCompleter {
 
     private val USER = "man10lend.user"
     private val OP = "man10lend.op"
@@ -243,7 +244,7 @@ class LocalLoanCommand : CommandExecutor {
         // 1分後に自動キャンセル
         Bukkit.getScheduler().runTaskLater(plugin, Runnable {
             val cacheLater = cacheMap[borrow] ?: return@Runnable
-            cacheLater.lend.performCommand("/mlend deny")
+            cacheLater.lend.performCommand("mlend deny")
         }, 1200L)
     }
 
@@ -470,6 +471,53 @@ class LocalLoanCommand : CommandExecutor {
         var borrow: Player,
         var allowed: Boolean = false  // 借り手が借りることを許可したかどうか
     )
+
+    override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<out String>): MutableList<String> {
+        if (sender !is Player) return mutableListOf()
+        if (command.name != "mlend") return mutableListOf()
+        
+        return when (args.size) {
+            1 -> {
+                val completions = mutableListOf<String>()
+                // receivecollateralコマンドを補完
+                if ("receivecollateral".startsWith(args[0].lowercase())) {
+                    completions.add("receivecollateral")
+                }
+                // オンラインプレイヤー名を補完
+                Bukkit.getOnlinePlayers().forEach { player ->
+                    if (player.name.lowercase().startsWith(args[0].lowercase()) && player != sender) {
+                        completions.add(player.name)
+                    }
+                }
+                completions
+            }
+            2 -> {
+                // プレイヤー名が入力されている場合、貸出金額のヒントを表示
+                if (args[0] != "receivecollateral" && Bukkit.getPlayer(args[0]) != null) {
+                    mutableListOf("<貸出金額>")
+                } else {
+                    mutableListOf()
+                }
+            }
+            3 -> {
+                // 貸出金額が入力されている場合、返済金額のヒントを表示
+                if (args[0] != "receivecollateral" && Bukkit.getPlayer(args[0]) != null) {
+                    mutableListOf("<返済金額>")
+                } else {
+                    mutableListOf()
+                }
+            }
+            4 -> {
+                // 返済金額が入力されている場合、期間のヒントを表示
+                if (args[0] != "receivecollateral" && Bukkit.getPlayer(args[0]) != null) {
+                    mutableListOf("<期間(日)>")
+                } else {
+                    mutableListOf()
+                }
+            }
+            else -> mutableListOf()
+        }
+    }
 
     companion object {
         fun sendInventoryAndDrop(p:Player,list:List<ItemStack>){

@@ -1,8 +1,6 @@
 package red.man10.man10bank.loan
 
 import net.kyori.adventure.text.Component.*
-import net.kyori.adventure.text.event.ClickEvent.*
-import net.kyori.adventure.text.event.HoverEvent.*
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -14,7 +12,6 @@ import org.bukkit.util.io.BukkitObjectOutputStream
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.plugin
-import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.loan.repository.LocalLoanRepository
 import java.io.ByteArrayInputStream
@@ -115,9 +112,10 @@ class LoanData {
             }
             // 借金を完済扱いにする
             debt = 0.0
-            val result = LocalLoanRepository.updateAmount(id, debt)
+            val resultUpdateAmount = LocalLoanRepository.updateAmount(id, debt)
+            val resultCollateral = LocalLoanRepository.deleteCollateral(id)
 
-            if (!result) {
+            if (!resultUpdateAmount || !resultCollateral) {
                 sendMsg(p, "§c§lデータベースエラーが発生しました。運営に報告してください。")
                 return
             }

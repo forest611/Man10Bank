@@ -90,7 +90,9 @@ class Man10Bank : JavaPlugin(),Listener {
         server.pluginManager.registerEvents(Cheque,this)
         plugin.server.pluginManager.registerEvents(CollateralGUI(), plugin)
 
-        getCommand("mlend")!!.setExecutor(LocalLoanCommand())
+        val localLoanCommand = LocalLoanCommand()
+        getCommand("mlend")!!.setExecutor(localLoanCommand)
+        getCommand("mlend")!!.tabCompleter = localLoanCommand
         getCommand("mrevo")!!.setExecutor(ServerLoanCommand())
 
         bankCommand = BankCommand(this)
