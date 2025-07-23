@@ -37,6 +37,16 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
     // 手形IDごとの処理中フラグを管理（排他制御用）
     private val processingNotes = ConcurrentHashMap<Int, Boolean>()
 
+    data class Cache(
+        var day: Int = 0,
+        var amount: Double = 0.0,
+        var paybackAmount: Double = 0.0,
+        var collateralItems: MutableList<ItemStack> = mutableListOf(),  // 担保アイテムリスト
+        var lend: Player,
+        var borrow: Player,
+        var allowed: Boolean = false  // 借り手が借りることを許可したかどうか
+    )
+
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (label != "mlend") return false
         if (sender !is Player) return true
@@ -169,10 +179,9 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
         sendMsg(borrow, "§e返す金額: §l${format(paybackAmount)}円")
         sendMsg(borrow, "§e返す日: §l${sdf.format(LoanData.calcDate(day))}")
 
-        val setCollateralButton = text("${prefix}§6§l§n[担保を設定する] ").clickEvent(runCommand("/mlend setcollateral"))
-        val allowOrDeny = text("${prefix}§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow"))
+        val allowOrDeny = text(" §6§l§n[担保を設定する] ").clickEvent(runCommand("/mlend setcollateral"))
+            .append(text("${prefix}§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow")))
             .append(text("§c§l§n[借りない]").clickEvent(runCommand("/mlend deny")))
-        borrow.sendMessage(setCollateralButton)
         borrow.sendMessage(allowOrDeny)
 
         sendMsg(borrow, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
@@ -462,16 +471,6 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
         return cacheMap[player] ?: cacheMap.values.find { it.lend.uniqueId == player.uniqueId }
     }
 
-    data class Cache(
-        var day: Int = 0,
-        var amount: Double = 0.0,
-        var paybackAmount: Double = 0.0,
-        var collateralItems: MutableList<ItemStack> = mutableListOf(),  // 担保アイテムリスト
-        var lend: Player,
-        var borrow: Player,
-        var allowed: Boolean = false  // 借り手が借りることを許可したかどうか
-    )
-
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<out String>): MutableList<String> {
         if (sender !is Player) return mutableListOf()
         if (command.name != "mlend") return mutableListOf()
@@ -480,14 +479,14 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
             1 -> {
                 val completions = mutableListOf<String>()
                 // receivecollateralコマンドを補完
-                if ("receivecollateral".startsWith(args[0].lowercase())) {
-                    completions.add("receivecollateral")
-                }
                 // オンラインプレイヤー名を補完
                 Bukkit.getOnlinePlayers().forEach { player ->
                     if (player.name.lowercase().startsWith(args[0].lowercase()) && player != sender) {
                         completions.add(player.name)
                     }
+                }
+                if ("receivecollateral".startsWith(args[0].lowercase())) {
+                    completions.add("receivecollateral")
                 }
                 completions
             }
