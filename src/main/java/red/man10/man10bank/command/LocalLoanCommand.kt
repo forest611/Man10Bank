@@ -2,6 +2,7 @@ package red.man10.man10bank.command
 
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.event.ClickEvent.runCommand
+import net.kyori.adventure.text.event.HoverEvent.showText
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -19,6 +20,7 @@ import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.loan.CollateralGUI
 import red.man10.man10bank.loan.LoanData
+import red.man10.man10bank.loan.LoanData.Companion.getLoanDataList
 import java.text.SimpleDateFormat
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
@@ -410,7 +412,7 @@ class LocalLoanCommand : CommandExecutor {
         if (!sender.hasPermission(USER)) return
 
         if (args.size < 2) {
-            LoanData.showCollateralLoanList(sender)
+            showCollateralLoanList(sender)
             return
         }
 
@@ -436,6 +438,24 @@ class LocalLoanCommand : CommandExecutor {
             }
         }.start()
     }
+
+    private fun showCollateralLoanList(p: Player){
+        val dataList = getLoanDataList(p.uniqueId)
+
+        sendMsg(p,"§e§l取り戻せる担保の一覧[クリックで担保を受け取る]")
+        for (data in dataList) {
+            val loanData = LoanData().load(data.first) ?: continue
+            if (loanData.collateralItems.isNullOrEmpty() || loanData.debt > 0.0) continue
+
+            val paybackStr = SimpleDateFormat("yyyy-MM-dd").format(loanData.paybackDate)
+
+            val text = text("${prefix}§b§l[${paybackStr}]")
+                .clickEvent(runCommand("/mlend receivecollateral ${data.first}"))
+                .hoverEvent(showText(text("§e§l担保を受け取る")))
+            p.sendMessage(text)
+        }
+    }
+
 
     private fun getLendPlayerCache(player: Player): Cache? {
         return cacheMap[player] ?: cacheMap.values.find { it.lend.uniqueId == player.uniqueId }
