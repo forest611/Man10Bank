@@ -25,12 +25,12 @@ import kotlin.math.floor
 
 class LocalLoanCommand : CommandExecutor {
 
-    private val cacheMap = ConcurrentHashMap<Player, Cache>()
     private val USER = "man10lend.user"
     private val OP = "man10lend.op"
 
     private val sdf = SimpleDateFormat("yyyy-MM-dd")
     
+    private val cacheMap = ConcurrentHashMap<Player, Cache>()
     // 手形IDごとの処理中フラグを管理（排他制御用）
     private val processingNotes = ConcurrentHashMap<Int, Boolean>()
 
@@ -107,6 +107,11 @@ class LocalLoanCommand : CommandExecutor {
             return false
         }
 
+        if (cacheMap.containsKey(borrow)) {
+            sendMsg(sender, "§c§l相手はすでに借金の提案を受けています！")
+            return false
+        }
+
         val amount: Double
         val paybackAmount: Double
         val day: Int
@@ -180,7 +185,7 @@ class LocalLoanCommand : CommandExecutor {
         }
 
         sendMsg(cache.lend, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
-        sendMsg(cache.lend, "§b§l${sender.name}が借金を受け入れました！")
+        sendMsg(cache.lend, "§b§l${sender.name}が借金を受け入れました！1分以内に承認か拒否を行ってください")
         if (cache.collateralItems.isNotEmpty()) {
             sendMsg(cache.lend, "§e担保: ${cache.collateralItems.size}個のアイテム")
             val viewCollateralButton = text("${prefix}§6§l§n[担保を確認する] ").clickEvent(runCommand("/mlend collateral"))
@@ -192,6 +197,11 @@ class LocalLoanCommand : CommandExecutor {
             .append(text("§c§l§n[拒否]").clickEvent(runCommand("/mlend deny")))
         cache.lend.sendMessage(confirmDenyButtons)
         sendMsg(cache.lend, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
+
+        Bukkit.getScheduler().runTaskLater(plugin, Runnable {
+            val cacheLater = cacheMap[sender] ?: return@Runnable
+            cacheLater.lend.performCommand("mlend deny") // 1分後に自動で拒否
+        }, 1200L) // 1分後に自動キャンセル
     }
 
     private fun onDenied(sender: Player) {

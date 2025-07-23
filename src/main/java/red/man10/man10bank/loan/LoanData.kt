@@ -106,8 +106,8 @@ class LoanData {
         val isOnline = Man10Bank.loadedPlayerUUIDs.contains(borrowPlayer.uniqueId) && borrowPlayer.isOnline
 
         try {
-            // インベントリの空きスロット数を確認
-            val emptySlots = p.inventory.contents.count { it == null }
+            // インベントリの空きスロット数を確認（防具スロットを除く）
+            val emptySlots = p.inventory.storageContents.count { it == null }
             val requiredSlots = collateralItems!!.size
             
             if (emptySlots < requiredSlots) {
