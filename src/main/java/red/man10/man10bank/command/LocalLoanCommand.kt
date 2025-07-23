@@ -107,6 +107,11 @@ class LocalLoanCommand : CommandExecutor {
             return false
         }
 
+        if (getLendCache(sender) != null){
+            sendMsg(sender, "§c§lあなたはすでに借金の提案を行っています！")
+            return false
+        }
+
         if (cacheMap.containsKey(borrow)) {
             sendMsg(sender, "§c§l相手はすでに借金の提案を受けています！")
             return false
@@ -200,12 +205,12 @@ class LocalLoanCommand : CommandExecutor {
 
         Bukkit.getScheduler().runTaskLater(plugin, Runnable {
             val cacheLater = cacheMap[sender] ?: return@Runnable
-            cacheLater.lend.performCommand("mlend deny") // 1分後に自動で拒否
+            cacheLater.lend.performCommand("/mlend deny") // 1分後に自動で拒否
         }, 1200L) // 1分後に自動キャンセル
     }
 
     private fun onDenied(sender: Player) {
-        val cache = cacheMap[sender] ?: run {
+        val cache = cacheMap[sender] ?: getLendCache(sender) ?: run {
             sendMsg(sender, "§cあなたに借金の提案は来ていません！")
             return
         }
@@ -273,7 +278,7 @@ class LocalLoanCommand : CommandExecutor {
 
     private fun showCollateral(sender: Player) {
         // 借り手または貸し手として担保を確認
-        val cache = cacheMap[sender] ?: cacheMap.values.find { it.lend == sender } ?: run {
+        val cache = cacheMap[sender] ?: getLendCache(sender) ?: run {
             sendMsg(sender, "§c借金の提案がありません")
             return
         }
@@ -360,6 +365,9 @@ class LocalLoanCommand : CommandExecutor {
                 processingNotes.remove(id)
             }
         }.start()
+    }
+    private fun getLendCache(player: Player): Cache? {
+        return cacheMap[player] ?: cacheMap.values.find { it.lend.uniqueId == player.uniqueId }
     }
 
     data class Cache(
