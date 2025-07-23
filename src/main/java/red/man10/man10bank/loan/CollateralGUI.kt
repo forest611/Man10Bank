@@ -100,7 +100,7 @@ class CollateralGUI : Listener {
             
             // 担保アイテムを収集（確定ボタン以外の7スロット）
             cache.collateralItems.clear()
-            for (i in 0 until 7) {
+            for (i in 0 until 8) {
                 val item = e.inventory.getItem(i)
                 if (item != null && item.type != Material.AIR) {
                     cache.collateralItems.add(item.clone())
@@ -120,6 +120,9 @@ class CollateralGUI : Listener {
     
     @EventHandler
     fun onInventoryClose(e: InventoryCloseEvent) {
+
+        if (e.reason == InventoryCloseEvent.Reason.PLUGIN) return
+
         val player = e.player as? Player ?: return
         val holder = e.inventory.holder as? CollateralHolder ?: return
         
@@ -129,7 +132,7 @@ class CollateralGUI : Listener {
         val cache = holder.cache
         // 閉じた時に担保アイテムを保存（確定ボタン以外の7スロット）
         cache.collateralItems.clear()
-        for (i in 0 until 7) {
+        for (i in 0 until 8) {
             val item = e.inventory.getItem(i)
             if (item != null && item.type != Material.AIR) {
                 cache.collateralItems.add(item.clone())

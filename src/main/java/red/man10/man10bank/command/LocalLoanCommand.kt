@@ -114,8 +114,8 @@ class LocalLoanCommand : CommandExecutor {
             amount = floor(args[1].toDouble())
             paybackAmount = floor(args[2].toDouble())
             day = args[3].toInt()
-            if (day > 365 || day <= 0) {
-                sendMsg(sender, "§c返済期限は１日以上、一年以内にしてください！")
+            if (day > 365 || day < 0) {
+                sendMsg(sender, "§c返済期限は0日以上、一年以内にしてください！")
                 return false
             }
             if (amount > Man10Bank.loanMax || amount < 1) {
