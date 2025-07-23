@@ -1,6 +1,9 @@
 package red.man10.man10bank.loan
 
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.Component.*
+import net.kyori.adventure.text.event.ClickEvent.*
+import net.kyori.adventure.text.event.HoverEvent.*
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -12,6 +15,7 @@ import org.bukkit.util.io.BukkitObjectOutputStream
 import red.man10.man10bank.Bank
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.Man10Bank.Companion.plugin
+import red.man10.man10bank.Man10Bank.Companion.prefix
 import red.man10.man10bank.Man10Bank.Companion.sendMsg
 import red.man10.man10bank.loan.repository.LocalLoanRepository
 import java.io.ByteArrayInputStream
@@ -105,18 +109,9 @@ class LoanData {
         val isOnline = Man10Bank.loadedPlayerUUIDs.contains(borrowPlayer.uniqueId) && borrowPlayer.isOnline
 
         try {
-            // インベントリの空きスロット数を確認（防具スロットを除く）
-            val emptySlots = p.inventory.storageContents.count { it == null }
-            val requiredSlots = collateralItems!!.size
-            
-            if (emptySlots < requiredSlots) {
-                sendMsg(p, "§c§lインベントリに空きが足りません！（必要: ${requiredSlots}スロット、空き: ${emptySlots}スロット）")
+            if (!sendInventory(p, collateralItems)) {
+                sendMsg(p, "§c§l担保アイテムを受け取るためのインベントリの空きがありません。")
                 return
-            }
-            
-            // 担保アイテムをプレイヤーに付与
-            collateralItems!!.forEach { collateralItem ->
-                p.inventory.addItem(collateralItem)
             }
 
             // 借金を完済扱いにする
@@ -245,6 +240,42 @@ class LoanData {
         }
     }
 
+    @Synchronized
+    fun receiveCollateral(p: Player) {
+        if (borrow != p.uniqueId) {
+            sendMsg(p, "§cこの借金はあなたのものではありません。")
+            return
+        }
+        
+        if (collateralItems.isNullOrEmpty()) {
+            sendMsg(p, "§cこの借金には担保が設定されていません。")
+            return
+        }
+        
+        if (debt > 0.0) {
+            sendMsg(p, "§c借金が残っている間は担保を受け取ることができません。")
+            return
+        }
+        
+        try {
+            if (!sendInventory(p, collateralItems)) {
+                sendMsg(p, "§c§l担保アイテムを受け取るためのインベントリの空きがありません。")
+                return
+            }
+            
+            val result = LocalLoanRepository.deleteCollateral(id)
+            if (!result) {
+                sendMsg(p, "§c§lデータベースエラーが発生しました。運営に報告してください。")
+                return
+            }
+            
+            sendMsg(p, "§a§l担保アイテムを受け取りました！")
+            
+        } catch (e: Exception) {
+            sendMsg(p, "§c§l担保受け取り中にエラーが発生しました。")
+        }
+    }
+
     fun getNote():ItemStack{
         val note = ItemStack(Material.PAPER)
         val meta = note.itemMeta
@@ -304,8 +335,42 @@ class LoanData {
             return LocalLoanRepository.fetchTotalLoan(p.uniqueId)
         }
 
-        fun getLoanData(uuid: UUID):Set<Pair<Int,Double>>{
+        fun getLoanDataList(uuid: UUID):Set<Pair<Int,Double>>{
             return LocalLoanRepository.fetchLoanData(uuid)
+        }
+
+        fun showCollateralLoanList(p: Player){
+            val dataList = getLoanDataList(p.uniqueId)
+
+            sendMsg(p,"§e§l取り戻せる担保の一覧[クリックで担保を受け取る]")
+            for (data in dataList) {
+                val loanData = LoanData().load(data.first) ?: continue
+                if (loanData.collateralItems.isNullOrEmpty() && loanData.debt > 0.0) continue
+
+                val paybackStr = SimpleDateFormat("yyyy-MM-dd").format(loanData.paybackDate)
+
+                val text = text("${prefix}§b§l[${paybackStr}]")
+                    .clickEvent(runCommand("/mlend receive ${data.first}"))
+                    .hoverEvent(showText(text("§e§l担保を受け取る")))
+                p.sendMessage(text)
+            }
+        }
+
+        fun sendInventory(p: Player, list: List<ItemStack>?) : Boolean{
+            if (list.isNullOrEmpty()) return true
+            // インベントリの空きスロット数を確認（防具スロットを除く）
+            val emptySlots = p.inventory.storageContents.count { it == null }
+            val requiredSlots = list.size
+
+            if (emptySlots < requiredSlots) {
+                sendMsg(p, "§c§lインベントリに空きが足りません！（必要: ${requiredSlots}スロット、空き: ${emptySlots}スロット）")
+                return false
+            }
+            // 担保アイテムをプレイヤーに付与
+            list.forEach { collateralItem ->
+                p.inventory.addItem(collateralItem)
+            }
+            return true
         }
     }
 }

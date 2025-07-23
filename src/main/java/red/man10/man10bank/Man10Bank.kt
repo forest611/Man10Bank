@@ -22,6 +22,7 @@ import red.man10.man10bank.command.ServerLoanCommand
 import red.man10.man10bank.history.EstateData
 import red.man10.man10bank.loan.CollateralGUI
 import red.man10.man10bank.loan.Event
+import red.man10.man10bank.loan.LoanData
 import red.man10.man10bank.loan.ServerLoan
 import java.util.*
 
@@ -161,6 +162,7 @@ class Man10Bank : JavaPlugin(),Listener {
         Bukkit.getScheduler().runTaskAsynchronously(this, Runnable Thread@{
             Thread.sleep(3000)
             bankCommand.showBalance(p, p)
+            LoanData.showCollateralLoanList(p)
 
             if(server.onlinePlayers.contains(p)) loadedPlayerUUIDs.add(p.uniqueId)
         })

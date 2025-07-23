@@ -85,4 +85,11 @@ object LocalLoanRepository {
         mysql.close()
         return set
     }
+
+    fun deleteCollateral(id: Int): Boolean {
+        val mysql = MySQLManager(plugin, "Man10Loan")
+        val result = mysql.execute("UPDATE loan_table SET collateral_item = NULL WHERE id = $id;")
+        mysql.close()
+        return result
+    }
 }

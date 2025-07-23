@@ -77,6 +77,7 @@ class LocalLoanCommand : CommandExecutor {
             }
             "collect" -> { collectDebt(sender); true }
             "collectcollateral" -> { collectCollateral(sender); true }
+            "receivecollateral" -> { receiveCollateral(sender,args); true }
             else -> onPropose(sender, args)
         }
     }
@@ -216,16 +217,8 @@ class LocalLoanCommand : CommandExecutor {
         }
         // 担保が設定されていた場合、借り手に返却
         if (cache.collateralItems.isNotEmpty()) {
-            cache.collateralItems.forEach { item ->
-                if (cache.borrow.inventory.firstEmpty() == -1) {
-                    cache.borrow.world.dropItem(cache.borrow.location, item)
-                } else {
-                    cache.borrow.inventory.addItem(item)
-                }
-            }
-            sendMsg(cache.borrow, "§e担保アイテムが返却されました。")
+            sendInventoryAndDrop(cache.borrow, cache.collateralItems)
         }
-        
         sendMsg(sender, "§c借金の提案を断りました！")
         cache.lend.sendMessage("§c相手が借金の提案を拒否しました！")
         cacheMap.remove(sender)
@@ -260,7 +253,7 @@ class LocalLoanCommand : CommandExecutor {
             }
             sendMsg(sender, name)
             sendMsg(sender, "手形の再発行用ID/金額")
-            val data = LoanData.getLoanData(uuid)
+            val data = LoanData.getLoanDataList(uuid)
             data.forEach { sendMsg(sender, "§c§l${it.first}/${format(it.second)}") }
         }.start()
     }
@@ -366,6 +359,38 @@ class LocalLoanCommand : CommandExecutor {
             }
         }.start()
     }
+
+    private fun receiveCollateral(sender: Player, args: Array<out String>) {
+        if (!sender.hasPermission(USER)) return
+
+        if (args.size < 2) {
+            LoanData.showCollateralLoanList(sender)
+            return
+        }
+
+        val id = args[1].toIntOrNull() ?: run {
+            sendMsg(sender, "§c有効な手形IDを入力してください")
+            return
+        }
+
+        // 排他制御：同じ手形で複数の処理が同時に実行されないようにする
+        if (processingNotes.putIfAbsent(id, true) != null) {
+            sendMsg(sender, "§c§lこの手形は現在処理中です。しばらくお待ちください。")
+            return
+        }
+        Thread {
+            try {
+                val data = LoanData().load(id) ?: run {
+                    sendMsg(sender, "§c手形情報が見つかりません")
+                    return@Thread
+                }
+                data.receiveCollateral(sender)
+            } finally {
+                processingNotes.remove(id)
+            }
+        }.start()
+    }
+
     private fun getLendCache(player: Player): Cache? {
         return cacheMap[player] ?: cacheMap.values.find { it.lend.uniqueId == player.uniqueId }
     }
@@ -378,4 +403,17 @@ class LocalLoanCommand : CommandExecutor {
         var lend: Player,
         var borrow: Player
     )
+
+    companion object {
+        fun sendInventoryAndDrop(p:Player,list:List<ItemStack>){
+            list.forEach { item ->
+                if (p.inventory.firstEmpty() == -1) {
+                    p.world.dropItem(p.location, item)
+                } else {
+                    p.inventory.addItem(item)
+                }
+            }
+            sendMsg(p, "§e担保アイテムが返却されました。")
+        }
+    }
 }
