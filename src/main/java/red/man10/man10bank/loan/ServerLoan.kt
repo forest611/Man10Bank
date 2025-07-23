@@ -332,6 +332,11 @@ object ServerLoan {
             try {
                 plugin.reloadConfig()
 
+                if (!plugin.config.getBoolean("revolving.enable",false)) {
+                    Thread.sleep(60 * 1000)
+                    continue
+                }
+
                 val now = Calendar.getInstance()
                 now.time = Date()
 

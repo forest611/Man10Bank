@@ -131,7 +131,7 @@ class ServerLoanCommand : CommandExecutor {
         if (enable) {
             sendMsg(sender, "Man10リボを有効にしました")
         } else {
-            sendMsg(sender, "Man10リボを無効にしました")
+            sendMsg(sender, "Man10リボを無効にしました。一時的に支払い処理も無効になります")
         }
         plugin.config.set("revolving.enable", enable)
         plugin.saveConfig()
