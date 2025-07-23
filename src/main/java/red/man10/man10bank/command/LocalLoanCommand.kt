@@ -322,7 +322,7 @@ class LocalLoanCommand : CommandExecutor {
                     sendMsg(sender, "§c手形情報が見つかりません")
                     return@Thread
                 }
-                data.collect(sender, item)
+                data.collectMoney(sender, item)
             } finally {
                 processingNotes.remove(id)
             }

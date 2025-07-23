@@ -18,7 +18,6 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
 
 class LoanData {
@@ -156,7 +155,7 @@ class LoanData {
      * @param p 手形の持ち主
      */
     @Synchronized
-    fun collect(p:Player, item:ItemStack) {
+    fun collectMoney(p:Player, item:ItemStack) {
         if (!Man10Bank.enableLocalLoan||Man10Bank.localLoanDisableWorlds.contains(p.world.name)){
             sendMsg(p,"§c§lこのエリアでは個人間借金の取引を行うことはできません。")
             return
@@ -173,9 +172,25 @@ class LoanData {
         val isOnline = Man10Bank.loadedPlayerUUIDs.contains(borrowPlayer.uniqueId)&&borrowPlayer.isOnline
         val bankBalance = Bank.getBalance(borrow)
         val vaultBalance = Man10Bank.vault.getBalance(borrow)
+        val hasCollateral = !collateralItems.isNullOrEmpty()
 
         try {
             val takeBankBalance = floor(if (bankBalance<debt)bankBalance else debt)
+            val takeVaultBalance = floor(if (vaultBalance<(debt))vaultBalance else debt)
+
+            val total = takeBankBalance + takeVaultBalance
+
+            // 担保がある場合一括返済のみ
+            if (hasCollateral ) {
+                if (total < debt) {
+                    sendMsg(p, "§c§l担保がある場合の返済要件を満たしていません(金額不足)")
+                    return
+                }
+                if (takeVaultBalance > 0 && !isOnline) {
+                    sendMsg(p, "§c§l担保がある場合の返済要件を満たしていません(電子マネー回収不可)")
+                    return
+                }
+            }
 
             if (takeBankBalance != 0.0 && Bank.withdraw(borrow,takeBankBalance, plugin,"paybackMoney","借金の返済").first == 0){
                 debt -= takeBankBalance
@@ -192,7 +207,6 @@ class LoanData {
                     Bank.deposit(p.uniqueId,takeBankBalance, plugin,"paybackMoneyFromBank","借金の回収")
                 }
             }
-            val takeVaultBalance = floor(if (vaultBalance<(debt))vaultBalance else debt)
 
             if (isOnline && takeVaultBalance != 0.0 && Man10Bank.vault.withdraw(borrow,takeVaultBalance)){
                 debt -= floor(takeVaultBalance)
@@ -210,8 +224,9 @@ class LoanData {
                     Bank.deposit(p.uniqueId,takeVaultBalance, plugin,"paybackMoneyFromBalance","借金の回収")
                 }
             }
+
             if (isOnline){
-                sendMsg(borrowPlayer.player!!,"§e${p.name}から借金の回収が行われました！")
+                sendMsg(borrowPlayer.player!!,"§e${p.name}から${Man10Bank.format(total)}円の回収が行われました！")
             }
         }catch (_:Exception){
         }finally {
@@ -241,7 +256,7 @@ class LoanData {
             "§4§l========[Man10Bank]========",
             "   §7§l債務者:  ${Bukkit.getOfflinePlayer(borrow).name}",
             "   §8§l有効日:  ${SimpleDateFormat("yyyy-MM-dd").format(paybackDate)}",
-            "   §7§l支払額:  ${Man10Bank.format(debt)}",
+            "   §7§l支払額:  ${floor(debt)} 円${if (collateralItems.isNullOrEmpty()) "" else " or 担保アイテム"}",
             "§4§l==========================")
 
         meta.persistentDataContainer.set(NamespacedKey(plugin,"id"), PersistentDataType.INTEGER,id)
