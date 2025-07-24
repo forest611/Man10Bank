@@ -166,7 +166,7 @@ class LoanData {
 
         try {
             val takeBankBalance = floor(if (bankBalance<debt)bankBalance else debt)
-            val takeVaultBalance = floor(if (vaultBalance<(debt))vaultBalance else debt)
+            val takeVaultBalance = floor(if (vaultBalance<(debt-takeBankBalance))vaultBalance else debt-takeBankBalance)
 
             val total = takeBankBalance + takeVaultBalance
 
