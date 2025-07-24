@@ -179,8 +179,8 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
         sendMsg(borrow, "§e返す金額: §l${format(paybackAmount)}円")
         sendMsg(borrow, "§e返す日: §l${sdf.format(LoanData.calcDate(day))}")
 
-        val allowOrDeny = text(" §6§l§n[担保を設定する] ").clickEvent(runCommand("/mlend setcollateral"))
-            .append(text("${prefix}§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow")))
+        val allowOrDeny = text(" §${prefix}6§l§n[担保を設定する] ").clickEvent(runCommand("/mlend setcollateral"))
+            .append(text("§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow")))
             .append(text("§c§l§n[借りない]").clickEvent(runCommand("/mlend deny")))
         borrow.sendMessage(allowOrDeny)
 
@@ -262,13 +262,14 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
             sendMsg(sender, "§cあなたに借金の提案は来ていません！")
             return
         }
+        cacheMap.remove(cache.borrow)
+        sendMsg(sender, "§c借金の提案を断りました！")
+        cache.lend.sendMessage("§c相手が借金の提案を拒否しました！")
+
         // 担保が設定されていた場合、借り手に返却
         if (cache.collateralItems.isNotEmpty()) {
             sendInventoryAndDrop(cache.borrow, cache.collateralItems)
         }
-        sendMsg(sender, "§c借金の提案を断りました！")
-        cache.lend.sendMessage("§c相手が借金の提案を拒否しました！")
-        cacheMap.remove(sender)
     }
 
     private fun onConfirmed(sender: Player) {
