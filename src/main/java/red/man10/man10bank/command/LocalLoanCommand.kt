@@ -179,7 +179,7 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
         sendMsg(borrow, "§e返す金額: §l${format(paybackAmount)}円")
         sendMsg(borrow, "§e返す日: §l${sdf.format(LoanData.calcDate(day))}")
 
-        val allowOrDeny = text(" §${prefix}6§l§n[担保を設定する] ").clickEvent(runCommand("/mlend setcollateral"))
+        val allowOrDeny = text(" ${prefix}§6§l§n[担保を設定する] ").clickEvent(runCommand("/mlend setcollateral"))
             .append(text("§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow")))
             .append(text("§c§l§n[借りない]").clickEvent(runCommand("/mlend deny")))
         borrow.sendMessage(allowOrDeny)
