@@ -120,7 +120,6 @@ class CollateralGUI : Listener {
     
     @EventHandler
     fun onInventoryClose(e: InventoryCloseEvent) {
-
         if (e.reason == InventoryCloseEvent.Reason.PLUGIN) return
 
         val player = e.player as? Player ?: return
@@ -138,7 +137,6 @@ class CollateralGUI : Listener {
                 cache.collateralItems.add(item.clone())
             }
         }
-
         sendMsg(player, "§a担保を設定しました（${cache.collateralItems.size}個のアイテム）")
         return
     }

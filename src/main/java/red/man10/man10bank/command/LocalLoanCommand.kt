@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
 import org.bukkit.command.TabCompleter
+import java.util.UUID
 
 class LocalLoanCommand : CommandExecutor, TabCompleter {
 
@@ -33,7 +34,7 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
 
     private val sdf = SimpleDateFormat("yyyy-MM-dd")
     
-    private val cacheMap = ConcurrentHashMap<Player, Cache>()
+    private val cacheMap = ConcurrentHashMap<UUID, Cache>()
     // 手形IDごとの処理中フラグを管理（排他制御用）
     private val processingNotes = ConcurrentHashMap<Int, Boolean>()
 
@@ -42,8 +43,8 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
         var amount: Double = 0.0,
         var paybackAmount: Double = 0.0,
         var collateralItems: MutableList<ItemStack> = mutableListOf(),  // 担保アイテムリスト
-        var lend: Player,
-        var borrow: Player,
+        var lend: UUID,
+        var borrow: UUID,
         var allowed: Boolean = false  // 借り手が借りることを許可したかどうか
     )
 
@@ -82,7 +83,8 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
                 true
             }
             "allow" ->          { onAllowed(sender); true }
-            "deny" ->           { onDenied(sender); true }
+            "denyborrow" ->           { onDenyBorrow(sender.uniqueId); true }
+            "denylend" ->           { onDenyLend(sender.uniqueId); true }
             "collateral" ->     { showCollateral(sender); true }
             "setcollateral" ->  { setCollateral(sender); true }
             "confirm" ->        { onConfirmed(sender); true }
@@ -133,12 +135,12 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
             return false
         }
 
-        if (getLendPlayerCache(sender) != null){
+        if (getLendPlayerCache(sender.uniqueId) != null){
             sendMsg(sender, "§c§lあなたはすでに借金の提案を行っています！")
             return false
         }
 
-        if (cacheMap.containsKey(borrow)) {
+        if (cacheMap.containsKey(borrow.uniqueId)) {
             sendMsg(sender, "§c§l相手はすでに借金の提案を受けています！")
             return false
         }
@@ -181,7 +183,7 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
 
         val allowOrDeny = text(" ${prefix}§6§l§n[担保を設定する] ").clickEvent(runCommand("/mlend setcollateral"))
             .append(text("§b§l§n[借りる] ").clickEvent(runCommand("/mlend allow")))
-            .append(text("§c§l§n[借りない]").clickEvent(runCommand("/mlend deny")))
+            .append(text("§c§l§n[借りない]").clickEvent(runCommand("/mlend denyborrow")))
         borrow.sendMessage(allowOrDeny)
 
         sendMsg(borrow, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
@@ -190,17 +192,17 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
             amount = amount,
             paybackAmount = paybackAmount,
             day = day,
-            borrow = borrow,
-            lend = sender
+            borrow = borrow.uniqueId,
+            lend = sender.uniqueId
         )
-        cacheMap[borrow] = cache
+        cacheMap[borrow.uniqueId] = cache
 
         // 3分後に借り手がまだ許可していなければ拒否する
         Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-            val cacheLater = cacheMap[borrow] ?: return@Runnable
+            val cacheLater = cacheMap[borrow.uniqueId] ?: return@Runnable
             if (!cacheLater.allowed) {
                 sendMsg(borrow, "§c§l借金の提案を拒否しました。3分以内に許可しなかったため")
-                onDenied(borrow)
+                onDenyBorrow(borrow.uniqueId)
             }
         }, 3600L) // 3分後に自動キャンセル
         return true
@@ -208,73 +210,90 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
 
     private fun onAllowed(borrow: Player) {
         if (!borrow.hasPermission(USER)) return
-        val cache = cacheMap[borrow] ?: run {
+        val cache = cacheMap[borrow.uniqueId] ?: run {
             sendMsg(borrow, "§cあなたに借金の提案は来ていません！")
             return
         }
-
         // 承認フラグ
         if (cache.allowed) {
             sendMsg(borrow, "§c§lあなたはすでに借りることを許可しています！")
             return
         }
         cache.allowed = true
-        cacheMap[borrow] = cache // 更新
+        cacheMap[borrow.uniqueId] = cache // 更新
 
         // 提案者がログアウトしたら拒否する
-        if (!cache.lend.isOnline) {
+        val lendPlayer = Bukkit.getPlayer(cache.lend)
+        if (lendPlayer == null || !lendPlayer.isOnline) {
             sendMsg(borrow, "§c§l提案者がログアウトしました")
-            onDenied(borrow)
+            onDenyLend(cache.lend)
             return
         }
         // 借り手が「借りる」をクリックした時点で、貸し手に担保確認を促す
         sendMsg(borrow, "§a§l借金の申請を受け付けました。貸し手の承認を待っています...")
-        if (!cache.lend.isOnline) {
-            sendMsg(borrow, "§c§l貸し手がオフラインになりました")
-            return
-        }
 
-        sendMsg(cache.lend, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
-        sendMsg(cache.lend, "§b§l${borrow.name}が借金を受け入れました！1分以内に承認か拒否を行ってください")
+        sendMsg(lendPlayer, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
+        sendMsg(lendPlayer, "§b§l${borrow.name}が借金を受け入れました！1分以内に承認か拒否を行ってください")
 
         if (cache.collateralItems.isNotEmpty()) {
-            sendMsg(cache.lend, "§e担保: ${cache.collateralItems.size}個のアイテム")
+            sendMsg(lendPlayer, "§e担保: ${cache.collateralItems.size}個のアイテム")
             val viewCollateralButton = text("${prefix}§6§l§n[担保を確認する] ").clickEvent(runCommand("/mlend collateral"))
-            cache.lend.sendMessage(viewCollateralButton)
+            lendPlayer.sendMessage(viewCollateralButton)
         } else {
-            sendMsg(cache.lend, "§c担保: なし")
+            sendMsg(lendPlayer, "§c担保: なし")
         }
 
         val confirmDenyButtons = text("${prefix}§a§l§n[最終承認] ").clickEvent(runCommand("/mlend confirm"))
-            .append(text("§c§l§n[拒否]").clickEvent(runCommand("/mlend deny")))
-        cache.lend.sendMessage(confirmDenyButtons)
-        sendMsg(cache.lend, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
+            .append(text("§c§l§n[拒否]").clickEvent(runCommand("/mlend denylend")))
+        lendPlayer.sendMessage(confirmDenyButtons)
+        sendMsg(lendPlayer, "§e§l＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝")
 
         // 1分後に自動キャンセル
         Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-            val cacheLater = cacheMap[borrow] ?: return@Runnable
-            cacheLater.lend.performCommand("mlend deny")
+            val cacheLater = cacheMap[borrow.uniqueId] ?: return@Runnable
+            onDenyLend(cacheLater.lend)
         }, 1200L)
     }
 
-    private fun onDenied(sender: Player) {
-        val cache = cacheMap[sender] ?: getLendPlayerCache(sender) ?: run {
-            sendMsg(sender, "§cあなたに借金の提案は来ていません！")
+    private fun onDenyBorrow(borrow: UUID) {
+        val borrowPlayer = Bukkit.getPlayer(borrow)
+        val cache = cacheMap[borrow] ?: run {
+            sendMsg(borrowPlayer, "§c借金の提案がありません")
             return
         }
         cacheMap.remove(cache.borrow)
-        sendMsg(sender, "§c借金の提案を断りました！")
-        cache.lend.sendMessage("§c相手が借金の提案を拒否しました！")
+        sendMsg(borrowPlayer, "§c借金の提案を断りました！")
+        val lendPlayer = Bukkit.getPlayer(cache.lend)
+        lendPlayer?.sendMessage("§c相手が借金の提案を拒否しました！")
 
         // 担保が設定されていた場合、借り手に返却
         if (cache.collateralItems.isNotEmpty()) {
-            sendInventoryAndDrop(cache.borrow, cache.collateralItems)
+            borrowPlayer?.closeInventory()
+            borrowPlayer?.let { sendInventoryAndDrop(it, cache.collateralItems) }
+        }
+    }
+
+    private fun onDenyLend(lend: UUID) {
+        val lendPlayer = Bukkit.getPlayer(lend)
+        val cache = getLendPlayerCache(lend) ?: run {
+            sendMsg(lendPlayer, "§c借金の提案がありません")
+            return
+        }
+        cacheMap.remove(cache.borrow)
+        sendMsg(lendPlayer, "§c最終承認を拒否しました")
+        val borrowPlayer = Bukkit.getPlayer(cache.borrow)
+        borrowPlayer?.sendMessage("§c最終承認が拒否されました")
+
+        // 担保が設定されていた場合、借り手に返却
+        if (cache.collateralItems.isNotEmpty()) {
+            borrowPlayer?.closeInventory()
+            borrowPlayer?.let { sendInventoryAndDrop(it, cache.collateralItems) }
         }
     }
 
     private fun onConfirmed(sender: Player) {
         // 貸し手として最終承認を行う
-        val cache = cacheMap.values.find { it.lend == sender } ?: run {
+        val cache = cacheMap.values.find { it.lend == sender.uniqueId } ?: run {
             sendMsg(sender, "§c承認する借金の提案がありません")
             return
         }
@@ -285,16 +304,23 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
             sendMsg(sender, "Man10Bankシステムに問い合わせ中・・・§l§kXX")
             val data = LoanData()
             // 貸出処理。失敗したら担保を返す
-            if (!data.create(cache.lend, cache.borrow, cache.amount, cache.paybackAmount, cache.day, cache.collateralItems.takeIf { it.isNotEmpty() })) {
+            val lendPlayer = Bukkit.getPlayer(cache.lend)
+            val borrowPlayer = Bukkit.getPlayer(cache.borrow)
+            if (lendPlayer == null || borrowPlayer == null) {
+                sendMsg(sender, "§c§lプレイヤーがオフラインです")
+                return@Runnable
+            }
+            if (!data.create(lendPlayer, borrowPlayer, cache.amount, cache.paybackAmount, cache.day, cache.collateralItems.takeIf { it.isNotEmpty() })) {
                 if (cache.collateralItems.isNotEmpty()) {
-                    sendInventoryAndDrop(cache.borrow, cache.collateralItems)
-                    sendMsg(cache.lend, "§c§l借金の契約に失敗しました。担保を返却しました。")
+                    borrowPlayer.closeInventory()
+                    sendInventoryAndDrop(borrowPlayer, cache.collateralItems)
+                    sendMsg(lendPlayer, "§c§l借金の契約に失敗しました。担保を返却しました。")
                 }
                 return@Runnable
             }
-            cache.lend.inventory.addItem(data.getNote())
-            sendMsg(cache.borrow, "§a§l借金の契約が成立しました！")
-            sendMsg(cache.lend, "§a§l借金の契約が成立しました！")
+            lendPlayer.inventory.addItem(data.getNote())
+            sendMsg(borrowPlayer, "§a§l借金の契約が成立しました！")
+            sendMsg(lendPlayer, "§a§l借金の契約が成立しました！")
         })
     }
 
@@ -308,7 +334,7 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
             }
             sendMsg(sender, name)
             sendMsg(sender, "手形の再発行用ID/金額")
-            val data = LoanData.getLoanDataList(uuid)
+            val data = getLoanDataList(uuid)
             data.forEach { sendMsg(sender, "§c§l${it.first}/${format(it.second)}") }
         }.start()
     }
@@ -326,7 +352,7 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
 
     private fun showCollateral(sender: Player) {
         // 借り手または貸し手として担保を確認
-        val cache = cacheMap[sender] ?: getLendPlayerCache(sender) ?: run {
+        val cache = cacheMap[sender.uniqueId] ?: getLendPlayerCache(sender.uniqueId) ?: run {
             sendMsg(sender, "§c借金の提案がありません")
             return
         }
@@ -338,11 +364,11 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
     }
 
     private fun setCollateral(sender: Player) {
-        val cache = cacheMap[sender] ?: run {
+        val cache = cacheMap[sender.uniqueId] ?: run {
             sendMsg(sender, "§c借金の提案がありません")
             return
         }
-        if (cache.borrow != sender) {
+        if (cache.borrow != sender.uniqueId) {
             sendMsg(sender, "§c借り手のみが担保を設定できます")
             return
         }
@@ -467,9 +493,8 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
         }
     }
 
-
-    private fun getLendPlayerCache(player: Player): Cache? {
-        return cacheMap[player] ?: cacheMap.values.find { it.lend.uniqueId == player.uniqueId }
+    private fun getLendPlayerCache(uuid:UUID): Cache? {
+        return cacheMap.values.find { it.lend == uuid }
     }
 
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<out String>): MutableList<String> {
