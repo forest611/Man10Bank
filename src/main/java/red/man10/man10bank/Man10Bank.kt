@@ -42,8 +42,8 @@ class Man10Bank : JavaPlugin(),Listener {
 
         val localLoanDisableWorlds=ArrayList<String>()
 
-        fun sendMsg(p:Player,msg:String){
-            p.sendMessage(prefix+msg)
+        fun sendMsg(p:Player?,msg:String){
+            p?.sendMessage(prefix+msg)
         }
 
         fun format(double: Double):String{
