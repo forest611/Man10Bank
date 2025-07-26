@@ -10,6 +10,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.MySQLManager.Companion.mysqlQueue
 import red.man10.man10bank.atm.ATMData
@@ -67,6 +68,15 @@ class Man10Bank : JavaPlugin(),Listener {
         var workWorld : Location? = null
 
         val loadedPlayerUUIDs=ArrayList<UUID>()
+
+        fun getDisplayName(item: ItemStack): String {
+            val name: String = if (item.hasItemMeta() && item.itemMeta.hasDisplayName()){
+                item.itemMeta.displayName
+            }else{
+                item.i18NDisplayName?:""
+            }
+            return name
+        }
     }
 
     private lateinit var bankCommand: BankCommand

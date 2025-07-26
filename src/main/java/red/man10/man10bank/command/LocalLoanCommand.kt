@@ -268,8 +268,8 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
 
         // 担保が設定されていた場合、借り手に返却
         if (cache.collateralItems.isNotEmpty()) {
-            borrowPlayer?.closeInventory()
-            borrowPlayer?.let { sendInventoryAndDrop(it, cache.collateralItems) }
+            Bukkit.getLogger().info("onDenyBorrow: 借り手からの拒否")
+            borrowPlayer?.let { moveInventoryOrDrop(it, cache.collateralItems) }
         }
     }
 
@@ -286,8 +286,8 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
 
         // 担保が設定されていた場合、借り手に返却
         if (cache.collateralItems.isNotEmpty()) {
-            borrowPlayer?.closeInventory()
-            borrowPlayer?.let { sendInventoryAndDrop(it, cache.collateralItems) }
+            Bukkit.getLogger().info("onDenyLend: 貸し手からの拒否")
+            borrowPlayer?.let { moveInventoryOrDrop(it, cache.collateralItems) }
         }
     }
 
@@ -312,8 +312,8 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
             }
             if (!data.create(lendPlayer, borrowPlayer, cache.amount, cache.paybackAmount, cache.day, cache.collateralItems.takeIf { it.isNotEmpty() })) {
                 if (cache.collateralItems.isNotEmpty()) {
-                    borrowPlayer.closeInventory()
-                    sendInventoryAndDrop(borrowPlayer, cache.collateralItems)
+                    Bukkit.getLogger().info("onConfirmed: 作成失敗")
+                    moveInventoryOrDrop(borrowPlayer, cache.collateralItems)
                     sendMsg(lendPlayer, "§c§l借金の契約に失敗しました。担保を返却しました。")
                 }
                 return@Runnable
@@ -370,6 +370,10 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
         }
         if (cache.borrow != sender.uniqueId) {
             sendMsg(sender, "§c借り手のみが担保を設定できます")
+            return
+        }
+        if (cache.collateralItems.isNotEmpty()){
+            sendMsg(sender, "§c§lすでに担保が設定されています。新たに設定することはできません。")
             return
         }
         if (cache.allowed) {
@@ -545,8 +549,10 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
     }
 
     companion object {
-        fun sendInventoryAndDrop(p:Player,list:List<ItemStack>){
+        fun moveInventoryOrDrop(p:Player, list:List<ItemStack>){
+            p.closeInventory()
             list.forEach { item ->
+                Bukkit.getLogger().info("§e${p.name}担保返却: ${Man10Bank.getDisplayName(item)} x ${item.amount}")
                 if (p.inventory.firstEmpty() == -1) {
                     p.world.dropItem(p.location, item)
                 } else {

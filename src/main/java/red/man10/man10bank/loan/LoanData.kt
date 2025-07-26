@@ -106,10 +106,12 @@ class LoanData {
         val isOnline = Man10Bank.loadedPlayerUUIDs.contains(borrowPlayer.uniqueId) && borrowPlayer.isOnline
 
         try {
-            if (!sendInventory(p, collateralItems)) {
+            if (!sendInventory(p, collateralItems,id)) {
                 sendMsg(p, "§c§l担保アイテムを受け取るためのインベントリの空きがありません。")
+                Bukkit.getLogger().info("${p.name} ID${id}担保回収失敗")
                 return
             }
+            Bukkit.getLogger().info("${p.name} ID${id}担保回収成功")
             // 借金を完済扱いにする
             debt = 0.0
             val resultUpdateAmount = LocalLoanRepository.updateAmount(id, debt)
@@ -253,10 +255,12 @@ class LoanData {
         }
         
         try {
-            if (!sendInventory(p, collateralItems)) {
+            if (!sendInventory(p, collateralItems,id)) {
                 sendMsg(p, "§c§l担保アイテムを受け取るためのインベントリの空きがありません。")
+                Bukkit.getLogger().info("${p.name} ID${id}担保アイテムの受け取り失敗")
                 return
             }
+            Bukkit.getLogger().info("${p.name} ID${id}担保アイテムの受け取り成功")
             
             val result = LocalLoanRepository.deleteCollateral(id)
             if (!result) {
@@ -334,7 +338,7 @@ class LoanData {
             return LocalLoanRepository.fetchLoanData(uuid)
         }
 
-        fun sendInventory(p: Player, list: List<ItemStack>?) : Boolean{
+        fun sendInventory(p: Player, list: List<ItemStack>?,id:Int) : Boolean{
             if (list.isNullOrEmpty()) return true
             // インベントリの空きスロット数を確認（防具スロットを除く）
             val emptySlots = p.inventory.storageContents.count { it == null }
@@ -347,6 +351,7 @@ class LoanData {
             // 担保アイテムをプレイヤーに付与
             list.forEach { collateralItem ->
                 p.inventory.addItem(collateralItem)
+                Bukkit.getLogger().info("${p.name}担保アイテム付与: ${Man10Bank.getDisplayName(collateralItem)}x${collateralItem.amount} (ID: $id)")
             }
             return true
         }
