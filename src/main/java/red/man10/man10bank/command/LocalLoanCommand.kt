@@ -352,7 +352,7 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
 
     private fun showCollateral(sender: Player) {
         // 借り手または貸し手として担保を確認
-        val cache = cacheMap[sender.uniqueId] ?: getLendPlayerCache(sender.uniqueId) ?: run {
+        val cache = getLendPlayerCache(sender.uniqueId) ?: run {
             sendMsg(sender, "§c借金の提案がありません")
             return
         }

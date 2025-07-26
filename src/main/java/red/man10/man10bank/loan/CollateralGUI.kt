@@ -68,8 +68,18 @@ class CollateralGUI : Listener {
     }
 
     @EventHandler
-    fun onInventoryClose(e: InventoryCloseEvent) {
+    fun onInventoryClick(e: InventoryClickEvent) {
+        val holder = e.inventory.holder as? CollateralHolder ?: return
 
+        // 読み取り専用モードの場合は全てキャンセル
+        if (!holder.isEditable) {
+            e.isCancelled = true
+            return
+        }
+    }
+
+    @EventHandler
+    fun onInventoryClose(e: InventoryCloseEvent) {
         val player = e.player as? Player ?: return
         val holder = e.inventory.holder as? CollateralHolder ?: return
         
