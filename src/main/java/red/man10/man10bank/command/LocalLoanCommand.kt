@@ -273,9 +273,9 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
         }
     }
 
-    private fun onDenyLend(lend: UUID) {
+    private fun onDenyLend(lend: UUID, cacheOverride: Cache? = null) {
         val lendPlayer = Bukkit.getPlayer(lend)
-        val cache = getLendPlayerCache(lend) ?: run {
+        val cache = cacheOverride ?: getLendPlayerCache(lend) ?: run {
             sendMsg(lendPlayer, "§c借金の提案がありません")
             return
         }
@@ -308,14 +308,13 @@ class LocalLoanCommand : CommandExecutor, TabCompleter {
             val borrowPlayer = Bukkit.getPlayer(cache.borrow)
             if (lendPlayer == null || borrowPlayer == null) {
                 sendMsg(sender, "§c§lプレイヤーがオフラインです")
+                // 否認処理へ一元化（担保返却含む）
+                onDenyLend(cache.lend, cache)
                 return@Runnable
             }
             if (!data.create(lendPlayer, borrowPlayer, cache.amount, cache.paybackAmount, cache.day, cache.collateralItems.takeIf { it.isNotEmpty() })) {
-                if (cache.collateralItems.isNotEmpty()) {
-                    Bukkit.getLogger().info("onConfirmed: 作成失敗")
-                    moveInventoryOrDrop(borrowPlayer, cache.collateralItems)
-                    sendMsg(lendPlayer, "§c§l借金の契約に失敗しました。担保を返却しました。")
-                }
+                // 否認処理へ一元化（担保返却含む）
+                onDenyLend(cache.lend, cache)
                 return@Runnable
             }
             lendPlayer.inventory.addItem(data.getNote())
