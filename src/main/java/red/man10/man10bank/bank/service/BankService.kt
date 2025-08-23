@@ -138,7 +138,6 @@ class BankService(private val db: Database) {
                     pluginName = pluginName,
                     note = note,
                     displayNote = displayNote ?: note,
-                    server = "",
                 )
             )
             result.complete(BankResult(true, "入金に成功しました", next))
@@ -169,7 +168,6 @@ class BankService(private val db: Database) {
                     pluginName = pluginName,
                     note = note,
                     displayNote = displayNote ?: note,
-                    server = "",
                 )
             )
             result.complete(BankResult(true, "出金に成功しました", next))
@@ -199,7 +197,6 @@ class BankService(private val db: Database) {
                     pluginName = "Man10Bank",
                     note = "RemittanceTo${toPlayer}",
                     displayNote = "${toPlayer}への送金",
-                    server = "",
                 )
             )
             val afterTo = repository.increaseBalance(
@@ -210,7 +207,6 @@ class BankService(private val db: Database) {
                     pluginName = "Man10Bank",
                     note = "RemittanceFrom${fromPlayer}",
                     displayNote = "${fromPlayer}からの送金",
-                    server = "",
                 )
             )
             // 返却は送金者側の新残高を優先

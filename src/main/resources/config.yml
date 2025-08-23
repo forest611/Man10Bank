@@ -5,6 +5,9 @@ mysql:
   port: 3306
   db: man10offlinebank
 
+# サーバー識別名（ログ記録に使用）。空の場合は未設定として扱います。
+serverName: ""
+
 mlendFee: 0.1
 mlendMax: 10000000.0
 mlendRate: 1.0

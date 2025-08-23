@@ -1,5 +1,7 @@
 package red.man10.man10bank.repository
 
+import org.bukkit.Bukkit
+import org.bukkit.plugin.java.JavaPlugin
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import red.man10.man10bank.db.tables.MoneyLog
@@ -12,7 +14,6 @@ data class LogParams(
     val pluginName: String,
     val note: String,
     val displayNote: String,
-    val server: String,
 )
 
 /**
@@ -20,6 +21,10 @@ data class LogParams(
  * - メインスレッドでは呼ばず、非同期で実行してください。
  */
 class BankRepository(private val db: Database) {
+
+    private val serverName: String =
+        ((Bukkit.getPluginManager().getPlugin("Man10Bank") as? JavaPlugin)
+            ?.config?.getString("serverName")) ?: ""
 
     fun getBalanceByUuid(uuid: String): Double? {
         return db.from(UserBank)
@@ -59,7 +64,7 @@ class BankRepository(private val db: Database) {
                 pluginName = log.pluginName,
                 note = log.note,
                 displayNote = log.displayNote,
-                server = log.server,
+                server = serverName,
             )
             next
         }
