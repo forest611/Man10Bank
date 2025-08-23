@@ -19,6 +19,7 @@ class Man10Bank : JavaPlugin(), Listener {
     }
 
     override fun onDisable() {
+        bankService.shutdown()
         logger.info("Man10Bank を無効化しました。")
     }
 }

@@ -20,14 +20,12 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
 
     private val repository = BankRepository(db, serverName)
 
-    // 単一スレッドディスパッチャ（順序保証のため）
     private val dispatcher = Executors.newSingleThreadExecutor { r ->
         Thread(r, "bank-service-worker").apply { isDaemon = true }
     }.asCoroutineDispatcher()
 
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
 
-    // リクエストキュー（無制限）。必要に応じて容量制限を検討。
     private val queue = Channel<Op>(Channel.UNLIMITED)
 
     data class BankResult(
