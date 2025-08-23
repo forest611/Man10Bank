@@ -14,6 +14,6 @@ object StringFormat {
      * 金額の表示文字列を返す。
      */
     fun money(amount: BigDecimal): String {
-        return String.format(Locale.US, "%,d", amount.setScale(0, RoundingMode.DOWN).toBigInteger())
+        return String.format(Locale.US, "%,f", amount.setScale(0, RoundingMode.DOWN).toDouble())
     }
 }
