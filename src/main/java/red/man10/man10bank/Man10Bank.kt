@@ -4,6 +4,9 @@ import org.bukkit.Bukkit
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.man10bank.bank.service.BankService
+import red.man10.man10bank.commands.DepositCommand
+import red.man10.man10bank.commands.MpayCommand
+import red.man10.man10bank.commands.WithdrawCommand
 import red.man10.man10bank.db.DatabaseProvider
 import red.man10.man10bank.vault.VaultEconomyService
 
@@ -25,6 +28,11 @@ class Man10Bank : JavaPlugin(), Listener {
         } else {
             this.vault = vault
         }
+
+        // コマンド登録
+        getCommand("deposit")?.setExecutor(DepositCommand(this))
+        getCommand("withdraw")?.setExecutor(WithdrawCommand(this))
+        getCommand("mpay")?.setExecutor(MpayCommand(this))
 
     }
 
