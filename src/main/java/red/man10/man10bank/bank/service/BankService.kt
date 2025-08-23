@@ -32,21 +32,21 @@ class BankService(private val db: Database) {
     private val queue = Channel<Op>(Channel.UNLIMITED)
 
     private sealed class Op {
-        class Deposit(
+        data class Deposit(
             val uuid: String,
             val player: String,
             val amount: Double,
             val result: CompletableDeferred<BankResult>
         ) : Op()
 
-        class Withdraw(
+        data class Withdraw(
             val uuid: String,
             val player: String,
             val amount: Double,
             val result: CompletableDeferred<BankResult>
         ) : Op()
 
-        class Transfer(
+        data class Transfer(
             val fromUuid: String,
             val fromPlayer: String,
             val toUuid: String,
@@ -113,7 +113,7 @@ class BankService(private val db: Database) {
             repository.logMoney(uuid, player, amount, deposit = true, pluginName = "Man10Bank")
             result.complete(BankResult(true, "入金に成功しました", next))
         } catch (t: Throwable) {
-            result.complete(BankResult(false, "入金に失敗しました: ${'$'}{t.message}"))
+            result.complete(BankResult(false, "入金に失敗しました: ${t.message}"))
         }
     }
 
@@ -126,14 +126,14 @@ class BankService(private val db: Database) {
             }
             val current = repository.getBalanceByUuid(uuid) ?: 0.0
             if (current < amount) {
-                result.complete(BankResult(false, "残高が不足しています。現在残高: ${'$'}current"))
+                result.complete(BankResult(false, "残高が不足しています。現在残高: ${current}"))
                 return
             }
             val next = repository.addBalance(uuid, player, -amount)
             repository.logMoney(uuid, player, -amount, deposit = false, pluginName = "Man10Bank")
             result.complete(BankResult(true, "出金に成功しました", next))
         } catch (t: Throwable) {
-            result.complete(BankResult(false, "出金に失敗しました: ${'$'}{t.message}"))
+            result.complete(BankResult(false, "出金に失敗しました: ${t.message}"))
         }
     }
 
@@ -146,19 +146,18 @@ class BankService(private val db: Database) {
             }
             val fromBalance = repository.getBalanceByUuid(fromUuid) ?: 0.0
             if (fromBalance < amount) {
-                result.complete(BankResult(false, "残高が不足しています。現在残高: ${'$'}fromBalance"))
+                result.complete(BankResult(false, "残高が不足しています。現在残高: ${fromBalance}"))
                 return
             }
             // 同一ワーカー内で順次処理されるため、この範囲は擬似的にアトミック
             val afterFrom = repository.addBalance(fromUuid, fromPlayer, -amount)
             val afterTo = repository.addBalance(toUuid, toPlayer, amount)
-            repository.logMoney(fromUuid, fromPlayer, -amount, deposit = false, pluginName = "Man10Bank", note = "transfer to ${'$'}toPlayer")
-            repository.logMoney(toUuid, toPlayer, amount, deposit = true, pluginName = "Man10Bank", note = "transfer from ${'$'}fromPlayer")
+            repository.logMoney(fromUuid, fromPlayer, -amount, deposit = false, pluginName = "Man10Bank", note = "transfer to ${toPlayer}")
+            repository.logMoney(toUuid, toPlayer, amount, deposit = true, pluginName = "Man10Bank", note = "transfer from ${fromPlayer}")
             // 返却は送金者側の新残高を優先
             result.complete(BankResult(true, "送金に成功しました", afterFrom))
         } catch (t: Throwable) {
-            result.complete(BankResult(false, "送金に失敗しました: ${'$'}{t.message}"))
+            result.complete(BankResult(false, "送金に失敗しました: ${t.message}"))
         }
     }
 }
-

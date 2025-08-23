@@ -11,7 +11,7 @@ class Man10Bank : JavaPlugin(), Listener {
         DatabaseProvider.init(this)
 
         // ここで必要に応じてコマンド/イベントを登録する
-        logger.info("Man10Bank を有効化しました。DB初期化: ${'$'}{DatabaseProvider.isInitialized()}")
+        logger.info("Man10Bank を有効化しました。DB初期化: ${DatabaseProvider.isInitialized()}")
     }
 
     override fun onDisable() {
