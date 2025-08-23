@@ -14,6 +14,7 @@
 - 軽量ORM Ktorm（DSL）を使用。依存は最小限（Paper同梱のMySQLドライバ利用）。
 - DB I/O はメインスレッド禁止。非同期で実行（後続でサービス層に集約）。
 - 残高更新は当面Tx内の read-modify-write。将来 `UPDATE ... SET balance = balance + ?` の原子的更新に最適化可。
+- 金額表示は `StringFormat.money(Number)` に統一（3桁カンマ＋整数のみ）。
 
 ## 実装・変更点（現状）
 - `DatabaseProvider`: `config.yml` の `mysql` から接続初期化。
