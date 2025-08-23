@@ -1,11 +1,15 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.7.10'
+    id 'org.jetbrains.kotlin.jvm' version '2.0.20'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'red.man10'
 version = '1.0'
+
+def kotlinVersion = '2.0.20'
+def coroutinesVersion = '1.9.0'
+def junitVersion = '5.11.0'
 
 repositories {
     mavenCentral()
@@ -21,10 +25,24 @@ repositories {
 }
 
 dependencies {
+    // Server-provided APIs
     compileOnly 'io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT'
     compileOnly "com.github.MilkBowl:VaultAPI:1.7"
     compileOnly fileTree(dir: 'libs', include: '*.jar')
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+    // Kotlin stdlib (shade to jar)
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}"
+
+    // Coroutines (for lightweight async work)
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}"
+
+    // Lightweight ORM: Ktorm (core + MySQL support). MySQL driver is provided by Paper.
+    implementation "org.ktorm:ktorm-core:3.6.0"
+    implementation "org.ktorm:ktorm-support-mysql:3.6.0"
+
+    // Testing
+    testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit5:${kotlinVersion}"
 }
 
 def targetJavaVersion = 17
@@ -67,3 +85,7 @@ shadowJar {
 }
 
 build.dependsOn shadowJar
+
+test {
+    useJUnitPlatform()
+}
