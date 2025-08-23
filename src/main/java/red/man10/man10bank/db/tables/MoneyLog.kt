@@ -10,7 +10,7 @@ object MoneyLog : Table<Nothing>("money_log") {
     val player = varchar("player")
     val uuid = varchar("uuid")
     val pluginName = varchar("plugin_name")
-    val amount = double("amount")
+    val amount = decimal("amount")
     val note = varchar("note")
     val displayNote = varchar("display_note")
     val server = varchar("server")

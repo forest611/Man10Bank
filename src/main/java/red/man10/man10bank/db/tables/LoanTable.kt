@@ -13,6 +13,6 @@ object LoanTable : Table<Nothing>("loan_table") {
     val borrowUuid = varchar("borrow_uuid")
     val borrowDate = datetime("borrow_date")
     val paybackDate = datetime("payback_date")
-    val amount = double("amount")
+    val amount = decimal("amount")
     val collateralItem = text("collateral_item")
 }

@@ -6,6 +6,8 @@ import org.bukkit.Bukkit
 import org.ktorm.database.Database
 import red.man10.man10bank.repository.BankRepository
 import red.man10.man10bank.repository.LogParams
+import red.man10.man10bank.util.StringFormat
+import java.math.BigDecimal
 import java.util.UUID
 import java.util.concurrent.Executors
 
@@ -19,7 +21,7 @@ class BankService(private val db: Database) {
     data class BankResult(
         val ok: Boolean,
         val message: String,
-        val balance: Double? = null,
+        val balance: BigDecimal? = null,
     )
 
     private val repository = BankRepository(db)
@@ -37,7 +39,7 @@ class BankService(private val db: Database) {
     private sealed class Op {
         data class SetBalance(
             val uuid: UUID,
-            val amount: Double,
+            val amount: BigDecimal,
             val pluginName: String,
             val note: String,
             val displayNote: String?,
@@ -45,7 +47,7 @@ class BankService(private val db: Database) {
         ) : Op()
         data class Deposit(
             val uuid: UUID,
-            val amount: Double,
+            val amount: BigDecimal,
             val pluginName: String,
             val note: String,
             val displayNote: String?,
@@ -54,7 +56,7 @@ class BankService(private val db: Database) {
 
         data class Withdraw(
             val uuid: UUID,
-            val amount: Double,
+            val amount: BigDecimal,
             val pluginName: String,
             val note: String,
             val displayNote: String?,
@@ -66,7 +68,7 @@ class BankService(private val db: Database) {
             val fromPlayer: String,
             val toUuid: String,
             val toPlayer: String,
-            val amount: Double,
+            val amount: BigDecimal,
             val result: CompletableDeferred<BankResult>
         ) : Op()
     }
@@ -85,13 +87,13 @@ class BankService(private val db: Database) {
         }
     }
 
-    suspend fun getBalance(uuid: UUID): Double? = withContext(dispatcher) {
+    suspend fun getBalance(uuid: UUID): BigDecimal? = withContext(dispatcher) {
         repository.getBalanceByUuid(uuid.toString())
     }
 
     suspend fun setBalance(
         uuid: UUID,
-        amount: Double,
+        amount: BigDecimal,
         pluginName: String,
         note: String,
         displayNote: String?,
@@ -103,7 +105,7 @@ class BankService(private val db: Database) {
 
     suspend fun deposit(
         uuid: UUID,
-        amount: Double,
+        amount: BigDecimal,
         pluginName: String,
         note: String,
         displayNote: String?,
@@ -115,7 +117,7 @@ class BankService(private val db: Database) {
 
     suspend fun withdraw(
         uuid: UUID,
-        amount: Double,
+        amount: BigDecimal,
         pluginName: String,
         note: String,
         displayNote: String?,
@@ -130,7 +132,7 @@ class BankService(private val db: Database) {
         fromPlayer: String,
         toUuid: String,
         toPlayer: String,
-        amount: Double,
+        amount: BigDecimal,
     ): BankResult {
         val deferred = CompletableDeferred<BankResult>()
         queue.send(Op.Transfer(fromUuid, fromPlayer, toUuid, toPlayer, amount, deferred))
@@ -145,17 +147,17 @@ class BankService(private val db: Database) {
     private fun handleSetBalance(op: Op.SetBalance) {
         val (uuid, amount, pluginName, note, displayNote, result) = op
         try {
-            if (amount < 0.0) {
+            if (amount.signum() < 0) {
                 result.complete(BankResult(false, "残高は0以上である必要があります"))
                 return
             }
             val uuidStr = uuid.toString()
             val playerName = Bukkit.getOfflinePlayer(uuid).name ?: ""
-            val current = repository.getBalanceByUuid(uuidStr) ?: 0.0
-            val delta = amount - current
-            val next = if (kotlin.math.abs(delta) < 1e-9) {
+            val current = repository.getBalanceByUuid(uuidStr) ?: BigDecimal.ZERO
+            val delta = amount.subtract(current)
+            val next = if (delta.compareTo(BigDecimal.ZERO) == 0) {
                 current
-            } else if (delta > 0) {
+            } else if (delta.compareTo(BigDecimal.ZERO) > 0) {
                 repository.increaseBalance(
                     uuid = uuidStr,
                     player = playerName,
@@ -170,7 +172,7 @@ class BankService(private val db: Database) {
                 repository.decreaseBalance(
                     uuid = uuidStr,
                     player = playerName,
-                    amount = -delta,
+                    amount = delta.abs(),
                     log = LogParams(
                         pluginName = pluginName,
                         note = note,
@@ -187,7 +189,7 @@ class BankService(private val db: Database) {
     private fun handleDeposit(op: Op.Deposit) {
         val (uuid, amount, pluginName, note, displayNote, result) = op
         try {
-            if (amount <= 0.0) {
+            if (amount.signum() <= 0) {
                 result.complete(BankResult(false, "入金額は正の数である必要があります"))
                 return
             }
@@ -212,15 +214,15 @@ class BankService(private val db: Database) {
     private fun handleWithdraw(op: Op.Withdraw) {
         val (uuid, amount, pluginName, note, displayNote, result) = op
         try {
-            if (amount <= 0.0) {
+            if (amount.signum() <= 0) {
                 result.complete(BankResult(false, "出金額は正の数である必要があります"))
                 return
             }
             val uuidStr = uuid.toString()
             val playerName = Bukkit.getOfflinePlayer(uuid).name ?: ""
-            val current = repository.getBalanceByUuid(uuidStr) ?: 0.0
-            if (current < amount) {
-                result.complete(BankResult(false, "残高が不足しています。現在残高: $current"))
+            val current = repository.getBalanceByUuid(uuidStr) ?: BigDecimal.ZERO
+            if (current.compareTo(amount) < 0) {
+                result.complete(BankResult(false, "残高が不足しています。現在残高: ${StringFormat.money(current)}"))
                 return
             }
             val next = repository.decreaseBalance(
@@ -242,13 +244,13 @@ class BankService(private val db: Database) {
     private fun handleTransfer(op: Op.Transfer) {
         val (fromUuid, fromPlayer, toUuid, toPlayer, amount, result) = op
         try {
-            if (amount <= 0.0) {
+            if (amount.signum() <= 0) {
                 result.complete(BankResult(false, "送金額は正の数である必要があります"))
                 return
             }
-            val fromBalance = repository.getBalanceByUuid(fromUuid) ?: 0.0
-            if (fromBalance < amount) {
-                result.complete(BankResult(false, "残高が不足しています。現在残高: $fromBalance"))
+            val fromBalance = repository.getBalanceByUuid(fromUuid) ?: BigDecimal.ZERO
+            if (fromBalance.compareTo(amount) < 0) {
+                result.complete(BankResult(false, "残高が不足しています。現在残高: ${StringFormat.money(fromBalance)}"))
                 return
             }
             // 同一ワーカー内で順次処理されるため、この範囲は擬似的にアトミック
