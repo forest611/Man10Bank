@@ -75,7 +75,7 @@ class BankRepository(private val db: Database) {
         return adjustBalance(uuid, player, -amount, log)
     }
 
-    fun logMoney(
+    private fun logMoney(
         uuid: String,
         player: String,
         amount: Double,
