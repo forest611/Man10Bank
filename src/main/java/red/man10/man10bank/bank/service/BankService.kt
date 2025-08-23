@@ -5,6 +5,7 @@ import kotlinx.coroutines.channels.Channel
 import org.bukkit.Bukkit
 import org.ktorm.database.Database
 import red.man10.man10bank.repository.BankRepository
+import red.man10.man10bank.repository.LogParams
 import java.util.UUID
 import java.util.concurrent.Executors
 
@@ -129,16 +130,16 @@ class BankService(private val db: Database) {
             }
             val uuidStr = uuid.toString()
             val playerName = Bukkit.getOfflinePlayer(uuid).name ?: ""
-            val next = repository.increaseBalance(uuidStr, playerName, amount)
-            repository.logMoney(
+            val next = repository.increaseBalance(
                 uuid = uuidStr,
                 player = playerName,
                 amount = amount,
-                deposit = true,
-                pluginName = pluginName,
-                note = note,
-                displayNote = displayNote ?: note,
-                server = ""
+                log = LogParams(
+                    pluginName = pluginName,
+                    note = note,
+                    displayNote = displayNote ?: note,
+                    server = "",
+                )
             )
             result.complete(BankResult(true, "入金に成功しました", next))
         } catch (t: Throwable) {
@@ -160,16 +161,16 @@ class BankService(private val db: Database) {
                 result.complete(BankResult(false, "残高が不足しています。現在残高: ${current}"))
                 return
             }
-            val next = repository.decreaseBalance(uuidStr, playerName, amount)
-            repository.logMoney(
+            val next = repository.decreaseBalance(
                 uuid = uuidStr,
                 player = playerName,
-                amount = -amount,
-                deposit = false,
-                pluginName = pluginName,
-                note = note,
-                displayNote = displayNote ?: note,
-                server = ""
+                amount = amount,
+                log = LogParams(
+                    pluginName = pluginName,
+                    note = note,
+                    displayNote = displayNote ?: note,
+                    server = "",
+                )
             )
             result.complete(BankResult(true, "出金に成功しました", next))
         } catch (t: Throwable) {
@@ -190,27 +191,27 @@ class BankService(private val db: Database) {
                 return
             }
             // 同一ワーカー内で順次処理されるため、この範囲は擬似的にアトミック
-            val afterFrom = repository.decreaseBalance(fromUuid, fromPlayer, amount)
-            val afterTo = repository.increaseBalance(toUuid, toPlayer, amount)
-            repository.logMoney(
+            val afterFrom = repository.decreaseBalance(
                 uuid = fromUuid,
                 player = fromPlayer,
-                amount = -amount,
-                deposit = false,
-                pluginName = "Man10Bank",
-                note = "RemittanceTo${toPlayer}",
-                displayNote = "${toPlayer}への送金",
-                server = ""
+                amount = amount,
+                log = LogParams(
+                    pluginName = "Man10Bank",
+                    note = "RemittanceTo${toPlayer}",
+                    displayNote = "${toPlayer}への送金",
+                    server = "",
+                )
             )
-            repository.logMoney(
+            val afterTo = repository.increaseBalance(
                 uuid = toUuid,
                 player = toPlayer,
                 amount = amount,
-                deposit = true,
-                pluginName = "Man10Bank",
-                note = "RemittanceFrom${fromPlayer}",
-                displayNote = "${fromPlayer}からの送金",
-                server = ""
+                log = LogParams(
+                    pluginName = "Man10Bank",
+                    note = "RemittanceFrom${fromPlayer}",
+                    displayNote = "${fromPlayer}からの送金",
+                    server = "",
+                )
             )
             // 返却は送金者側の新残高を優先
             result.complete(BankResult(true, "送金に成功しました", afterFrom))

@@ -6,6 +6,16 @@ import red.man10.man10bank.db.tables.MoneyLog
 import red.man10.man10bank.db.tables.UserBank
 
 /**
+ * MoneyLog の付帯情報をまとめるパラメータ。
+ */
+data class LogParams(
+    val pluginName: String,
+    val note: String,
+    val displayNote: String,
+    val server: String,
+)
+
+/**
  * 残高と入出金ログに関する最小限のリポジトリ。
  * - メインスレッドでは呼ばず、非同期で実行してください。
  */
@@ -33,23 +43,36 @@ class BankRepository(private val db: Database) {
         }
     }
 
-    fun adjustBalance(uuid: String, player: String, delta: Double): Double {
+    fun adjustBalance(uuid: String, player: String, delta: Double, log: LogParams): Double {
         return db.useTransaction {
             val current = getBalanceByUuid(uuid) ?: 0.0
             val next = current + delta
             setBalance(uuid, player, next)
+            // ログを必ず記録（delta の符号で増減を判定）
+            val deposit = delta >= 0.0
+            val amountForLog = delta
+            logMoney(
+                uuid = uuid,
+                player = player,
+                amount = amountForLog,
+                deposit = deposit,
+                pluginName = log.pluginName,
+                note = log.note,
+                displayNote = log.displayNote,
+                server = log.server,
+            )
             next
         }
     }
 
-    fun increaseBalance(uuid: String, player: String, amount: Double): Double {
+    fun increaseBalance(uuid: String, player: String, amount: Double, log: LogParams): Double {
         require(amount >= 0.0) { "amount は 0 以上である必要があります" }
-        return adjustBalance(uuid, player, amount)
+        return adjustBalance(uuid, player, amount, log)
     }
 
-    fun decreaseBalance(uuid: String, player: String, amount: Double): Double {
+    fun decreaseBalance(uuid: String, player: String, amount: Double, log: LogParams): Double {
         require(amount >= 0.0) { "amount は 0 以上である必要があります" }
-        return adjustBalance(uuid, player, -amount)
+        return adjustBalance(uuid, player, -amount, log)
     }
 
     fun logMoney(
