@@ -164,7 +164,7 @@ class BankService(private val db: Database) {
             repository.logMoney(
                 uuid = uuidStr,
                 player = playerName,
-                amount = amount,
+                amount = -amount,
                 deposit = false,
                 pluginName = pluginName,
                 note = note,
@@ -195,11 +195,11 @@ class BankService(private val db: Database) {
             repository.logMoney(
                 uuid = fromUuid,
                 player = fromPlayer,
-                amount = amount,
+                amount = -amount,
                 deposit = false,
                 pluginName = "Man10Bank",
-                note = "transfer to ${toPlayer}",
-                displayNote = "transfer to ${toPlayer}",
+                note = "RemittanceTo${toPlayer}",
+                displayNote = "${toPlayer}への送金",
                 server = ""
             )
             repository.logMoney(
@@ -208,8 +208,8 @@ class BankService(private val db: Database) {
                 amount = amount,
                 deposit = true,
                 pluginName = "Man10Bank",
-                note = "transfer from ${fromPlayer}",
-                displayNote = "transfer from ${fromPlayer}",
+                note = "RemittanceFrom${fromPlayer}",
+                displayNote = "${fromPlayer}からの送金",
                 server = ""
             )
             // 返却は送金者側の新残高を優先
