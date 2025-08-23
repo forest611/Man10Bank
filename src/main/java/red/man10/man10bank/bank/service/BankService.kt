@@ -110,7 +110,16 @@ class BankService(private val db: Database) {
                 return
             }
             val next = repository.addBalance(uuid, player, amount)
-            repository.logMoney(uuid, player, amount, deposit = true, pluginName = "Man10Bank")
+            repository.logMoney(
+                uuid = uuid,
+                player = player,
+                amount = amount,
+                deposit = true,
+                pluginName = "Man10Bank",
+                note = "deposit",
+                displayNote = "deposit",
+                server = ""
+            )
             result.complete(BankResult(true, "入金に成功しました", next))
         } catch (t: Throwable) {
             result.complete(BankResult(false, "入金に失敗しました: ${t.message}"))
@@ -130,7 +139,16 @@ class BankService(private val db: Database) {
                 return
             }
             val next = repository.addBalance(uuid, player, -amount)
-            repository.logMoney(uuid, player, -amount, deposit = false, pluginName = "Man10Bank")
+            repository.logMoney(
+                uuid = uuid,
+                player = player,
+                amount = -amount,
+                deposit = false,
+                pluginName = "Man10Bank",
+                note = "withdraw",
+                displayNote = "withdraw",
+                server = ""
+            )
             result.complete(BankResult(true, "出金に成功しました", next))
         } catch (t: Throwable) {
             result.complete(BankResult(false, "出金に失敗しました: ${t.message}"))
@@ -152,8 +170,26 @@ class BankService(private val db: Database) {
             // 同一ワーカー内で順次処理されるため、この範囲は擬似的にアトミック
             val afterFrom = repository.addBalance(fromUuid, fromPlayer, -amount)
             val afterTo = repository.addBalance(toUuid, toPlayer, amount)
-            repository.logMoney(fromUuid, fromPlayer, -amount, deposit = false, pluginName = "Man10Bank", note = "transfer to ${toPlayer}")
-            repository.logMoney(toUuid, toPlayer, amount, deposit = true, pluginName = "Man10Bank", note = "transfer from ${fromPlayer}")
+            repository.logMoney(
+                uuid = fromUuid,
+                player = fromPlayer,
+                amount = -amount,
+                deposit = false,
+                pluginName = "Man10Bank",
+                note = "transfer to ${toPlayer}",
+                displayNote = "transfer to ${toPlayer}",
+                server = ""
+            )
+            repository.logMoney(
+                uuid = toUuid,
+                player = toPlayer,
+                amount = amount,
+                deposit = true,
+                pluginName = "Man10Bank",
+                note = "transfer from ${fromPlayer}",
+                displayNote = "transfer from ${fromPlayer}",
+                server = ""
+            )
             // 返却は送金者側の新残高を優先
             result.complete(BankResult(true, "送金に成功しました", afterFrom))
         } catch (t: Throwable) {
