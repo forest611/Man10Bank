@@ -47,10 +47,10 @@ class BankRepository(private val db: Database) {
         player: String,
         amount: Double,
         deposit: Boolean,
-        pluginName: String? = null,
-        note: String? = null,
-        displayNote: String? = null,
-        server: String? = null,
+        pluginName: String = "",
+        note: String = "",
+        displayNote: String = "",
+        server: String = "",
     ) {
         db.insert(MoneyLog) {
             set(it.player, player)
