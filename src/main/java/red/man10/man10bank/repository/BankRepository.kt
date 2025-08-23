@@ -33,13 +33,23 @@ class BankRepository(private val db: Database) {
         }
     }
 
-    fun addBalance(uuid: String, player: String, delta: Double): Double {
-        return db.useTransaction { tx ->
+    fun adjustBalance(uuid: String, player: String, delta: Double): Double {
+        return db.useTransaction {
             val current = getBalanceByUuid(uuid) ?: 0.0
             val next = current + delta
             setBalance(uuid, player, next)
             next
         }
+    }
+
+    fun increaseBalance(uuid: String, player: String, amount: Double): Double {
+        require(amount >= 0.0) { "amount は 0 以上である必要があります" }
+        return adjustBalance(uuid, player, amount)
+    }
+
+    fun decreaseBalance(uuid: String, player: String, amount: Double): Double {
+        require(amount >= 0.0) { "amount は 0 以上である必要があります" }
+        return adjustBalance(uuid, player, -amount)
     }
 
     fun logMoney(

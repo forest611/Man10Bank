@@ -129,7 +129,7 @@ class BankService(private val db: Database) {
             }
             val uuidStr = uuid.toString()
             val playerName = Bukkit.getOfflinePlayer(uuid).name ?: ""
-            val next = repository.addBalance(uuidStr, playerName, amount)
+            val next = repository.increaseBalance(uuidStr, playerName, amount)
             repository.logMoney(
                 uuid = uuidStr,
                 player = playerName,
@@ -160,7 +160,7 @@ class BankService(private val db: Database) {
                 result.complete(BankResult(false, "残高が不足しています。現在残高: ${current}"))
                 return
             }
-            val next = repository.addBalance(uuidStr, playerName, -amount)
+            val next = repository.decreaseBalance(uuidStr, playerName, amount)
             repository.logMoney(
                 uuid = uuidStr,
                 player = playerName,
@@ -190,8 +190,8 @@ class BankService(private val db: Database) {
                 return
             }
             // 同一ワーカー内で順次処理されるため、この範囲は擬似的にアトミック
-            val afterFrom = repository.addBalance(fromUuid, fromPlayer, -amount)
-            val afterTo = repository.addBalance(toUuid, toPlayer, amount)
+            val afterFrom = repository.decreaseBalance(fromUuid, fromPlayer, amount)
+            val afterTo = repository.increaseBalance(toUuid, toPlayer, amount)
             repository.logMoney(
                 uuid = fromUuid,
                 player = fromPlayer,
