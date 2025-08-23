@@ -48,18 +48,16 @@ class BankRepository(private val db: Database) {
         }
     }
 
-    fun adjustBalance(uuid: String, player: String, delta: Double, log: LogParams): Double {
+    private fun adjustBalance(uuid: String, player: String, delta: Double, log: LogParams): Double {
         return db.useTransaction {
             val current = getBalanceByUuid(uuid) ?: 0.0
             val next = current + delta
             setBalance(uuid, player, next)
-            // ログを必ず記録（delta の符号で増減を判定）
             val deposit = delta >= 0.0
-            val amountForLog = delta
             logMoney(
                 uuid = uuid,
                 player = player,
-                amount = amountForLog,
+                amount = delta,
                 deposit = deposit,
                 pluginName = log.pluginName,
                 note = log.note,

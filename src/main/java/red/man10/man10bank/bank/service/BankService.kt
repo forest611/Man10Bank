@@ -35,6 +35,14 @@ class BankService(private val db: Database) {
     private val queue = Channel<Op>(Channel.UNLIMITED)
 
     private sealed class Op {
+        data class SetBalance(
+            val uuid: UUID,
+            val amount: Double,
+            val pluginName: String,
+            val note: String,
+            val displayNote: String?,
+            val result: CompletableDeferred<BankResult>
+        ) : Op()
         data class Deposit(
             val uuid: UUID,
             val amount: Double,
@@ -68,6 +76,7 @@ class BankService(private val db: Database) {
         scope.launch {
             for (op in queue) {
                 when (op) {
+                    is Op.SetBalance -> handleSetBalance(op)
                     is Op.Deposit -> handleDeposit(op)
                     is Op.Withdraw -> handleWithdraw(op)
                     is Op.Transfer -> handleTransfer(op)
@@ -78,6 +87,18 @@ class BankService(private val db: Database) {
 
     suspend fun getBalance(uuid: UUID): Double? = withContext(dispatcher) {
         repository.getBalanceByUuid(uuid.toString())
+    }
+
+    suspend fun setBalance(
+        uuid: UUID,
+        amount: Double,
+        pluginName: String,
+        note: String,
+        displayNote: String?,
+    ): BankResult {
+        val deferred = CompletableDeferred<BankResult>()
+        queue.send(Op.SetBalance(uuid, amount, pluginName, note, displayNote, deferred))
+        return deferred.await()
     }
 
     suspend fun deposit(
@@ -121,7 +142,49 @@ class BankService(private val db: Database) {
         dispatcher.close()
     }
 
-    private suspend fun handleDeposit(op: Op.Deposit) {
+    private fun handleSetBalance(op: Op.SetBalance) {
+        val (uuid, amount, pluginName, note, displayNote, result) = op
+        try {
+            if (amount < 0.0) {
+                result.complete(BankResult(false, "残高は0以上である必要があります"))
+                return
+            }
+            val uuidStr = uuid.toString()
+            val playerName = Bukkit.getOfflinePlayer(uuid).name ?: ""
+            val current = repository.getBalanceByUuid(uuidStr) ?: 0.0
+            val delta = amount - current
+            val next = if (kotlin.math.abs(delta) < 1e-9) {
+                current
+            } else if (delta > 0) {
+                repository.increaseBalance(
+                    uuid = uuidStr,
+                    player = playerName,
+                    amount = delta,
+                    log = LogParams(
+                        pluginName = pluginName,
+                        note = note,
+                        displayNote = displayNote ?: note,
+                    )
+                )
+            } else {
+                repository.decreaseBalance(
+                    uuid = uuidStr,
+                    player = playerName,
+                    amount = -delta,
+                    log = LogParams(
+                        pluginName = pluginName,
+                        note = note,
+                        displayNote = displayNote ?: note,
+                    )
+                )
+            }
+            result.complete(BankResult(true, "残高を更新しました", next))
+        } catch (t: Throwable) {
+            result.complete(BankResult(false, "残高設定に失敗しました: ${t.message}"))
+        }
+    }
+
+    private fun handleDeposit(op: Op.Deposit) {
         val (uuid, amount, pluginName, note, displayNote, result) = op
         try {
             if (amount <= 0.0) {
@@ -146,7 +209,7 @@ class BankService(private val db: Database) {
         }
     }
 
-    private suspend fun handleWithdraw(op: Op.Withdraw) {
+    private fun handleWithdraw(op: Op.Withdraw) {
         val (uuid, amount, pluginName, note, displayNote, result) = op
         try {
             if (amount <= 0.0) {
@@ -157,7 +220,7 @@ class BankService(private val db: Database) {
             val playerName = Bukkit.getOfflinePlayer(uuid).name ?: ""
             val current = repository.getBalanceByUuid(uuidStr) ?: 0.0
             if (current < amount) {
-                result.complete(BankResult(false, "残高が不足しています。現在残高: ${current}"))
+                result.complete(BankResult(false, "残高が不足しています。現在残高: $current"))
                 return
             }
             val next = repository.decreaseBalance(
@@ -176,7 +239,7 @@ class BankService(private val db: Database) {
         }
     }
 
-    private suspend fun handleTransfer(op: Op.Transfer) {
+    private fun handleTransfer(op: Op.Transfer) {
         val (fromUuid, fromPlayer, toUuid, toPlayer, amount, result) = op
         try {
             if (amount <= 0.0) {
@@ -185,7 +248,7 @@ class BankService(private val db: Database) {
             }
             val fromBalance = repository.getBalanceByUuid(fromUuid) ?: 0.0
             if (fromBalance < amount) {
-                result.complete(BankResult(false, "残高が不足しています。現在残高: ${fromBalance}"))
+                result.complete(BankResult(false, "残高が不足しています。現在残高: $fromBalance"))
                 return
             }
             // 同一ワーカー内で順次処理されるため、この範囲は擬似的にアトミック
@@ -196,10 +259,10 @@ class BankService(private val db: Database) {
                 log = LogParams(
                     pluginName = "Man10Bank",
                     note = "RemittanceTo${toPlayer}",
-                    displayNote = "${toPlayer}への送金",
+                    displayNote = "${toPlayer}へ送金",
                 )
             )
-            val afterTo = repository.increaseBalance(
+            repository.increaseBalance(
                 uuid = toUuid,
                 player = toPlayer,
                 amount = amount,
