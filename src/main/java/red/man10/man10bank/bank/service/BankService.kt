@@ -2,8 +2,10 @@ package red.man10.man10bank.bank.service
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import org.bukkit.Bukkit
 import org.ktorm.database.Database
 import red.man10.man10bank.repository.BankRepository
+import java.util.UUID
 import java.util.concurrent.Executors
 
 /**
@@ -33,16 +35,20 @@ class BankService(private val db: Database) {
 
     private sealed class Op {
         data class Deposit(
-            val uuid: String,
-            val player: String,
+            val uuid: UUID,
             val amount: Double,
+            val pluginName: String,
+            val note: String,
+            val displayNote: String?,
             val result: CompletableDeferred<BankResult>
         ) : Op()
 
         data class Withdraw(
-            val uuid: String,
-            val player: String,
+            val uuid: UUID,
             val amount: Double,
+            val pluginName: String,
+            val note: String,
+            val displayNote: String?,
             val result: CompletableDeferred<BankResult>
         ) : Op()
 
@@ -69,19 +75,31 @@ class BankService(private val db: Database) {
         }
     }
 
-    suspend fun getBalance(uuid: String): Double? = withContext(dispatcher) {
-        repository.getBalanceByUuid(uuid)
+    suspend fun getBalance(uuid: UUID): Double? = withContext(dispatcher) {
+        repository.getBalanceByUuid(uuid.toString())
     }
 
-    suspend fun deposit(uuid: String, player: String, amount: Double): BankResult {
+    suspend fun deposit(
+        uuid: UUID,
+        amount: Double,
+        pluginName: String,
+        note: String,
+        displayNote: String?,
+    ): BankResult {
         val deferred = CompletableDeferred<BankResult>()
-        queue.send(Op.Deposit(uuid, player, amount, deferred))
+        queue.send(Op.Deposit(uuid, amount, pluginName, note, displayNote, deferred))
         return deferred.await()
     }
 
-    suspend fun withdraw(uuid: String, player: String, amount: Double): BankResult {
+    suspend fun withdraw(
+        uuid: UUID,
+        amount: Double,
+        pluginName: String,
+        note: String,
+        displayNote: String?,
+    ): BankResult {
         val deferred = CompletableDeferred<BankResult>()
-        queue.send(Op.Withdraw(uuid, player, amount, deferred))
+        queue.send(Op.Withdraw(uuid, amount, pluginName, note, displayNote, deferred))
         return deferred.await()
     }
 
@@ -103,21 +121,23 @@ class BankService(private val db: Database) {
     }
 
     private suspend fun handleDeposit(op: Op.Deposit) {
-        val (uuid, player, amount, result) = op
+        val (uuid, amount, pluginName, note, displayNote, result) = op
         try {
             if (amount <= 0.0) {
                 result.complete(BankResult(false, "入金額は正の数である必要があります"))
                 return
             }
-            val next = repository.addBalance(uuid, player, amount)
+            val uuidStr = uuid.toString()
+            val playerName = Bukkit.getOfflinePlayer(uuid).name ?: ""
+            val next = repository.addBalance(uuidStr, playerName, amount)
             repository.logMoney(
-                uuid = uuid,
-                player = player,
+                uuid = uuidStr,
+                player = playerName,
                 amount = amount,
                 deposit = true,
-                pluginName = "Man10Bank",
-                note = "deposit",
-                displayNote = "deposit",
+                pluginName = pluginName,
+                note = note,
+                displayNote = displayNote ?: note,
                 server = ""
             )
             result.complete(BankResult(true, "入金に成功しました", next))
@@ -127,26 +147,28 @@ class BankService(private val db: Database) {
     }
 
     private suspend fun handleWithdraw(op: Op.Withdraw) {
-        val (uuid, player, amount, result) = op
+        val (uuid, amount, pluginName, note, displayNote, result) = op
         try {
             if (amount <= 0.0) {
                 result.complete(BankResult(false, "出金額は正の数である必要があります"))
                 return
             }
-            val current = repository.getBalanceByUuid(uuid) ?: 0.0
+            val uuidStr = uuid.toString()
+            val playerName = Bukkit.getOfflinePlayer(uuid).name ?: ""
+            val current = repository.getBalanceByUuid(uuidStr) ?: 0.0
             if (current < amount) {
                 result.complete(BankResult(false, "残高が不足しています。現在残高: ${current}"))
                 return
             }
-            val next = repository.addBalance(uuid, player, -amount)
+            val next = repository.addBalance(uuidStr, playerName, -amount)
             repository.logMoney(
-                uuid = uuid,
-                player = player,
-                amount = -amount,
+                uuid = uuidStr,
+                player = playerName,
+                amount = amount,
                 deposit = false,
-                pluginName = "Man10Bank",
-                note = "withdraw",
-                displayNote = "withdraw",
+                pluginName = pluginName,
+                note = note,
+                displayNote = displayNote ?: note,
                 server = ""
             )
             result.complete(BankResult(true, "出金に成功しました", next))
@@ -173,7 +195,7 @@ class BankService(private val db: Database) {
             repository.logMoney(
                 uuid = fromUuid,
                 player = fromPlayer,
-                amount = -amount,
+                amount = amount,
                 deposit = false,
                 pluginName = "Man10Bank",
                 note = "transfer to ${toPlayer}",
