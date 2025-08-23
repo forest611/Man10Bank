@@ -13,11 +13,7 @@ import java.math.RoundingMode
  * 残高と入出金ログに関する最小限のリポジトリ。
  * - メインスレッドでは呼ばず、非同期で実行してください。
  */
-class BankRepository(private val db: Database) {
-
-    private val serverName: String =
-        ((Bukkit.getPluginManager().getPlugin("Man10Bank") as? JavaPlugin)
-            ?.config?.getString("serverName")) ?: ""
+class BankRepository(private val db: Database, private val serverName: String) {
 
     data class LogParams(
         val pluginName: String,

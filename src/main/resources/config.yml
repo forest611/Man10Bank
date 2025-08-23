@@ -3,7 +3,7 @@ mysql:
   user: root
   pass: pass
   port: 3306
-  db: man10offlinebank
+  db: man10_bank
 
 # サーバー識別名（ログ記録に使用）。空の場合は未設定として扱います。
 serverName: ""

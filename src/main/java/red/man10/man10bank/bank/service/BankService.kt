@@ -16,9 +16,9 @@ import java.util.concurrent.Executors
  * - 依頼（入金/出金/送金）を単一ワーカーで順次処理し、発生順を担保する。
  * - DB I/O はこのワーカー内でのみ実行され、メインスレッドをブロックしない。
  */
-class BankService(private val db: Database) {
+class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
 
-    private val repository = BankRepository(db)
+    private val repository = BankRepository(db, serverName)
 
     // 単一スレッドディスパッチャ（順序保証のため）
     private val dispatcher = Executors.newSingleThreadExecutor { r ->
