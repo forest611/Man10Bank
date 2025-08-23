@@ -29,15 +29,32 @@ class WithdrawCommand(private val plugin: Man10Bank) : CommandExecutor {
         }
         val uuid = sender.uniqueId
         GlobalScope.launch {
-            val res = plugin.bankService.withdraw(uuid, amount, "Command", "Withdraw", "出金")
-            Bukkit.getScheduler().runTask(plugin, Runnable {
-                when (res.code) {
-                    ResultCode.SUCCESS -> sender.sendMessage("出金しました。残高: ${StringFormat.money(res.balance!!)}")
-                    ResultCode.INSUFFICIENT_FUNDS -> sender.sendMessage("残高が不足しています。")
-                    ResultCode.INVALID_AMOUNT -> sender.sendMessage("出金額が不正です。")
-                    else -> sender.sendMessage("出金に失敗しました。")
-                }
-            })
+            // 1) Bank から出金（残高チェック含む）
+            val bankRes = plugin.bankService.withdraw(uuid, amount, "Command", "BankToVault", "銀行から出金")
+            if (bankRes.code != ResultCode.SUCCESS) {
+                Bukkit.getScheduler().runTask(plugin, Runnable {
+                    when (bankRes.code) {
+                        ResultCode.INSUFFICIENT_FUNDS -> sender.sendMessage("銀行残高が不足しています。")
+                        ResultCode.INVALID_AMOUNT -> sender.sendMessage("金額が不正です。")
+                        else -> sender.sendMessage("銀行からの出金に失敗しました。")
+                    }
+                })
+                return@launch
+            }
+
+            // 2) Vault へ入金（失敗時は銀行へ返金）
+            val vaultRes = plugin.vault.deposit(uuid, amount)
+            if (vaultRes.code == ResultCode.SUCCESS) {
+                Bukkit.getScheduler().runTask(plugin, Runnable {
+                    sender.sendMessage("銀行から所持金に出金しました。銀行残高: ${StringFormat.money(bankRes.balance!!)}")
+                })
+            } else {
+                // 銀行へ戻す（補償）
+                plugin.bankService.deposit(uuid, amount, "Command", "RollbackVaultFailure", "Vault入金失敗の返金")
+                Bukkit.getScheduler().runTask(plugin, Runnable {
+                    sender.sendMessage("所持金への入金に失敗したため、銀行残高を元に戻しました。")
+                })
+            }
         }
         return true
     }

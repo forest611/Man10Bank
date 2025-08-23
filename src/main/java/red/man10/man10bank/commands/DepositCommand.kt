@@ -29,14 +29,32 @@ class DepositCommand(private val plugin: Man10Bank) : CommandExecutor {
         }
         val uuid = sender.uniqueId
         GlobalScope.launch {
-            val res = plugin.bankService.deposit(uuid, amount, "Command", "Deposit", "入金")
-            Bukkit.getScheduler().runTask(plugin, Runnable {
-                when (res.code) {
-                    ResultCode.SUCCESS -> sender.sendMessage("入金しました。残高: ${StringFormat.money(res.balance!!)}")
-                    ResultCode.INVALID_AMOUNT -> sender.sendMessage("入金額が不正です。")
-                    else -> sender.sendMessage("入金に失敗しました。")
-                }
-            })
+            // 1) Vault -> withdraw 所持金を差し引く
+            val vaultRes = plugin.vault.withdraw(uuid, amount)
+            if (vaultRes.code != ResultCode.SUCCESS) {
+                Bukkit.getScheduler().runTask(plugin, Runnable {
+                    when (vaultRes.code) {
+                        ResultCode.INSUFFICIENT_FUNDS -> sender.sendMessage("所持金が不足しています。")
+                        ResultCode.INVALID_AMOUNT -> sender.sendMessage("金額が不正です。")
+                        else -> sender.sendMessage("所持金からの引き落としに失敗しました。")
+                    }
+                })
+                return@launch
+            }
+
+            // 2) Bank -> deposit 銀行に入金（失敗時はVaultに返金）
+            val bankRes = plugin.bankService.deposit(uuid, amount, "Command", "VaultToBank", "所持金から入金")
+            if (bankRes.code == ResultCode.SUCCESS) {
+                Bukkit.getScheduler().runTask(plugin, Runnable {
+                    sender.sendMessage("所持金から銀行に入金しました。残高: ${StringFormat.money(bankRes.balance!!)}")
+                })
+            } else {
+                // 返金
+                plugin.vault.deposit(uuid, amount)
+                Bukkit.getScheduler().runTask(plugin, Runnable {
+                    sender.sendMessage("入金に失敗したため、所持金に返金しました。")
+                })
+            }
         }
         return true
     }
