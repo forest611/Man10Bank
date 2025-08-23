@@ -6,7 +6,8 @@ import org.bukkit.Bukkit
 import org.ktorm.database.Database
 import red.man10.man10bank.repository.BankRepository
 import red.man10.man10bank.repository.BankRepository.LogParams
-import red.man10.man10bank.util.StringFormat
+import red.man10.man10bank.shared.OperationResult
+import red.man10.man10bank.shared.ResultCode
 import java.math.BigDecimal
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -28,11 +29,6 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
 
     private val queue = Channel<Op>(Channel.UNLIMITED)
 
-    data class BankResult(
-        val ok: Boolean,
-        val message: String,
-        val balance: BigDecimal? = null,
-    )
 
     private sealed class Op {
         data class SetBalance(
@@ -41,7 +37,7 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
             val pluginName: String,
             val note: String,
             val displayNote: String?,
-            val result: CompletableDeferred<BankResult>
+            val result: CompletableDeferred<OperationResult>
         ) : Op()
         data class Deposit(
             val uuid: UUID,
@@ -49,7 +45,7 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
             val pluginName: String,
             val note: String,
             val displayNote: String?,
-            val result: CompletableDeferred<BankResult>
+            val result: CompletableDeferred<OperationResult>
         ) : Op()
 
         data class Withdraw(
@@ -58,7 +54,7 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
             val pluginName: String,
             val note: String,
             val displayNote: String?,
-            val result: CompletableDeferred<BankResult>
+            val result: CompletableDeferred<OperationResult>
         ) : Op()
 
         data class Transfer(
@@ -67,7 +63,7 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
             val toUuid: String,
             val toPlayer: String,
             val amount: BigDecimal,
-            val result: CompletableDeferred<BankResult>
+            val result: CompletableDeferred<OperationResult>
         ) : Op()
     }
 
@@ -95,8 +91,8 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
         pluginName: String,
         note: String,
         displayNote: String?,
-    ): BankResult {
-        val deferred = CompletableDeferred<BankResult>()
+    ): OperationResult {
+        val deferred = CompletableDeferred<OperationResult>()
         queue.send(Op.SetBalance(uuid, amount, pluginName, note, displayNote, deferred))
         return deferred.await()
     }
@@ -107,8 +103,8 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
         pluginName: String,
         note: String,
         displayNote: String?,
-    ): BankResult {
-        val deferred = CompletableDeferred<BankResult>()
+    ): OperationResult {
+        val deferred = CompletableDeferred<OperationResult>()
         queue.send(Op.Deposit(uuid, amount, pluginName, note, displayNote, deferred))
         return deferred.await()
     }
@@ -119,8 +115,8 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
         pluginName: String,
         note: String,
         displayNote: String?,
-    ): BankResult {
-        val deferred = CompletableDeferred<BankResult>()
+    ): OperationResult {
+        val deferred = CompletableDeferred<OperationResult>()
         queue.send(Op.Withdraw(uuid, amount, pluginName, note, displayNote, deferred))
         return deferred.await()
     }
@@ -131,8 +127,8 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
         toUuid: String,
         toPlayer: String,
         amount: BigDecimal,
-    ): BankResult {
-        val deferred = CompletableDeferred<BankResult>()
+    ): OperationResult {
+        val deferred = CompletableDeferred<OperationResult>()
         queue.send(Op.Transfer(fromUuid, fromPlayer, toUuid, toPlayer, amount, deferred))
         return deferred.await()
     }
@@ -146,7 +142,7 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
         val (uuid, amount, pluginName, note, displayNote, result) = op
         try {
             if (amount.signum() < 0) {
-                result.complete(BankResult(false, "残高は0以上である必要があります"))
+                result.complete(OperationResult(ResultCode.INVALID_AMOUNT))
                 return
             }
             val uuidStr = uuid.toString()
@@ -178,9 +174,9 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
                     )
                 )
             }
-            result.complete(BankResult(true, "残高を更新しました", next))
+            result.complete(OperationResult(ResultCode.SUCCESS, next))
         } catch (t: Throwable) {
-            result.complete(BankResult(false, "残高設定に失敗しました: ${t.message}"))
+            result.complete(OperationResult(ResultCode.FAILURE))
         }
     }
 
@@ -188,7 +184,7 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
         val (uuid, amount, pluginName, note, displayNote, result) = op
         try {
             if (amount.signum() <= 0) {
-                result.complete(BankResult(false, "入金額は正の数である必要があります"))
+                result.complete(OperationResult(ResultCode.INVALID_AMOUNT))
                 return
             }
             val uuidStr = uuid.toString()
@@ -203,9 +199,9 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
                     displayNote = displayNote ?: note,
                 )
             )
-            result.complete(BankResult(true, "入金に成功しました", next))
+            result.complete(OperationResult(ResultCode.SUCCESS, next))
         } catch (t: Throwable) {
-            result.complete(BankResult(false, "入金に失敗しました: ${t.message}"))
+            result.complete(OperationResult(ResultCode.FAILURE))
         }
     }
 
@@ -213,14 +209,14 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
         val (uuid, amount, pluginName, note, displayNote, result) = op
         try {
             if (amount.signum() <= 0) {
-                result.complete(BankResult(false, "出金額は正の数である必要があります"))
+                result.complete(OperationResult(ResultCode.INVALID_AMOUNT))
                 return
             }
             val uuidStr = uuid.toString()
             val playerName = Bukkit.getOfflinePlayer(uuid).name ?: ""
             val current = repository.getBalanceByUuid(uuidStr) ?: BigDecimal.ZERO
             if (current < amount) {
-                result.complete(BankResult(false, "残高が不足しています。現在残高: ${StringFormat.money(current)}"))
+                result.complete(OperationResult(ResultCode.INSUFFICIENT_FUNDS))
                 return
             }
             val next = repository.decreaseBalance(
@@ -233,9 +229,9 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
                     displayNote = displayNote ?: note,
                 )
             )
-            result.complete(BankResult(true, "出金に成功しました", next))
+            result.complete(OperationResult(ResultCode.SUCCESS, next))
         } catch (t: Throwable) {
-            result.complete(BankResult(false, "出金に失敗しました: ${t.message}"))
+            result.complete(OperationResult(ResultCode.FAILURE))
         }
     }
 
@@ -243,12 +239,12 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
         val (fromUuid, fromPlayer, toUuid, toPlayer, amount, result) = op
         try {
             if (amount.signum() <= 0) {
-                result.complete(BankResult(false, "送金額は正の数である必要があります"))
+                result.complete(OperationResult(ResultCode.INVALID_AMOUNT))
                 return
             }
             val fromBalance = repository.getBalanceByUuid(fromUuid) ?: BigDecimal.ZERO
             if (fromBalance < amount) {
-                result.complete(BankResult(false, "残高が不足しています。現在残高: ${StringFormat.money(fromBalance)}"))
+                result.complete(OperationResult(ResultCode.INSUFFICIENT_FUNDS))
                 return
             }
             // 同一ワーカー内で順次処理されるため、この範囲は擬似的にアトミック
@@ -273,9 +269,9 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
                 )
             )
             // 返却は送金者側の新残高を優先
-            result.complete(BankResult(true, "送金に成功しました", afterFrom))
+            result.complete(OperationResult(ResultCode.SUCCESS, afterFrom))
         } catch (t: Throwable) {
-            result.complete(BankResult(false, "送金に失敗しました: ${t.message}"))
+            result.complete(OperationResult(ResultCode.FAILURE))
         }
     }
 }
