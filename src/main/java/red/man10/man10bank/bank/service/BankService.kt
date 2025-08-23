@@ -242,33 +242,8 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
                 result.complete(OperationResult(ResultCode.INVALID_AMOUNT))
                 return
             }
-            val fromBalance = repository.getBalanceByUuid(fromUuid) ?: BigDecimal.ZERO
-            if (fromBalance < amount) {
-                result.complete(OperationResult(ResultCode.INSUFFICIENT_FUNDS))
-                return
-            }
-            // 同一ワーカー内で順次処理されるため、この範囲は擬似的にアトミック
-            val afterFrom = repository.decreaseBalance(
-                uuid = fromUuid,
-                player = fromPlayer,
-                amount = amount,
-                log = LogParams(
-                    pluginName = "Man10Bank",
-                    note = "RemittanceTo${toPlayer}",
-                    displayNote = "${toPlayer}へ送金",
-                )
-            )
-            repository.increaseBalance(
-                uuid = toUuid,
-                player = toPlayer,
-                amount = amount,
-                log = LogParams(
-                    pluginName = "Man10Bank",
-                    note = "RemittanceFrom${fromPlayer}",
-                    displayNote = "${fromPlayer}からの送金",
-                )
-            )
-            // 返却は送金者側の新残高を優先
+            // 単一トランザクションで原子的に処理
+            val afterFrom = repository.transfer(fromUuid, fromPlayer, toUuid, toPlayer, amount)
             result.complete(OperationResult(ResultCode.SUCCESS, afterFrom))
         } catch (t: Throwable) {
             result.complete(OperationResult(ResultCode.FAILURE))

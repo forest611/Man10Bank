@@ -96,4 +96,53 @@ class BankRepository(private val db: Database, private val serverName: String) {
             // date は DB 側の default now() を利用
         }
     }
+
+    /**
+     * 送金（from -> to）を単一トランザクションで行う。
+     * - from の残高不足で例外を投げ、全体をロールバック。
+     * - 戻り値は送金者の更新後残高。
+     */
+    fun transfer(
+        fromUuid: String,
+        fromPlayer: String,
+        toUuid: String,
+        toPlayer: String,
+        amount: BigDecimal,
+    ): BigDecimal {
+        require(amount.signum() > 0) { "amount は正の数である必要があります" }
+        return db.useTransaction {
+            val fromCurrent = getBalanceByUuid(fromUuid) ?: BigDecimal.ZERO
+            if (fromCurrent < amount) {
+                throw IllegalStateException("残高が不足しています。現在残高: ${'$'}fromCurrent")
+            }
+            val toCurrent = getBalanceByUuid(toUuid) ?: BigDecimal.ZERO
+            val fromNext = fromCurrent.subtract(amount)
+            val toNext = toCurrent.add(amount)
+
+            setBalance(fromUuid, fromPlayer, fromNext)
+            setBalance(toUuid, toPlayer, toNext)
+
+            logMoney(
+                uuid = fromUuid,
+                player = fromPlayer,
+                amount = amount.negate(),
+                deposit = false,
+                pluginName = "Man10Bank",
+                note = "RemittanceTo${'$'}toPlayer",
+                displayNote = "${'$'}toPlayerへ送金",
+                server = serverName,
+            )
+            logMoney(
+                uuid = toUuid,
+                player = toPlayer,
+                amount = amount,
+                deposit = true,
+                pluginName = "Man10Bank",
+                note = "RemittanceFrom${'$'}fromPlayer",
+                displayNote = "${'$'}fromPlayerからの送金",
+                server = serverName,
+            )
+            fromNext
+        }
+    }
 }
