@@ -5,7 +5,7 @@ import kotlinx.coroutines.channels.Channel
 import org.bukkit.Bukkit
 import org.ktorm.database.Database
 import red.man10.man10bank.repository.BankRepository
-import red.man10.man10bank.repository.LogParams
+import red.man10.man10bank.repository.BankRepository.LogParams
 import red.man10.man10bank.util.StringFormat
 import java.math.BigDecimal
 import java.util.UUID
@@ -18,12 +18,6 @@ import java.util.concurrent.Executors
  */
 class BankService(private val db: Database) {
 
-    data class BankResult(
-        val ok: Boolean,
-        val message: String,
-        val balance: BigDecimal? = null,
-    )
-
     private val repository = BankRepository(db)
 
     // 単一スレッドディスパッチャ（順序保証のため）
@@ -35,6 +29,12 @@ class BankService(private val db: Database) {
 
     // リクエストキュー（無制限）。必要に応じて容量制限を検討。
     private val queue = Channel<Op>(Channel.UNLIMITED)
+
+    data class BankResult(
+        val ok: Boolean,
+        val message: String,
+        val balance: BigDecimal? = null,
+    )
 
     private sealed class Op {
         data class SetBalance(
@@ -157,7 +157,7 @@ class BankService(private val db: Database) {
             val delta = amount.subtract(current)
             val next = if (delta.compareTo(BigDecimal.ZERO) == 0) {
                 current
-            } else if (delta.compareTo(BigDecimal.ZERO) > 0) {
+            } else if (delta > BigDecimal.ZERO) {
                 repository.increaseBalance(
                     uuid = uuidStr,
                     player = playerName,
@@ -221,7 +221,7 @@ class BankService(private val db: Database) {
             val uuidStr = uuid.toString()
             val playerName = Bukkit.getOfflinePlayer(uuid).name ?: ""
             val current = repository.getBalanceByUuid(uuidStr) ?: BigDecimal.ZERO
-            if (current.compareTo(amount) < 0) {
+            if (current < amount) {
                 result.complete(BankResult(false, "残高が不足しています。現在残高: ${StringFormat.money(current)}"))
                 return
             }
@@ -249,7 +249,7 @@ class BankService(private val db: Database) {
                 return
             }
             val fromBalance = repository.getBalanceByUuid(fromUuid) ?: BigDecimal.ZERO
-            if (fromBalance.compareTo(amount) < 0) {
+            if (fromBalance < amount) {
                 result.complete(BankResult(false, "残高が不足しています。現在残高: ${StringFormat.money(fromBalance)}"))
                 return
             }

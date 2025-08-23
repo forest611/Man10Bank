@@ -10,15 +10,6 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 /**
- * MoneyLog の付帯情報をまとめるパラメータ。
- */
-data class LogParams(
-    val pluginName: String,
-    val note: String,
-    val displayNote: String,
-)
-
-/**
  * 残高と入出金ログに関する最小限のリポジトリ。
  * - メインスレッドでは呼ばず、非同期で実行してください。
  */
@@ -27,6 +18,12 @@ class BankRepository(private val db: Database) {
     private val serverName: String =
         ((Bukkit.getPluginManager().getPlugin("Man10Bank") as? JavaPlugin)
             ?.config?.getString("serverName")) ?: ""
+
+    data class LogParams(
+        val pluginName: String,
+        val note: String,
+        val displayNote: String,
+    )
 
     fun getBalanceByUuid(uuid: String): BigDecimal? {
         return db.from(UserBank)
@@ -51,6 +48,16 @@ class BankRepository(private val db: Database) {
         }
     }
 
+    fun increaseBalance(uuid: String, player: String, amount: BigDecimal, log: LogParams): BigDecimal {
+        require(amount > BigDecimal.ZERO) { "amount は 0 以上である必要があります" }
+        return adjustBalance(uuid, player, amount, log)
+    }
+
+    fun decreaseBalance(uuid: String, player: String, amount: BigDecimal, log: LogParams): BigDecimal {
+        require(amount > BigDecimal.ZERO) { "amount は 0 以上である必要があります" }
+        return adjustBalance(uuid, player, amount.negate(), log)
+    }
+
     private fun adjustBalance(uuid: String, player: String, delta: BigDecimal, log: LogParams): BigDecimal {
         return db.useTransaction {
             val current = getBalanceByUuid(uuid) ?: BigDecimal.ZERO
@@ -69,16 +76,6 @@ class BankRepository(private val db: Database) {
             )
             next
         }
-    }
-
-    fun increaseBalance(uuid: String, player: String, amount: BigDecimal, log: LogParams): BigDecimal {
-        require(amount.signum() >= 0) { "amount は 0 以上である必要があります" }
-        return adjustBalance(uuid, player, amount, log)
-    }
-
-    fun decreaseBalance(uuid: String, player: String, amount: BigDecimal, log: LogParams): BigDecimal {
-        require(amount.signum() >= 0) { "amount は 0 以上である必要があります" }
-        return adjustBalance(uuid, player, amount.negate(), log)
     }
 
     private fun logMoney(
