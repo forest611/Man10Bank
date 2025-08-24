@@ -1,4 +1,4 @@
-package red.man10.man10bank.vault
+package red.man10.man10bank.service
 
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.Bukkit
@@ -7,7 +7,6 @@ import red.man10.man10bank.shared.OperationResult
 import red.man10.man10bank.shared.ResultCode
 import red.man10.man10bank.util.BigDecimalConverter
 import java.math.BigDecimal
-import java.math.RoundingMode
 import java.util.UUID
 
 class VaultEconomyService(

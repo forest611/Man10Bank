@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.ktorm.database.Database
+import red.man10.man10bank.service.BankService
 import red.man10.man10bank.shared.ResultCode
 
 class BankServiceTest {

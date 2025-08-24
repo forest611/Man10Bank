@@ -1,4 +1,4 @@
-package red.man10.man10bank.bank.service
+package red.man10.man10bank.service
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
