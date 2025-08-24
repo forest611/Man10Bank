@@ -7,7 +7,7 @@ import java.math.BigDecimal
 
 class UserEstateRepository(private val db: Database) {
 
-    data class EstateParams(
+    data class UserEstateParams(
         val uuid: String,
         val player: String,
         val vault: BigDecimal,
@@ -19,7 +19,7 @@ class UserEstateRepository(private val db: Database) {
         val crypto: BigDecimal,
     ){
         override fun equals(other: Any?): Boolean {
-            if (other !is EstateParams) return false
+            if (other !is UserEstateParams) return false
             return uuid == other.uuid &&
                     player == other.player &&
                     vault.compareTo(other.vault) == 0 &&
@@ -45,7 +45,7 @@ class UserEstateRepository(private val db: Database) {
     }
 
     //TODO: 成功/失敗/重複の判定をちゃんとする
-    fun addEstateHistory(params: EstateParams): Boolean {
+    fun addEstateHistory(params: UserEstateParams): Boolean {
         if (equalsLastEstate(params)) {
             return true
         }
@@ -77,14 +77,14 @@ class UserEstateRepository(private val db: Database) {
         return false
     }
 
-    private fun equalsLastEstate(params: EstateParams): Boolean {
+    private fun equalsLastEstate(params: UserEstateParams): Boolean {
         val lastEstateRecord = db.from(EstateTbl)
             .select()
             .where { EstateTbl.uuid eq params.uuid }
             .orderBy(EstateTbl.id.desc())
             .limit(1)
             .map { row ->
-                EstateParams(
+                UserEstateParams(
                     uuid = row[EstateTbl.uuid] ?: "",
                     player = row[EstateTbl.player] ?: "",
                     vault = row[EstateTbl.vault] ?: BigDecimal.ZERO,
