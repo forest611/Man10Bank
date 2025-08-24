@@ -95,14 +95,17 @@ test {
 // =========================
 // gradle deploy
 // - 生成されたJarを Paper サーバーの plugins ディレクトリへコピーします。
-// - 環境変数 DEPLOY_DIR または -PdeployDir=/path でコピー先を上書き可能。
-def defaultDeployDir = System.getenv('DEPLOY_DIR') ?: project.findProperty('deployDir') ?: "/Volumes/M2_1TB/Documents/minecraft/Paper_1_20_4/plugins"
+// - コピー先は環境変数 DEPLOY_DIR を設定して実行してください。
 tasks.register('deploy') {
     group = 'distribution'
     description = 'Builds shadowJar and copies it to the Paper plugins directory.'
     dependsOn tasks.shadowJar
     doLast {
-        def destDir = file(defaultDeployDir)
+        def deployDirEnv = System.getenv('DEPLOY_DIR')
+        if (deployDirEnv == null || deployDirEnv.trim().isEmpty()) {
+            throw new GradleException("環境変数 DEPLOY_DIR が未設定です。コピー先のPaper pluginsディレクトリを DEPLOY_DIR に設定してください。例: DEPLOY_DIR=/path/to/plugins gradle deploy")
+        }
+        def destDir = file(deployDirEnv)
         if (!destDir.exists()) {
             throw new GradleException("コピー先が存在しません: ${destDir}")
         }

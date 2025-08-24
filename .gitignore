@@ -121,3 +121,7 @@ run/
 
 # Local developer scripts (not tracked)
 /local-build-deploy.sh
+
+# Local env files
+.env
+.envrc
