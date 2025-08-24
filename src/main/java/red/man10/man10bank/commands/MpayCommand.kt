@@ -1,6 +1,5 @@
 package red.man10.man10bank.commands
 
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
@@ -36,7 +35,7 @@ class MpayCommand(private val plugin: Man10Bank) : CommandExecutor {
         }
         val fromUuid = sender.uniqueId.toString()
         val toUuid = target.uniqueId.toString()
-        GlobalScope.launch {
+        plugin.appScope.launch {
             val res = plugin.bankService.transfer(fromUuid, sender.name, toUuid, targetName, amount)
             Bukkit.getScheduler().runTask(plugin, Runnable {
                 if (res.code == ResultCode.SUCCESS) {

@@ -1,5 +1,9 @@
 package red.man10.man10bank
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import org.bukkit.Bukkit
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
@@ -14,11 +18,15 @@ class Man10Bank : JavaPlugin(), Listener {
 
     lateinit var bankService: BankService
     lateinit var vault: VaultEconomyService
+    lateinit var appScope: CoroutineScope
 
     override fun onEnable() {
         saveDefaultConfig()
         DatabaseProvider.init(this)
         logger.info("Man10Bank を有効化しました。DB初期化: ${DatabaseProvider.isInitialized()}")
+
+        // プラグイン全体で利用する構造化コルーチンスコープ（IO向け）
+        appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
         bankService = BankService(DatabaseProvider.database())
         val vault = VaultEconomyService.create()
@@ -37,6 +45,10 @@ class Man10Bank : JavaPlugin(), Listener {
     }
 
     override fun onDisable() {
+        // コルーチンをキャンセルしてジョブをクリーンアップ
+        if (this::appScope.isInitialized) {
+            appScope.cancel()
+        }
         bankService.shutdown()
         logger.info("Man10Bank を無効化しました。")
     }

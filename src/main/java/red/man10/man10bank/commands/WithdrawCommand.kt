@@ -1,6 +1,5 @@
 package red.man10.man10bank.commands
 
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
@@ -28,7 +27,7 @@ class WithdrawCommand(private val plugin: Man10Bank) : CommandExecutor {
             return true
         }
         val uuid = sender.uniqueId
-        GlobalScope.launch {
+        plugin.appScope.launch {
             // 1) Bank から出金（残高チェック含む）
             val bankRes = plugin.bankService.withdraw(uuid, amount, "Man10Bank", "PlayerWithdrawOnCommand", "/withdrawによる出金")
             if (bankRes.code != ResultCode.SUCCESS) {
