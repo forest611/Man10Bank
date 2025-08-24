@@ -89,3 +89,37 @@ build.dependsOn shadowJar
 test {
     useJUnitPlatform()
 }
+
+// =========================
+// Local deploy convenience
+// =========================
+// gradle deploy
+// - 生成されたJarを Paper サーバーの plugins ディレクトリへコピーします。
+// - 環境変数 DEPLOY_DIR または -PdeployDir=/path でコピー先を上書き可能。
+def defaultDeployDir = System.getenv('DEPLOY_DIR') ?: project.findProperty('deployDir') ?: "/Volumes/M2_1TB/Documents/minecraft/Paper_1_20_4/plugins"
+tasks.register('deploy') {
+    group = 'distribution'
+    description = 'Builds shadowJar and copies it to the Paper plugins directory.'
+    dependsOn tasks.shadowJar
+    doLast {
+        def destDir = file(defaultDeployDir)
+        if (!destDir.exists()) {
+            throw new GradleException("コピー先が存在しません: ${destDir}")
+        }
+        // 最新のJar（shadowJar出力）
+        def jarFile = tasks.shadowJar.archiveFile.get().asFile
+        if (!jarFile.exists()) {
+            throw new GradleException("JARが見つかりませんでした: ${jarFile}")
+        }
+        // 既存のMan10Bank-*.jarを削除（多重ロード防止）
+        destDir.listFiles(new FilenameFilter() {
+            boolean accept(File dir, String name) { name.startsWith('Man10Bank-') && name.endsWith('.jar') }
+        })?.each { it.delete() }
+        // コピー
+        copy {
+            from jarFile
+            into destDir
+        }
+        println "Copied ${jarFile.name} -> ${destDir}"
+    }
+}
