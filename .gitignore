@@ -118,3 +118,6 @@ run/
 !gradle-wrapper.jar
 # Avoid ignoring Man10Score.jar
 !libs/Man10Score.jar
+
+# Local developer scripts (not tracked)
+/local-build-deploy.sh
