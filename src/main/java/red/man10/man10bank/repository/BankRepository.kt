@@ -29,21 +29,6 @@ class BankRepository(private val db: Database, private val serverName: String) {
             .firstOrNull()
     }
 
-    fun setBalance(uuid: String, player: String, amount: BigDecimal) {
-        val normalized = amount.setScale(0, RoundingMode.DOWN)
-        val updated = db.update(UserBank) {
-            set(it.balance, normalized)
-            where { it.uuid eq uuid }
-        }
-        if (updated == 0) {
-            db.insert(UserBank) {
-                set(it.player, player)
-                set(it.uuid, uuid)
-                set(it.balance, normalized)
-            }
-        }
-    }
-
     fun increaseBalance(uuid: String, player: String, amount: BigDecimal, log: LogParams): BigDecimal {
         require(amount > BigDecimal.ZERO) { "amount は 0 以上である必要があります" }
         return adjustBalance(uuid, player, amount, log)
@@ -113,6 +98,21 @@ class BankRepository(private val db: Database, private val serverName: String) {
                 server = serverName,
             )
             next
+        }
+    }
+
+    private fun setBalance(uuid: String, player: String, amount: BigDecimal) {
+        val normalized = amount.setScale(0, RoundingMode.DOWN)
+        val updated = db.update(UserBank) {
+            set(it.balance, normalized)
+            where { it.uuid eq uuid }
+        }
+        if (updated == 0) {
+            db.insert(UserBank) {
+                set(it.player, player)
+                set(it.uuid, uuid)
+                set(it.balance, normalized)
+            }
         }
     }
 
