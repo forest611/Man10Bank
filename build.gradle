@@ -105,3 +105,11 @@ tasks.register('deploy') {
         }
     }
 }
+
+// Build実行時にオプションでデプロイも実行（-Pdeploy もしくは DEPLOY_ON_BUILD=true）
+def deployOnBuild = (project.hasProperty('deploy')
+        || 'true'.equalsIgnoreCase(System.getenv('DEPLOY_ON_BUILD'))
+        || '1' == System.getenv('DEPLOY_ON_BUILD'))
+if (deployOnBuild) {
+    tasks.named('build') { finalizedBy tasks.named('deploy') }
+}
