@@ -18,6 +18,10 @@ class UserEstateRepository(private val db: Database) {
         val shop: BigDecimal,
         val crypto: BigDecimal,
     ){
+        fun total(): BigDecimal {
+            return vault + bank + cash + estate + shop + crypto - loan
+        }
+
         override fun equals(other: Any?): Boolean {
             if (other !is UserEstateParams) return false
             return uuid == other.uuid &&
@@ -50,6 +54,21 @@ class UserEstateRepository(private val db: Database) {
             return true
         }
         val updated = db.update(EstateTbl) {
+            set(it.player, params.player)
+            set(it.vault, params.vault)
+            set(it.bank, params.bank)
+            set(it.cash, params.cash)
+            set(it.estate, params.estate)
+            set(it.loan, params.loan)
+            set(it.shop, params.shop)
+            set(it.crypto, params.crypto)
+            set(it.total, params.total())
+            where { it.uuid eq params.uuid }
+        }
+        if (updated < 0) {
+            return false
+        }
+        val inserted = db.insert(EstateTbl) {
             set(it.uuid, params.uuid)
             set(it.player, params.player)
             set(it.vault, params.vault)
@@ -59,22 +78,9 @@ class UserEstateRepository(private val db: Database) {
             set(it.loan, params.loan)
             set(it.shop, params.shop)
             set(it.crypto, params.crypto)
+            set(it.total, params.total())
         }
-        if (updated == 0) {
-            db.insert(EstateTbl) {
-                set(it.uuid, params.uuid)
-                set(it.player, params.player)
-                set(it.vault, params.vault)
-                set(it.bank, params.bank)
-                set(it.cash, params.cash)
-                set(it.estate, params.estate)
-                set(it.loan, params.loan)
-                set(it.shop, params.shop)
-                set(it.crypto, params.crypto)
-            }
-            return true
-        }
-        return false
+        return inserted == 1
     }
 
     private fun equalsLastEstate(params: UserEstateParams): Boolean {
