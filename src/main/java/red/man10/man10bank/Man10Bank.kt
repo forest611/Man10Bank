@@ -16,16 +16,15 @@ import red.man10.man10bank.vault.VaultEconomyService
 
 class Man10Bank : JavaPlugin(), Listener {
 
+    lateinit var appScope: CoroutineScope
     lateinit var bankService: BankService
     lateinit var vault: VaultEconomyService
-    lateinit var appScope: CoroutineScope
 
     override fun onEnable() {
         saveDefaultConfig()
         DatabaseProvider.init(this)
         logger.info("Man10Bank を有効化しました。DB初期化: ${DatabaseProvider.isInitialized()}")
 
-        // プラグイン全体で利用する構造化コルーチンスコープ（IO向け）
         appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
         bankService = BankService(DatabaseProvider.database())

@@ -94,15 +94,13 @@ test {
 // Local deploy convenience
 // =========================
 // gradle deploy
-// - ShellScript(local-build-deploy.sh)を呼び出して配布します（.env対応はシェル側）。
+// - ShellScript(local-deploy.sh)を呼び出して配布します（.env対応はシェル側）。
 tasks.register('deploy') {
     group = 'distribution'
-    description = 'shadowJarをビルドして、local-build-deploy.shを呼び出して配布します。'
+    description = 'shadowJarをビルドして、local-deploy.shを呼び出して配布します。'
     dependsOn tasks.shadowJar
     doLast {
-        exec {
-            commandLine 'sh', './local-build-deploy.sh', '--no-build'
-        }
+        exec { commandLine 'sh', './local-deploy.sh', '--no-build' }
     }
 }
 

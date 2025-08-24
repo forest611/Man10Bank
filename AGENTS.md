@@ -14,11 +14,11 @@
 - `gradle shadowJar`: Produce shaded plugin jar in `build/libs/` (no classifier).
 - Local run: copy `build/libs/Man10Bank-<version>.jar` to your Paper server `plugins/`, start server, verify load.
 - Config: edit `src/main/resources/config.yml` (or server-generated `plugins/Man10Bank/config.yml`).
-- 配布補助: `local-build-deploy.sh`（Git管理外）または `gradle deploy` を利用できます。
-  - .env で `DEPLOY_DIR=/path/to/paper/plugins` を設定（`.env.example` 参照）。環境変数での上書きも可。
-  - シェル: `sh ./local-build-deploy.sh`（ビルド＋コピーを実行）
-  - Gradle: `gradle deploy`（内部でシェルを呼び出し、既存Jar削除→コピーを実行）
-  - ビルドと同時に配布: `gradle clean build -Pdeploy`（または `DEPLOY_ON_BUILD=true gradle clean build`）
+ - 配布補助: `local-deploy.sh` または `gradle deploy` を利用できます。
+   - .env で `DEPLOY_DIR=/path/to/paper/plugins` を設定（`.env.example` 参照）。環境変数での上書きも可。
+   - シェル: `sh ./local-deploy.sh`（ビルド＋コピーを実行）
+   - Gradle: `gradle deploy`（内部でシェルを呼び出し、既存Jar削除→コピーを実行）
+   - ビルドと同時に配布: `gradle clean build -Pdeploy`（または `DEPLOY_ON_BUILD=true gradle clean build`）
 
 ## Coding Style & Naming Conventions
 - **Language**: Kotlin (preferred) targeting JVM 17; follow Official Kotlin Coding Conventions.

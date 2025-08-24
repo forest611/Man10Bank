@@ -126,6 +126,39 @@ revolving:              # リボルビングローン設定
 
 このプラグインのライセンスについては、LICENSEファイルを参照してください。
 
+## ローカルデプロイ（開発者向け）
+
+ビルドしたJARをローカルのPaperサーバー `plugins/` ディレクトリへコピーするための手段を用意しています。
+
+- 事前準備: ルートに `.env` を作成してコピー先を設定
+
+```
+DEPLOY_DIR=/path/to/your/paper/plugins
+```
+
+- 方法1（シェル）: スクリプトでビルド+配布
+
+```
+sh ./local-deploy.sh
+```
+
+- 方法2（Gradle）: タスクで配布のみ（ビルド済みJarをコピー）
+
+```
+gradle deploy
+```
+
+- 方法3（Gradle）: ビルド後に自動で配布（オプション）
+
+```
+gradle clean build -Pdeploy
+# もしくは環境変数で指定
+DEPLOY_ON_BUILD=true gradle clean build
+```
+
+いずれもコピー先の `plugins/` から既存の `Man10Bank-*.jar` を削除してから新しいJarを配置します。
+
+
 ## 開発者
 
 - [Man10 Project](https://man10.red)
