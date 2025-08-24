@@ -58,10 +58,8 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
         ) : Op()
 
         data class Transfer(
-            val fromUuid: String,
-            val fromPlayer: String,
-            val toUuid: String,
-            val toPlayer: String,
+            val fromUuid: UUID,
+            val toUuid: UUID,
             val amount: BigDecimal,
             val result: CompletableDeferred<OperationResult>
         ) : Op()
@@ -122,14 +120,12 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
     }
 
     suspend fun transfer(
-        fromUuid: String,
-        fromPlayer: String,
-        toUuid: String,
-        toPlayer: String,
+        fromUuid: UUID,
+        toUuid: UUID,
         amount: BigDecimal,
     ): OperationResult {
         val deferred = CompletableDeferred<OperationResult>()
-        queue.send(Op.Transfer(fromUuid, fromPlayer, toUuid, toPlayer, amount, deferred))
+        queue.send(Op.Transfer(fromUuid, toUuid, amount, deferred))
         return deferred.await()
     }
 
@@ -236,14 +232,17 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
     }
 
     private fun handleTransfer(op: Op.Transfer) {
-        val (fromUuid, fromPlayer, toUuid, toPlayer, amount, result) = op
+        val (fromUuid, toUuid, amount, result) = op
         try {
             if (amount.signum() <= 0) {
                 result.complete(OperationResult(ResultCode.INVALID_AMOUNT))
                 return
             }
-            // 単一トランザクションで原子的に処理
-            val afterFrom = repository.transfer(fromUuid, fromPlayer, toUuid, toPlayer, amount)
+            val fromUuidStr = fromUuid.toString()
+            val toUuidStr = toUuid.toString()
+            val fromPlayer = Bukkit.getOfflinePlayer(fromUuid).name ?: ""
+            val toPlayer = Bukkit.getOfflinePlayer(toUuid).name ?: ""
+            val afterFrom = repository.transfer(fromUuidStr, fromPlayer, toUuidStr, toPlayer, amount)
             result.complete(OperationResult(ResultCode.SUCCESS, afterFrom))
         } catch (t: Throwable) {
             result.complete(OperationResult(ResultCode.FAILURE))

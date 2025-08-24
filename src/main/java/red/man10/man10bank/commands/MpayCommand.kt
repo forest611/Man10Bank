@@ -28,18 +28,12 @@ class MpayCommand(private val plugin: Man10Bank) : CommandExecutor {
             sender.sendMessage("金額は正の数で指定してください。")
             return true
         }
-        val target: OfflinePlayer? = Bukkit.getOfflinePlayerIfCached(targetName) ?: Bukkit.getOfflinePlayer(targetName)
-        if (target == null || (target.uniqueId == null)) {
-            sender.sendMessage("対象プレイヤーが見つかりません。")
-            return true
-        }
-        val fromUuid = sender.uniqueId.toString()
-        val toUuid = target.uniqueId.toString()
+        val target: OfflinePlayer = Bukkit.getOfflinePlayer(targetName)
         plugin.appScope.launch {
-            val res = plugin.bankService.transfer(fromUuid, sender.name, toUuid, targetName, amount)
+            val res = plugin.bankService.transfer(sender.uniqueId, target.uniqueId, amount)
             Bukkit.getScheduler().runTask(plugin, Runnable {
                 if (res.code == ResultCode.SUCCESS) {
-                    sender.sendMessage("${targetName} へ ${StringFormat.money(amount)} を送金しました。残高: ${StringFormat.money(res.balance!!)}")
+                    sender.sendMessage("$targetName へ ${StringFormat.money(amount)} を送金しました。残高: ${StringFormat.money(res.balance!!)}")
                 } else {
                     sender.sendMessage(res.code.message)
                 }
