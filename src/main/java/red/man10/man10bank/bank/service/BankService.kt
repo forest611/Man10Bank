@@ -12,11 +12,6 @@ import java.math.BigDecimal
 import java.util.UUID
 import java.util.concurrent.Executors
 
-/**
- * Bank のサービス層。
- * - 依頼（入金/出金/送金）を単一ワーカーで順次処理し、発生順を担保する。
- * - DB I/O はこのワーカー内でのみ実行され、メインスレッドをブロックしない。
- */
 class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
 
     private val repository = BankRepository(db, serverName)

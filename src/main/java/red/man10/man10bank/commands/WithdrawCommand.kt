@@ -9,7 +9,6 @@ import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.shared.ResultCode
 import red.man10.man10bank.util.StringFormat
-import java.math.BigDecimal
 
 class WithdrawCommand(private val plugin: Man10Bank) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
@@ -28,7 +27,6 @@ class WithdrawCommand(private val plugin: Man10Bank) : CommandExecutor {
         }
         val uuid = sender.uniqueId
         plugin.appScope.launch {
-            // 1) Bank から出金（残高チェック含む）
             val bankRes = plugin.bankService.withdraw(uuid, amount, "Man10Bank", "PlayerWithdrawOnCommand", "/withdrawによる出金")
             if (bankRes.code != ResultCode.SUCCESS) {
                 Bukkit.getScheduler().runTask(plugin, Runnable {
@@ -37,7 +35,6 @@ class WithdrawCommand(private val plugin: Man10Bank) : CommandExecutor {
                 return@launch
             }
 
-            // 2) Vault へ入金（失敗時は銀行へ返金）
             val vaultRes = plugin.vault.deposit(uuid, amount)
             if (vaultRes.code == ResultCode.SUCCESS) {
                 Bukkit.getScheduler().runTask(plugin, Runnable {

@@ -28,7 +28,6 @@ class DepositCommand(private val plugin: Man10Bank) : CommandExecutor {
         }
         val uuid = sender.uniqueId
         plugin.appScope.launch {
-            // 1) Vault -> withdraw 所持金を差し引く
             val vaultRes = plugin.vault.withdraw(uuid, amount)
             if (vaultRes.code != ResultCode.SUCCESS) {
                 Bukkit.getScheduler().runTask(plugin, Runnable {
@@ -37,7 +36,6 @@ class DepositCommand(private val plugin: Man10Bank) : CommandExecutor {
                 return@launch
             }
 
-            // 2) Bank -> deposit 銀行に入金（失敗時はVaultに返金）
             val bankRes = plugin.bankService.deposit(uuid, amount, "Man10Bank", "PlayerDepositOnCommand", "/depositによる入金")
             if (bankRes.code == ResultCode.SUCCESS) {
                 Bukkit.getScheduler().runTask(plugin, Runnable {

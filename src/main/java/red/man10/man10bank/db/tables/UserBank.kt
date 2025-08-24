@@ -2,9 +2,6 @@ package red.man10.man10bank.db.tables
 
 import org.ktorm.schema.*
 
-/**
- * user_bank テーブル
- */
 object UserBank : Table<Nothing>("user_bank") {
     val id = int("id").primaryKey()
     val player = varchar("player")

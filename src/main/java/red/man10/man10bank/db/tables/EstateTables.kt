@@ -2,9 +2,6 @@ package red.man10.man10bank.db.tables
 
 import org.ktorm.schema.*
 
-/**
- * estate_tbl / estate_history_tbl / server_estate_history テーブル
- */
 object EstateTbl : Table<Nothing>("estate_tbl") {
     val id = int("id").primaryKey()
     val uuid = varchar("uuid")

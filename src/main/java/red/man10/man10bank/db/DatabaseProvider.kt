@@ -3,10 +3,6 @@ package red.man10.man10bank.db
 import org.bukkit.plugin.java.JavaPlugin
 import org.ktorm.database.Database
 
-/**
- * Ktorm の Database を初期化・保持するプロバイダ。
- * - 設定は config.yml の mysql セクションを利用
- */
 object DatabaseProvider {
     @Volatile
     private var db: Database? = null
@@ -37,7 +33,6 @@ object DatabaseProvider {
             pass = mysql.getString("pass") ?: "",
         )
 
-        // ドライバは Paper 同梱の com.mysql.cj.jdbc.Driver を想定
         db = Database.connect(
             url = conf.jdbcUrl,
             driver = "com.mysql.cj.jdbc.Driver",

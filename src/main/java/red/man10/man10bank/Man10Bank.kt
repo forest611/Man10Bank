@@ -36,7 +36,6 @@ class Man10Bank : JavaPlugin(), Listener {
             this.vault = vault
         }
 
-        // コマンド登録
         getCommand("deposit")?.setExecutor(DepositCommand(this))
         getCommand("withdraw")?.setExecutor(WithdrawCommand(this))
         getCommand("mpay")?.setExecutor(MpayCommand(this))
@@ -44,7 +43,6 @@ class Man10Bank : JavaPlugin(), Listener {
     }
 
     override fun onDisable() {
-        // コルーチンをキャンセルしてジョブをクリーンアップ
         if (this::appScope.isInitialized) {
             appScope.cancel()
         }

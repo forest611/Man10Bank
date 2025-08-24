@@ -1,7 +1,5 @@
 package red.man10.man10bank.repository
 
-import org.bukkit.Bukkit
-import org.bukkit.plugin.java.JavaPlugin
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import red.man10.man10bank.db.tables.MoneyLog
@@ -9,10 +7,6 @@ import red.man10.man10bank.db.tables.UserBank
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-/**
- * 残高と入出金ログに関する最小限のリポジトリ。
- * - メインスレッドでは呼ばず、非同期で実行してください。
- */
 class BankRepository(private val db: Database, private val serverName: String) {
 
     data class LogParams(

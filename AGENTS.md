@@ -26,6 +26,7 @@
 - **Names**: `UpperCamelCase` for classes, `lowerCamelCase` for functions/props, `UPPER_SNAKE_CASE` for constants.
 - **Packages**: `red.man10.man10bank.*`.
 - **Resources**: Keep `plugin.yml` commands/permissions in sync with code.
+- **コメント**: 原則ソースコードのコメントは記述しないでください。
 - Linting/formatting: if using ktlint/Spotless locally, run before pushing.
 
 ## Testing Guidelines
@@ -45,7 +46,7 @@
 - Maintain DB compatibility and provide safe migrations in `src/main/sql`.
 
 ## Language Policy / 言語ポリシー
-- Codexの回答、PR/Issueでの議論、ソースコード内コメントは日本語で記述してください。
+- Codexの回答、PR/Issueでの議論は日本語で記述してください。
 - 本プロジェクトの開発者およびプロダクト利用者はいずれも日本人であることを前提とします。必要に応じて外部公開向けに英語を併記してください。
 - 命名は英語（変数・メソッド・クラス）、コメントとユーザー向け文言は自然な日本語を推奨します。
 
