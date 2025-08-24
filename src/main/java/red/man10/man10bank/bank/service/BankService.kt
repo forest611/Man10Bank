@@ -29,7 +29,6 @@ class BankService(db: Database, serverName: String = Bukkit.getServer().name) {
 
     private val queue = Channel<Op>(Channel.UNLIMITED)
 
-
     private sealed class Op {
         data class SetBalance(
             val uuid: UUID,
