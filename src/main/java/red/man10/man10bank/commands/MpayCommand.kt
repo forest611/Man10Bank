@@ -10,7 +10,6 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.shared.ResultCode
-import red.man10.man10bank.shared.errorMessage
 import red.man10.man10bank.util.StringFormat
 import java.math.BigDecimal
 
@@ -43,8 +42,7 @@ class MpayCommand(private val plugin: Man10Bank) : CommandExecutor {
                 if (res.code == ResultCode.SUCCESS) {
                     sender.sendMessage("${targetName} へ ${StringFormat.money(amount)} を送金しました。残高: ${StringFormat.money(res.balance!!)}")
                 } else {
-                    val msg = res.code.errorMessage() ?: "送金に失敗しました。"
-                    sender.sendMessage(msg)
+                    sender.sendMessage(res.code.message)
                 }
             })
         }

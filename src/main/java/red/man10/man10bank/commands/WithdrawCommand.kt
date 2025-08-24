@@ -9,7 +9,6 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.shared.ResultCode
-import red.man10.man10bank.shared.errorMessage
 import red.man10.man10bank.util.StringFormat
 import java.math.BigDecimal
 
@@ -31,11 +30,10 @@ class WithdrawCommand(private val plugin: Man10Bank) : CommandExecutor {
         val uuid = sender.uniqueId
         GlobalScope.launch {
             // 1) Bank から出金（残高チェック含む）
-            val bankRes = plugin.bankService.withdraw(uuid, amount, "Command", "BankToVault", "銀行から出金")
+            val bankRes = plugin.bankService.withdraw(uuid, amount, "Man10Bank", "PlayerWithdrawOnCommand", "/withdrawによる出金")
             if (bankRes.code != ResultCode.SUCCESS) {
                 Bukkit.getScheduler().runTask(plugin, Runnable {
-                    val msg = bankRes.code.errorMessage() ?: "銀行からの出金に失敗しました。"
-                    sender.sendMessage(msg)
+                    sender.sendMessage(bankRes.code.message)
                 })
                 return@launch
             }
@@ -50,8 +48,7 @@ class WithdrawCommand(private val plugin: Man10Bank) : CommandExecutor {
                 // 銀行へ戻す（補償）
                 plugin.bankService.deposit(uuid, amount, "Command", "RollbackVaultFailure", "Vault入金失敗の返金")
                 Bukkit.getScheduler().runTask(plugin, Runnable {
-                    val msg = vaultRes.code.errorMessage() ?: "所持金への入金に失敗しました。"
-                    sender.sendMessage(msg)
+                    sender.sendMessage(vaultRes.code.message)
                     sender.sendMessage("所持金への入金に失敗したため、銀行残高を元に戻しました。")
                 })
             }

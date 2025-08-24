@@ -7,13 +7,13 @@ import java.math.BigDecimal
  * - 結果の区分は ResultCode に集約
  * - 付随情報として新残高などの数値を返す場合は balance を使用
  */
-enum class ResultCode {
-    SUCCESS,
-    INVALID_AMOUNT,
-    INSUFFICIENT_FUNDS,
-    PROVIDER_UNAVAILABLE,
-    OVERFLOW,
-    FAILURE,
+enum class ResultCode(val message: String) {
+    SUCCESS("成功"),
+    INVALID_AMOUNT("金額が不正です"),
+    INSUFFICIENT_FUNDS("残高が不足しています"),
+    PROVIDER_UNAVAILABLE("外部プロバイダーが利用できません"),
+    OVERFLOW("金額が上限を超えています"),
+    FAILURE("処理に失敗しました"),
 }
 
 /**
@@ -24,16 +24,3 @@ data class OperationResult(
     val balance: BigDecimal? = null,
 )
 
-/**
- * ResultCode に対応するデフォルトのエラーメッセージを返します。
- * - 成功時 (SUCCESS) は null を返します（エラーなし）。
- * - ユーザー向けの自然な日本語で統一しています。
- */
-fun ResultCode.errorMessage(): String? = when (this) {
-    ResultCode.SUCCESS -> null
-    ResultCode.INVALID_AMOUNT -> "金額が不正です。"
-    ResultCode.INSUFFICIENT_FUNDS -> "残高が不足しています。"
-    ResultCode.PROVIDER_UNAVAILABLE -> "外部プロバイダーが利用できません。"
-    ResultCode.OVERFLOW -> "金額が上限を超えています。"
-    ResultCode.FAILURE -> "処理に失敗しました。"
-}
