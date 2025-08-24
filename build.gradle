@@ -95,13 +95,41 @@ test {
 // =========================
 // gradle deploy
 // - 生成されたJarを Paper サーバーの plugins ディレクトリへコピーします。
-// - コピー先は環境変数 DEPLOY_DIR を設定して実行してください。
+// - コピー先は環境変数 DEPLOY_DIR もしくはプロジェクトルートの `.env` で設定してください。
+//   - .env 例: DEPLOY_DIR=/path/to/paper/plugins
+//   - 環境変数が優先され、未設定の場合に .env を参照します。
+
+// 簡易 .env ローダー（key=value, #コメント, 文字列の両端のクォートは除去）
+def loadDotenvVar = { String key ->
+    try {
+        def f = file('.env')
+        if (!f.exists()) return null
+        def val = null
+        f.eachLine { line ->
+            if (val != null) return // continue-like
+            def t = line.trim()
+            if (t.isEmpty() || t.startsWith('#')) return
+            def idx = t.indexOf('=')
+            if (idx <= 0) return
+            def k = t.substring(0, idx).trim()
+            if (k != key) return
+            def v = t.substring(idx + 1).trim()
+            if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+                v = v.substring(1, v.length() - 1)
+            }
+            val = v
+        }
+        return val
+    } catch (ignored) {
+        return null
+    }
+}
 tasks.register('deploy') {
     group = 'distribution'
     description = 'Builds shadowJar and copies it to the Paper plugins directory.'
     dependsOn tasks.shadowJar
     doLast {
-        def deployDirEnv = System.getenv('DEPLOY_DIR')
+        def deployDirEnv = System.getenv('DEPLOY_DIR') ?: loadDotenvVar('DEPLOY_DIR')
         if (deployDirEnv == null || deployDirEnv.trim().isEmpty()) {
             throw new GradleException("環境変数 DEPLOY_DIR が未設定です。コピー先のPaper pluginsディレクトリを DEPLOY_DIR に設定してください。例: DEPLOY_DIR=/path/to/plugins gradle deploy")
         }

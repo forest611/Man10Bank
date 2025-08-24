@@ -15,11 +15,11 @@
 - Local run: copy `build/libs/Man10Bank-<version>.jar` to your Paper server `plugins/`, start server, verify load.
 - Config: edit `src/main/resources/config.yml` (or server-generated `plugins/Man10Bank/config.yml`).
  - 配布補助: `gradle deploy` でビルド＋コピーを一括実行できます。
-   - 事前に環境変数 `DEPLOY_DIR` に Paper の `plugins` ディレクトリを設定してください。
-     - 例: `export DEPLOY_DIR=/path/to/paper/plugins`
+   - コピー先は以下のいずれかで指定します（環境変数が優先）。
+     1) シェルで `export DEPLOY_DIR=/path/to/paper/plugins`
+     2) ルートの `.env` に `DEPLOY_DIR=/path/to/paper/plugins` を記述（`.env.example` を参考に作成）
    - 実行: `gradle deploy`
    - 既存の `Man10Bank-*.jar` を削除してから新Jarをコピーします。
- - 環境変数の設定: ルートに `.env.example` を用意しています。`.env` にコピーして `source .env` で読み込めます。
 
 ## Coding Style & Naming Conventions
 - **Language**: Kotlin (preferred) targeting JVM 17; follow Official Kotlin Coding Conventions.
