@@ -43,6 +43,7 @@ dependencies {
     // Testing
     testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit5:${kotlinVersion}"
+    testImplementation "com.h2database:h2:2.2.224"
 }
 
 def targetJavaVersion = 17

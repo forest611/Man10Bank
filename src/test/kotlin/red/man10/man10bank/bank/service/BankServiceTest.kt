@@ -1,0 +1,117 @@
+package red.man10.man10bank.bank.service
+
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.ktorm.database.Database
+import red.man10.man10bank.shared.ResultCode
+import java.sql.Connection
+import java.util.UUID
+
+class BankServiceTest {
+
+    private lateinit var db: Database
+    private lateinit var service: BankService
+
+    @BeforeEach
+    fun setUp() {
+        db = Database.connect(
+            url = "jdbc:h2:mem:bank;MODE=MySQL;DB_CLOSE_DELAY=-1",
+            driver = "org.h2.Driver",
+        )
+        // 最小限のテーブルを作成
+        db.useConnection { c ->
+            val st = c.createStatement()
+            st.addBatch(
+                """
+                CREATE TABLE user_bank (
+                  id INT AUTO_INCREMENT PRIMARY KEY,
+                  player VARCHAR(16),
+                  uuid VARCHAR(36),
+                  balance DECIMAL
+                );
+                """.trimIndent()
+            )
+            st.addBatch(
+                """
+                CREATE TABLE money_log (
+                  id INT AUTO_INCREMENT PRIMARY KEY,
+                  player VARCHAR(16),
+                  uuid VARCHAR(36),
+                  plugin_name VARCHAR(16),
+                  amount DECIMAL,
+                  note VARCHAR(64),
+                  display_note VARCHAR(64),
+                  server VARCHAR(16),
+                  deposit BOOLEAN,
+                  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                """.trimIndent()
+            )
+            st.executeBatch()
+            st.close()
+        }
+        // Bukkit依存を避けるため、serverNameのみ渡す
+        service = BankService(db, serverName = "test")
+    }
+
+    @AfterEach
+    fun tearDown() {
+        service.shutdown()
+        db.useConnection { it.createStatement().use { st -> st.execute("DROP ALL OBJECTS") } }
+    }
+
+    @Test
+    @DisplayName("getBalance: 未登録UUIDはnullを返す")
+    fun getBalance_returnsNull_whenUnknown() = runBlocking {
+        val uuid = UUID.randomUUID()
+        val bal = service.getBalance(uuid)
+        assertNull(bal)
+    }
+
+    @Test
+    @DisplayName("deposit: 0以下の金額はINVALID_AMOUNT")
+    fun deposit_invalidAmount_returnsInvalid() = runBlocking {
+        val uuid = UUID.randomUUID()
+        val res0 = service.deposit(uuid, 0.toBigDecimal(), "Test", "Deposit", null)
+        val resNeg = service.deposit(uuid, (-10).toBigDecimal(), "Test", "Deposit", null)
+        assertEquals(ResultCode.INVALID_AMOUNT, res0.code)
+        assertEquals(ResultCode.INVALID_AMOUNT, resNeg.code)
+    }
+
+    @Test
+    @DisplayName("withdraw: 0以下の金額はINVALID_AMOUNT")
+    fun withdraw_invalidAmount_returnsInvalid() = runBlocking {
+        val uuid = UUID.randomUUID()
+        val res0 = service.withdraw(uuid, 0.toBigDecimal(), "Test", "Withdraw", null)
+        val resNeg = service.withdraw(uuid, (-10).toBigDecimal(), "Test", "Withdraw", null)
+        assertEquals(ResultCode.INVALID_AMOUNT, res0.code)
+        assertEquals(ResultCode.INVALID_AMOUNT, resNeg.code)
+    }
+
+    // 残高不足の分岐は Bukkit の OfflinePlayer 参照前に取得できないため、
+    // このテストではカバーしません（MockBukkit 等の導入で対応可能）。
+
+    @Test
+    @DisplayName("setBalance: 負の値はINVALID_AMOUNT")
+    fun setBalance_negative_returnsInvalid() = runBlocking {
+        val uuid = UUID.randomUUID()
+        val res = service.setBalance(uuid, (-1).toBigDecimal(), "Test", "Set", null)
+        assertEquals(ResultCode.INVALID_AMOUNT, res.code)
+    }
+
+    @Test
+    @DisplayName("transfer: 0以下の金額はINVALID_AMOUNT")
+    fun transfer_invalidAmount_returnsInvalid() = runBlocking {
+        val from = UUID.randomUUID()
+        val to = UUID.randomUUID()
+        val res0 = service.transfer(from, to, 0.toBigDecimal())
+        val resNeg = service.transfer(from, to, (-5).toBigDecimal())
+        assertEquals(ResultCode.INVALID_AMOUNT, res0.code)
+        assertEquals(ResultCode.INVALID_AMOUNT, resNeg.code)
+    }
+}
