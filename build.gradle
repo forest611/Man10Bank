@@ -22,6 +22,7 @@ repositories {
         url = "https://oss.sonatype.org/content/groups/public/"
     }
     maven { url 'https://jitpack.io' }
+    maven { url 'https://repo.papermc.io/repository/maven-public/' }
 }
 
 dependencies {
@@ -44,6 +45,7 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit5:${kotlinVersion}"
     testImplementation "com.h2database:h2:2.2.224"
+    testImplementation 'com.github.seeseemelk:MockBukkit-v1.20:3.9.0'
 }
 
 def targetJavaVersion = 17
