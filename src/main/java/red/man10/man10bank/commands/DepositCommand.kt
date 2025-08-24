@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.man10bank.Man10Bank
 import red.man10.man10bank.shared.ResultCode
+import red.man10.man10bank.shared.errorMessage
 import red.man10.man10bank.util.StringFormat
 import java.math.BigDecimal
 
@@ -33,11 +34,8 @@ class DepositCommand(private val plugin: Man10Bank) : CommandExecutor {
             val vaultRes = plugin.vault.withdraw(uuid, amount)
             if (vaultRes.code != ResultCode.SUCCESS) {
                 Bukkit.getScheduler().runTask(plugin, Runnable {
-                    when (vaultRes.code) {
-                        ResultCode.INSUFFICIENT_FUNDS -> sender.sendMessage("所持金が不足しています。")
-                        ResultCode.INVALID_AMOUNT -> sender.sendMessage("金額が不正です。")
-                        else -> sender.sendMessage("所持金からの引き落としに失敗しました。")
-                    }
+                    val msg = vaultRes.code.errorMessage() ?: "所持金からの引き落としに失敗しました。"
+                    sender.sendMessage(msg)
                 })
                 return@launch
             }
@@ -52,6 +50,8 @@ class DepositCommand(private val plugin: Man10Bank) : CommandExecutor {
                 // 返金
                 plugin.vault.deposit(uuid, amount)
                 Bukkit.getScheduler().runTask(plugin, Runnable {
+                    val msg = bankRes.code.errorMessage() ?: "入金に失敗しました。"
+                    sender.sendMessage(msg)
                     sender.sendMessage("入金に失敗したため、所持金に返金しました。")
                 })
             }
