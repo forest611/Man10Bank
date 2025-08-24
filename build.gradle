@@ -94,63 +94,14 @@ test {
 // Local deploy convenience
 // =========================
 // gradle deploy
-// - 生成されたJarを Paper サーバーの plugins ディレクトリへコピーします。
-// - コピー先は環境変数 DEPLOY_DIR もしくはプロジェクトルートの `.env` で設定してください。
-//   - .env 例: DEPLOY_DIR=/path/to/paper/plugins
-//   - 環境変数が優先され、未設定の場合に .env を参照します。
-
-// 簡易 .env ローダー（key=value, #コメント, 文字列の両端のクォートは除去）
-def loadDotenvVar = { String key ->
-    try {
-        def f = file('.env')
-        if (!f.exists()) return null
-        def val = null
-        f.eachLine { line ->
-            if (val != null) return // continue-like
-            def t = line.trim()
-            if (t.isEmpty() || t.startsWith('#')) return
-            def idx = t.indexOf('=')
-            if (idx <= 0) return
-            def k = t.substring(0, idx).trim()
-            if (k != key) return
-            def v = t.substring(idx + 1).trim()
-            if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
-                v = v.substring(1, v.length() - 1)
-            }
-            val = v
-        }
-        return val
-    } catch (ignored) {
-        return null
-    }
-}
+// - ShellScript(local-build-deploy.sh)を呼び出して配布します（.env対応はシェル側）。
 tasks.register('deploy') {
     group = 'distribution'
-    description = 'Builds shadowJar and copies it to the Paper plugins directory.'
+    description = 'shadowJarをビルドして、local-build-deploy.shを呼び出して配布します。'
     dependsOn tasks.shadowJar
     doLast {
-        def deployDirEnv = System.getenv('DEPLOY_DIR') ?: loadDotenvVar('DEPLOY_DIR')
-        if (deployDirEnv == null || deployDirEnv.trim().isEmpty()) {
-            throw new GradleException("環境変数 DEPLOY_DIR が未設定です。コピー先のPaper pluginsディレクトリを DEPLOY_DIR に設定してください。例: DEPLOY_DIR=/path/to/plugins gradle deploy")
+        exec {
+            commandLine 'sh', './local-build-deploy.sh', '--no-build'
         }
-        def destDir = file(deployDirEnv)
-        if (!destDir.exists()) {
-            throw new GradleException("コピー先が存在しません: ${destDir}")
-        }
-        // 最新のJar（shadowJar出力）
-        def jarFile = tasks.shadowJar.archiveFile.get().asFile
-        if (!jarFile.exists()) {
-            throw new GradleException("JARが見つかりませんでした: ${jarFile}")
-        }
-        // 既存のMan10Bank-*.jarを削除（多重ロード防止）
-        destDir.listFiles(new FilenameFilter() {
-            boolean accept(File dir, String name) { name.startsWith('Man10Bank-') && name.endsWith('.jar') }
-        })?.each { it.delete() }
-        // コピー
-        copy {
-            from jarFile
-            into destDir
-        }
-        println "Copied ${jarFile.name} -> ${destDir}"
     }
 }
