@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.ktorm.database.Database
 import red.man10.man10bank.shared.ResultCode
@@ -113,5 +114,55 @@ class BankServiceTest {
         val resNeg = service.transfer(from, to, (-5).toBigDecimal())
         assertEquals(ResultCode.INVALID_AMOUNT, res0.code)
         assertEquals(ResultCode.INVALID_AMOUNT, resNeg.code)
+    }
+
+    // ============ MockBukkit を用いた追加テスト（依存が無い環境ではスキップ） ============
+    private fun mockBukkitAvailable(): Boolean = try {
+        Class.forName("be.seeseemelk.mockbukkit.MockBukkit"); true
+    } catch (_: Throwable) { false }
+
+    private suspend fun <T> withMockBukkit(block: suspend (server: Any) -> T): T {
+        val clazz = Class.forName("be.seeseemelk.mockbukkit.MockBukkit")
+        val mock = clazz.getMethod("mock").invoke(null)
+        return try { block(mock) } finally { clazz.getMethod("unmock").invoke(null) }
+    }
+
+    @Test
+    @DisplayName("withdraw: 残高不足はINSUFFICIENT_FUNDS（MockBukkit）")
+    fun withdraw_insufficientFunds_withMock_returnsInsufficient() = runBlocking {
+        assumeTrue(mockBukkitAvailable(), "MockBukkit がクラスパスにありません。build.gradle に依存を追加してください。")
+        withMockBukkit { server ->
+            val serverClazz = Class.forName("be.seeseemelk.mockbukkit.ServerMock")
+            val addPlayer = serverClazz.getMethod("addPlayer", String::class.java)
+            val player = addPlayer.invoke(server, "Alice")
+            val uuid = player.javaClass.getMethod("getUniqueId").invoke(player) as UUID
+            val res = service.withdraw(uuid, 100.toBigDecimal(), "Test", "Withdraw", null)
+            assertEquals(ResultCode.INSUFFICIENT_FUNDS, res.code)
+        }
+    }
+
+    @Test
+    @DisplayName("transfer: 正常系（送金成功でfrom残高が減る）（MockBukkit）")
+    fun transfer_success_withMock_updatesBalances() = runBlocking {
+        assumeTrue(mockBukkitAvailable(), "MockBukkit がクラスパスにありません。build.gradle に依存を追加してください。")
+        withMockBukkit { server ->
+            val serverClazz = Class.forName("be.seeseemelk.mockbukkit.ServerMock")
+            val addPlayer = serverClazz.getMethod("addPlayer", String::class.java)
+            val from = addPlayer.invoke(server, "FromUser")
+            val to = addPlayer.invoke(server, "ToUser")
+            val fromId = from.javaClass.getMethod("getUniqueId").invoke(from) as UUID
+            val toId = to.javaClass.getMethod("getUniqueId").invoke(to) as UUID
+
+            val dep = service.deposit(fromId, 1000.toBigDecimal(), "Test", "Deposit", null)
+            assertEquals(ResultCode.SUCCESS, dep.code)
+
+            val res = service.transfer(fromId, toId, 300.toBigDecimal())
+            assertEquals(ResultCode.SUCCESS, res.code)
+
+            val fromBal = service.getBalance(fromId)
+            val toBal = service.getBalance(toId)
+            assertEquals(700.toBigDecimal(), fromBal)
+            assertEquals(300.toBigDecimal(), toBal)
+        }
     }
 }
