@@ -19,7 +19,7 @@ object DatabaseProvider {
         val pass: String,
     ) {
         val jdbcUrl: String =
-            "jdbc:mysql://$$host:$port/$db?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&serverTimezone=UTC"
+            "jdbc:mysql://$host:$port/$db?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&serverTimezone=UTC"
     }
 
     fun init(plugin: JavaPlugin) {
