@@ -1,17 +1,16 @@
 package red.man10.man10bank.bank.service
 
+import be.seeseemelk.mockbukkit.MockBukkit
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.ktorm.database.Database
 import red.man10.man10bank.shared.ResultCode
-import java.sql.Connection
-import java.util.UUID
+import java.util.*
 
 class BankServiceTest {
 
@@ -75,6 +74,16 @@ class BankServiceTest {
     }
 
     @Test
+    @DisplayName("getBalance: 登録済UUIDは残高を返す")
+    fun getBalance_returnsBalance_whenKnown() = runBlocking {
+        val uuid = UUID.randomUUID()
+        val dep = service.deposit(uuid, 500.toBigDecimal(), "Test", "Deposit", null)
+        assertEquals(ResultCode.SUCCESS, dep.code)
+        val bal = service.getBalance(uuid)
+        assertEquals(500.toBigDecimal(), bal)
+    }
+
+    @Test
     @DisplayName("deposit: 0以下の金額はINVALID_AMOUNT")
     fun deposit_invalidAmount_returnsInvalid() = runBlocking {
         val uuid = UUID.randomUUID()
@@ -93,9 +102,6 @@ class BankServiceTest {
         assertEquals(ResultCode.INVALID_AMOUNT, res0.code)
         assertEquals(ResultCode.INVALID_AMOUNT, resNeg.code)
     }
-
-    // 残高不足の分岐は Bukkit の OfflinePlayer 参照前に取得できないため、
-    // このテストではカバーしません（MockBukkit 等の導入で対応可能）。
 
     @Test
     @DisplayName("setBalance: 負の値はINVALID_AMOUNT")
@@ -116,42 +122,29 @@ class BankServiceTest {
         assertEquals(ResultCode.INVALID_AMOUNT, resNeg.code)
     }
 
-    // ============ MockBukkit を用いた追加テスト（依存が無い環境ではスキップ） ============
-    private fun mockBukkitAvailable(): Boolean = try {
-        Class.forName("be.seeseemelk.mockbukkit.MockBukkit"); true
-    } catch (_: Throwable) { false }
-
-    private suspend fun <T> withMockBukkit(block: suspend (server: Any) -> T): T {
-        val clazz = Class.forName("be.seeseemelk.mockbukkit.MockBukkit")
-        val mock = clazz.getMethod("mock").invoke(null)
-        return try { block(mock) } finally { clazz.getMethod("unmock").invoke(null) }
-    }
-
     @Test
     @DisplayName("withdraw: 残高不足はINSUFFICIENT_FUNDS（MockBukkit）")
     fun withdraw_insufficientFunds_withMock_returnsInsufficient() = runBlocking {
-        assumeTrue(mockBukkitAvailable(), "MockBukkit がクラスパスにありません。build.gradle に依存を追加してください。")
-        withMockBukkit { server ->
-            val serverClazz = Class.forName("be.seeseemelk.mockbukkit.ServerMock")
-            val addPlayer = serverClazz.getMethod("addPlayer", String::class.java)
-            val player = addPlayer.invoke(server, "Alice")
-            val uuid = player.javaClass.getMethod("getUniqueId").invoke(player) as UUID
+        val server = MockBukkit.mock()
+        try {
+            val player = server.addPlayer("Alice")
+            val uuid = player.uniqueId
             val res = service.withdraw(uuid, 100.toBigDecimal(), "Test", "Withdraw", null)
             assertEquals(ResultCode.INSUFFICIENT_FUNDS, res.code)
+        } finally {
+            MockBukkit.unmock()
         }
     }
 
     @Test
     @DisplayName("transfer: 正常系（送金成功でfrom残高が減る）（MockBukkit）")
     fun transfer_success_withMock_updatesBalances() = runBlocking {
-        assumeTrue(mockBukkitAvailable(), "MockBukkit がクラスパスにありません。build.gradle に依存を追加してください。")
-        withMockBukkit { server ->
-            val serverClazz = Class.forName("be.seeseemelk.mockbukkit.ServerMock")
-            val addPlayer = serverClazz.getMethod("addPlayer", String::class.java)
-            val from = addPlayer.invoke(server, "FromUser")
-            val to = addPlayer.invoke(server, "ToUser")
-            val fromId = from.javaClass.getMethod("getUniqueId").invoke(from) as UUID
-            val toId = to.javaClass.getMethod("getUniqueId").invoke(to) as UUID
+        val server = MockBukkit.mock()
+        try {
+            val from = server.addPlayer("FromUser")
+            val to = server.addPlayer("ToUser")
+            val fromId = from.uniqueId
+            val toId = to.uniqueId
 
             val dep = service.deposit(fromId, 1000.toBigDecimal(), "Test", "Deposit", null)
             assertEquals(ResultCode.SUCCESS, dep.code)
@@ -163,6 +156,8 @@ class BankServiceTest {
             val toBal = service.getBalance(toId)
             assertEquals(700.toBigDecimal(), fromBal)
             assertEquals(300.toBigDecimal(), toBal)
+        } finally {
+            MockBukkit.unmock()
         }
     }
 }
