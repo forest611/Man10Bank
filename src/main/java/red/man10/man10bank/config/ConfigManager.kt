@@ -20,6 +20,13 @@ class ConfigManager(private val plugin: JavaPlugin) {
         const val DEFAULT_SOCKET_MS: Long = 10_000
         /** 失敗時の自動リトライ回数の既定値。 */
         const val DEFAULT_RETRIES: Int = 2
+        /**
+         * 同期 WebSocket のクライアント側 ping 間隔の既定値（ミリ秒。0以下で無効）。
+         * サーバーが無言で落ちた場合の切断検知をこの間隔程度に短縮する（VaultProvider 5.6）。
+         */
+        const val DEFAULT_WS_PING_MS: Long = 10_000
+        /** 電子マネーの定期再同期（自己修復）間隔の既定値（秒）。 */
+        const val DEFAULT_RESYNC_INTERVAL_SECONDS: Long = 300
     }
 
     /** WebAPI のタイムアウト設定 */
@@ -35,7 +42,35 @@ class ConfigManager(private val plugin: JavaPlugin) {
         val apiKey: String?,
         val timeouts: ApiTimeouts = ApiTimeouts(),
         val retries: Int = DEFAULT_RETRIES,
+        /** 同期 WebSocket のクライアント側 ping 間隔（ミリ秒。0以下で無効）。切断検知の上限を縮める。 */
+        val wsPingIntervalMs: Long = DEFAULT_WS_PING_MS,
     )
+
+    /**
+     * 電子マネー(Vault Provider)設定（VaultProvider 10.1）。
+     * - providerEnabled: Man10Bank を Vault(Economy) Provider として登録するか（段階導入/ロールバック用）。
+     * - currencyNameSingular/Plural: Economy.currencyName* が返す通貨名。
+     * - resyncIntervalSeconds: 定期再同期（自己修復）の間隔秒。低頻度でよい（VaultProvider 7.4）。
+     */
+    data class VaultConfig(
+        val providerEnabled: Boolean = true,
+        val currencyNameSingular: String = "円",
+        val currencyNamePlural: String = "円",
+        val resyncIntervalSeconds: Long = DEFAULT_RESYNC_INTERVAL_SECONDS,
+    )
+
+    /** 電子マネー(Vault Provider)設定を読み込む。 */
+    fun loadVaultConfig(): VaultConfig = readVaultConfig(plugin.config)
+
+    private fun readVaultConfig(conf: FileConfiguration): VaultConfig {
+        val section = conf.getConfigurationSection("vault")
+        val providerEnabled = section?.getBoolean("providerEnabled", true) ?: true
+        val singular = section?.getString("currencyNameSingular")?.trim()?.ifBlank { null } ?: "円"
+        val plural = section?.getString("currencyNamePlural")?.trim()?.ifBlank { null } ?: "円"
+        val resync = section?.getLong("resyncIntervalSeconds", DEFAULT_RESYNC_INTERVAL_SECONDS)
+            ?: DEFAULT_RESYNC_INTERVAL_SECONDS
+        return VaultConfig(providerEnabled, singular, plural, resync)
+    }
 
     /** 設定を読み込み、必要ならデフォルトを保存します。 */
     fun load(): ApiConfig {
@@ -66,6 +101,7 @@ class ConfigManager(private val plugin: JavaPlugin) {
         val socketMs = timeouts?.getLong("socketMs", DEFAULT_SOCKET_MS) ?: DEFAULT_SOCKET_MS
 
         val retries = section?.getInt("retries", DEFAULT_RETRIES) ?: DEFAULT_RETRIES
+        val wsPingIntervalMs = section?.getLong("wsPingIntervalMs", DEFAULT_WS_PING_MS) ?: DEFAULT_WS_PING_MS
 
         require(baseUrl.isNotBlank()) { "config.yml の api.baseUrl が未設定です" }
 
@@ -80,6 +116,7 @@ class ConfigManager(private val plugin: JavaPlugin) {
                 socketMs = socketMs,
             ),
             retries = retries,
+            wsPingIntervalMs = wsPingIntervalMs,
         )
     }
 
