@@ -6,9 +6,9 @@ Man10Bank を **Vault(Economy) の Provider** 化し、プレイヤーの電子�
 本設計では、外部ショップなどが使う既存 Vault API の **同期制約** と、
 Man10BankService を唯一の真実（source of truth）にする **非同期・権威更新** を分離して扱う。
 
-- 対象プラグイン: `[src/main/java/red/man10/man10bank](../src/main/java/red/man10/man10bank)`
-- 対象サービス: `[man10bankservice/Man10BankService](../../man10bankservice/Man10BankService)`
-- 関連: `[BankAPI.md](./BankAPI.md)`（既存の Bank=銀行残高 API 仕様）
+- 対象プラグイン: [`src/main/java/red/man10/man10bank`](../src/main/java/red/man10/man10bank)
+- 対象サービス: [`man10bankservice/Man10BankService`](../../man10bankservice/Man10BankService)
+- 関連: [`BankAPI.md`](./BankAPI.md)（既存の Bank=銀行残高 API 仕様）
 
 > 用語注: Bukkit の経済連携基盤は「Vault(Economy) / Vault API」と表記する。
 > プレイヤーが直接使える残高は「電子マネー」、DB/コード上の識別子は `vault`
@@ -47,40 +47,37 @@ Vault Provider になる。
 
 ### 確定方針
 
-
-| 論点                 | 方針                                                                                                                               |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| 電子マネーの実体           | `Man10BankService` の `user_vault` を唯一の真実（source of truth）にする。                                                                    |
-| Vault Provider の制約 | Milkbowl/Vault 経由の Economy 操作は同期 API。メインスレッド呼び出しはその場で処理し、off-main 呼び出しはメインスレッドへ同期ディスパッチする。Provider 内で HTTP を待たない。                |
-| 外部ショップ経路           | 外部ショップなど既製 Vault API しか使えないプラグインだけが `Man10BankProvider` を通る。同期応答は Provider キャッシュで成立させる。                                          |
-| 内製経路               | `/pay`、`/deposit`、`/withdraw`、ATM、Man10 系内製プラグインは Vault API を直接呼ばず、`Man10BankAPI -> VaultService -> Man10BankService` の非同期経路を使う。 |
-| 送金コマンド             | `/pay` は同一 Paper 上でオンラインのプレイヤー間の電子マネー送金、`/mpay` は Bank 残高間の送金に固定する。両者の資産種別を混在させない。                                               |
-| 収束責務               | `Man10BankProvider` は同期互換用のキャッシュを持つ。`VaultService` が Man10BankService との通信、確定応答、push、再同期を通じて Provider キャッシュを真実へ収束させる。            |
-| 対応 API 範囲          | 旧 Vault Economy（単一通貨・`double`）のみ。VaultUnlocked / 多通貨は対象外。                                                                        |
-| 金額規則               | 小数金額は整数円へ切り捨てる。残高上限は Man10BankService の設定値を権威とし、既定値は 1 兆円。                                                                       |
-| 既存電子マネー移行          | 別タスク。`user_vault` は初期値 0 を許容する。                                                                                                  |
-
+| 論点 | 方針 |
+|---|---|
+| 電子マネーの実体 | `Man10BankService` の `user_vault` を確定残高の唯一の真実（source of truth）にする。在席サーバーのローカル Vault 台帳は、受付済みで未確定の操作（減算予約）についてだけ権威を持つ。 |
+| Vault Provider の制約 | Milkbowl/Vault 経由の Economy 操作は同期 API。メインスレッド呼び出しはその場で処理し、off-main 呼び出しはメインスレッドへ同期ディスパッチする。Provider 内で HTTP を待たない。 |
+| 外部ショップ経路 | 外部ショップなど既製 Vault API しか使えないプラグインだけが `Man10BankProvider` を通る。同期応答は Provider キャッシュで成立させる。 |
+| 内製経路 | `/pay`、`/deposit`、`/withdraw`、ATM、Man10 系内製プラグインは Vault API を直接呼ばず、`Man10BankAPI -> VaultService -> Man10BankService` の非同期経路を使う。 |
+| 送金コマンド | `/pay` は同一 Paper 上でオンラインのプレイヤー間の電子マネー送金、`/mpay` は Bank 残高間の送金に固定する。両者の資産種別を混在させない。 |
+| 操作の発行元 | すべての vault 書き込みは、対象プレイヤーが在席する Paper サーバーだけが発行する（単一書き込み者）。別 Paper 在席・完全オフラインの対象への操作は入金を含め拒否し、代替には既存 Bank 機能を使う。 |
+| 収束責務 | `Man10BankProvider` は同期互換用のキャッシュを持つ。書き込み者が在席サーバーだけになるため、`VaultService` は session claim 時のロード、確定応答、定期再同期（自己修復）で Provider キャッシュを真実へ収束させる。他サーバー発の変更を伝える残高 push は持たない。 |
+| 対応 API 範囲 | 旧 Vault Economy（単一通貨・`double`）のみ。VaultUnlocked / 多通貨は対象外。 |
+| 金額規則 | 小数金額は整数円へ切り捨てる。残高上限は Man10BankService の設定値を権威とし、既定値は 1 兆円。 |
+| 既存電子マネー移行 | 別タスク。`user_vault` は初期値 0 を許容する。 |
 
 ---
 
 ## 2. 用語
 
-
-| 用語                 | 意味                                                                                                                     |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| 電子マネー              | プレイヤーが直接使える残高。Vault(Economy) の `getBalance` が返す値。DB 上は `user_vault`。                                                   |
-| 銀行残高               | `user_bank.Balance`。`/deposit` `/withdraw` で電子マネーと相互移動する既存の銀行残高。                                                       |
-| Man10BankProvider  | `Economy` 実装。外部 Vault Consumer から同期で呼ばれる互換レイヤ。                                                                         |
-| VaultService       | プラグイン側の非同期サービス。Man10BankService への全 vault 書き込み、送信待ちキュー、再同期、Provider キャッシュ収束を担当する。                                      |
-| Man10BankAPI       | 内製プラグイン向けの公開 API。Vault API ではなく VaultService を呼ぶ。                                                                      |
-| 在席サーバー             | 対象プレイヤーが現在ログインしている Paper サーバー。Provider キャッシュの操作可否は各 Paper の Bukkit オンライン状態で判断する。                                       |
-| ローカル Vault 台帳      | VaultService が管理するオンラインプレイヤーのローカル残高台帳。外部 Provider 経路と内製 API 経路の未確定差分を同じ場所に予約する。                                        |
-| Provider キャッシュ     | Man10BankProvider が同期応答に使うローカルの参照用残高。実体はローカル Vault 台帳で、VaultService が更新・収束させる。                                         |
-| `WARMING_UP`       | join 直後の Provider キャッシュ状態。旧サーバーの送信待ちキューが反映される猶予を置くため、金銭操作は拒否し、クールタイム後に権威残高を再取得して `READY` にする。                          |
+| 用語 | 意味 |
+|---|---|
+| 電子マネー | プレイヤーが直接使える残高。Vault(Economy) の `getBalance` が返す値。DB 上は `user_vault`。 |
+| 銀行残高 | `user_bank.Balance`。`/deposit` `/withdraw` で電子マネーと相互移動する既存の銀行残高。 |
+| Man10BankProvider | `Economy` 実装。外部 Vault Consumer から同期で呼ばれる互換レイヤ。 |
+| VaultService | プラグイン側の非同期サービス。Man10BankService への全 vault 書き込み、送信待ちキュー、再同期、Provider キャッシュ収束を担当する。 |
+| Man10BankAPI | 内製プラグイン向けの公開 API。Vault API ではなく VaultService を呼ぶ。 |
+| 在席サーバー | 対象プレイヤーが現在ログインしている Paper サーバー。Man10BankService の session claim で管理する。 |
+| 単一書き込み者 | 対象プレイヤーの vault 書き込みを発行できる唯一の主体。有効な session claim を持つ在席サーバーだけがこれになる。 |
+| ローカル Vault 台帳 | VaultService が管理するオンラインプレイヤーのローカル残高台帳。外部 Provider 経路と内製 API 経路の未確定差分を同じ場所に予約する。 |
+| Provider キャッシュ | Man10BankProvider が同期応答に使うローカルの参照用残高。実体はローカル Vault 台帳で、VaultService が更新・収束させる。 |
 | `availableBalance` | ローカル Vault 台帳上で今使ってよい残高。`confirmedBalance + pendingDelta` で計算する。`pendingDelta` は `operationId` ごとの未確定減算予約から計算する 0 以下の値とし、DB 未確定の入金は含めない。 |
-| 送信待ちキュー            | Provider が同期成功させた操作を、後で Man10BankService へ送るために一時保存するキュー。各操作は二重適用を防ぐための `operationId` を持つ。                             |
-| 唯一の真実              | `Man10BankService` が参照する DB の `user_vault`。Provider キャッシュは真実ではなく従属する参照用データ。                                            |
-
+| 送信待ちキュー | Provider が同期成功させた操作を、後で Man10BankService へ送るために一時保存するキュー。各操作は二重適用を防ぐための `operationId` を持つ。 |
+| 唯一の真実 | `Man10BankService` が参照する DB の `user_vault`（確定残高の真実）。Provider キャッシュは真実ではなく従属する参照用データ。ただし受付済みで未確定の減算予約は、在席サーバーのローカル Vault 台帳だけが知っている。 |
 
 ---
 
@@ -101,7 +98,7 @@ Man10BankProvider
 VaultService（プラグイン側 / 非同期）
   |  - 送信待ちキューの処理
   |  - Man10BankService への REST
-  |  - push/再同期の受信
+  |  - session claim / 定期再同期
   |  - Provider キャッシュ収束
   v
 Man10BankService（C# / Web API）
@@ -130,14 +127,12 @@ user_vault / user_bank
 
 ### 責務境界
 
-
-| コンポーネント           | 責務                                                                                 | やらないこと                   |
-| ----------------- | ---------------------------------------------------------------------------------- | ------------------------ |
-| Man10BankProvider | Vault 互換の同期応答、Provider キャッシュの読み書き、送信待ちキューへ登録できるかの同期判定                              | HTTP 待ち、DB 確定待ち、内製コマンド処理 |
-| VaultService      | Man10BankService との通信、送信待ちキューの処理、内製 API 操作のローカル予約、確定応答処理、push/再同期、Provider キャッシュ収束 | Vault API 互換の同期契約そのもの    |
-| Man10BankAPI      | 内製プラグイン向けの非同期 vault API                                                            | Vault の同期 API 互換         |
-| Man10BankService  | `user_vault` の原子的更新、`vault_log`、冪等制御、`user_bank` との 1 Tx 移動                        | Paper メインスレッド都合の吸収       |
-
+| コンポーネント | 責務 | やらないこと |
+|---|---|---|
+| Man10BankProvider | Vault 互換の同期応答、Provider キャッシュの読み書き、送信待ちキューへ登録できるかの同期判定 | HTTP 待ち、DB 確定待ち、内製コマンド処理 |
+| VaultService | Man10BankService との通信、送信待ちキューの処理、内製 API 操作のローカル予約、確定応答処理、session claim / 定期再同期、Provider キャッシュ収束 | Vault API 互換の同期契約そのもの |
+| Man10BankAPI | 内製プラグイン向けの非同期 vault API | Vault の同期 API 互換 |
+| Man10BankService | `user_vault` の原子的更新、`vault_log`、冪等制御、`user_bank` との 1 Tx 移動 | Paper メインスレッド都合の吸収 |
 
 ---
 
@@ -161,7 +156,7 @@ user_vault / user_bank
 2. Man10BankProvider は Provider キャッシュだけを見て同期的に結果を返す。
 3. `withdrawPlayer` / `depositPlayer` が成功した場合、Provider は操作を送信待ちキューに登録する。
 4. VaultService が送信待ちキューの操作を順番に処理し、Man10BankService へ冪等キー付きで送信する。
-5. Man10BankService の確定結果、または push/再同期により VaultService が Provider キャッシュを収束させる。
+5. Man10BankService の確定応答（自サーバー発リクエストの結果）により VaultService が Provider キャッシュを収束させる。
 
 この経路の同期成功は「Provider キャッシュ上で取引が成立し、送信待ちキューに登録された」ことを意味する。
 「Man10BankService でコミット済み」を意味しない。DB 確定は後段の VaultService が担う。
@@ -189,33 +184,36 @@ user_vault / user_bank
 処理の入口:
 
 1. 呼び出し側は非同期 API として VaultService に取引を依頼する。
-2. VaultService は、対象 UUID が自サーバーの Bukkit オンラインプレイヤーかを確認する。
-3. 対象が自サーバーにいるかどうかと Provider キャッシュ状態に応じて、次のいずれかの経路に分岐する。
+2. VaultService は、対象 UUID が自サーバーに在席しているかを確認する。
+3. 対象の在席状態に応じて、次のいずれかの経路に分岐する。
 
 ここでいう「残高を減らす」「残高を増やす」は、電子マネーである `user_vault` の増減を基準にする。
 Man10Bank コマンド名では、`/deposit` は `user_vault -> user_bank` なので電子マネーを減らす操作、
 `/withdraw` は `user_bank -> user_vault` なので電子マネーを増やす操作として扱う。
 複数プレイヤーを扱う `/pay` はこの単独 UUID の分岐とは別に、送金元と送金先の両方が
-同一の自サーバーでオンラインかつ Provider キャッシュが `READY` の場合だけ実行する。
+同一の自サーバー session 上に在席していることを確認できた場合だけ実行する。
 
 #### 対象が自サーバーに在席している場合
 
-1. Provider キャッシュが `WARMING_UP` / `LOADING` / `STALE` / `DRAINING` / `CONFLICT` なら、金銭操作は拒否する。
-2. Provider キャッシュが `READY` の場合だけ、自サーバーの VaultService が対象 UUID のローカル Vault 台帳をロックする。
-3. 残高を減らす操作なら、Man10BankService へ送る前に未確定差分として予約する。
-4. 予約により `availableBalance` が減るため、同時に来た外部 Vault 経路も同じ減算後の残高を見る。
-5. VaultService は Man10BankService の確定応答を待つ。
-6. 成功時のみ呼び出し側へ成功を返す。
-7. 成功時は確定残高で Provider キャッシュを更新し、失敗時は予約を取り消して必要なら権威残高で再同期する。
+1. 自サーバーの VaultService が対象 UUID のローカル Vault 台帳をロックする。
+2. 残高を減らす操作なら、Man10BankService へ送る前に未確定差分として予約する。
+3. 予約により `availableBalance` が減るため、同時に来た外部 Vault 経路も同じ減算後の残高を見る。
+4. VaultService は Man10BankService の確定応答を待つ。
+5. 成功時のみ呼び出し側へ成功を返す。
+6. 成功時は確定残高で Provider キャッシュを更新し、失敗時は予約を取り消して必要なら権威残高で再同期する。
 
-#### 対象が自サーバーにいない場合
+#### 対象が別 Paper に在席している場合
+
+増額・減額を問わず拒否する。在席サーバーのローカル Vault 台帳を経由しない書き込みは
+単一書き込み者の原則を壊し、在席サーバーのキャッシュと DB の乖離（と、それを収束させる
+残高 push の仕組み）を要求するため、経路として持たない。必要な付与は既存 Bank 機能で行う。
+
+#### 対象がオフラインの場合
 
 1. 外部 Vault Provider 経路は対象未ロードとして `FAILURE`。
-2. 通常の内製 API 経路では、対象が別 Paper にいるか完全オフラインかを問わず、単独の `deposit(uuid, amount, reason)` だけ許可する。
-3. この `deposit` は `user_vault` を増やす単独 API を指す。Man10Bank コマンドの `/deposit` ではない。
-4. `/deposit` `/withdraw`、`/pay` の送金元・送金先、`withdraw`、`transfer`、`move` は失敗させる。
-5. 管理者 `setBalance` / `editvault` は例外として対象の在席状況を問わず Man10BankService へ送る。
-6. 自サーバーにいないプレイヤー向けのその他の資産操作は、既存実装済みの Bank 機能を使う。
+2. 内製 API 経路も、増額（`deposit`）を含むすべての vault 操作を拒否する。
+3. オフラインプレイヤーへの付与・回収・補償は、既存実装済みの Bank 機能（銀行残高）で行う。
+   電子マネーは「オンライン中のプレイヤーだけが持つ財布」、銀行残高は「オフラインでも操作できる口座」として役割を分離する。
 
 この経路は Man10BankService のコミット結果を待てるため、Provider の同期成功扱いは使わない。
 ただし外部 Vault 経路との二重引き落としを防ぐため、残高を減らす内製操作は必ずローカル Vault 台帳へ先に予約する。
@@ -223,17 +221,16 @@ Man10Bank コマンド名では、`/deposit` は `user_vault -> user_bank` な�
 
 ### 4.3 経路選択ルール
 
-
-| ケース                                | 経路                                                                    |
-| ---------------------------------- | --------------------------------------------------------------------- |
-| 外部ショップなど、Vault API しか使えない既製プラグイン   | Vault -> Man10BankProvider                                            |
-| Man10Bank の `/pay`                 | 同一 Paper 上でオンラインのプレイヤー間だけ、Man10BankAPI -> VaultService。電子マネー -> 電子マネー |
-| Man10Bank の `/mpay`                | 既存 BankService。Bank -> Bank。VaultService の対象外                         |
-| Man10Bank の `/deposit` `/withdraw` | Man10BankAPI -> VaultService -> Man10BankService の move API           |
-| ATM の現金 <-> 電子マネー                  | Man10BankAPI / VaultService。Vault API は使わない                           |
-| 内製プラグインの電子マネー操作                    | Man10BankAPI。Vault API は使わない                                          |
-| 管理者の set/edit                      | Man10BankAPI -> VaultService -> Man10BankService                      |
-
+| ケース | 経路 |
+|---|---|
+| 外部ショップなど、Vault API しか使えない既製プラグイン | Vault -> Man10BankProvider |
+| Man10Bank の `/pay` | 同一 Paper 上でオンラインのプレイヤー間だけ、Man10BankAPI -> VaultService。電子マネー -> 電子マネー |
+| Man10Bank の `/mpay` | 既存 BankService。Bank -> Bank。VaultService の対象外 |
+| Man10Bank の `/deposit` `/withdraw` | Man10BankAPI -> VaultService -> Man10BankService の move API |
+| ATM の現金 <-> 電子マネー | Man10BankAPI / VaultService。Vault API は使わない |
+| 内製プラグインの電子マネー操作 | Man10BankAPI。Vault API は使わない |
+| 管理者の set/edit | Man10BankAPI -> VaultService -> Man10BankService。対象が自サーバーに在席する場合のみ |
+| オフライン・別 Paper 在席プレイヤーへの操作 | 拒否。既存 Bank API（銀行残高）を使う |
 
 ---
 
@@ -243,29 +240,27 @@ Man10Bank コマンド名では、`/deposit` は `user_vault -> user_bank` な�
 
 Vault の同期制約があるため、すべての経路で同じ整合性は提供しない。
 
-
-| 経路              | 整合性                       | 成功の意味                                                      |
-| --------------- | ------------------------- | ---------------------------------------------------------- |
-| 内製 API 経路       | 権威同期（authoritative async） | Man10BankService が `user_vault` をコミットした。                   |
-| 外部 Vault API 経路 | 同期互換のローカルコミット + 最終収束      | Provider キャッシュで成立し、送信待ちキューに登録された。DB には VaultService が後送する。 |
-
+| 経路 | 整合性 | 成功の意味 |
+|---|---|---|
+| 内製 API 経路 | 権威同期（authoritative async） | Man10BankService が `user_vault` をコミットした。 |
+| 外部 Vault API 経路 | 同期互換のローカルコミット + 最終収束 | Provider キャッシュで成立し、送信待ちキューに登録された。DB には VaultService が後送する。 |
 
 外部 Vault API 経路では、メインスレッドで HTTP を待てないため、完全な DB 同期コミットは提供しない。
 代わりに、Provider キャッシュを「同期取引用の一時台帳」とし、VaultService が唯一の真実へ収束させる。
 
 ### 5.2 基本不変条件
 
-1. `user_vault` が最終的な唯一の真実。
+1. `user_vault` が確定残高の最終的な唯一の真実。在席サーバーのローカル Vault 台帳は、受付済みで未確定の減算予約についてだけ権威を持つ。
 2. Provider は HTTP / DB を同期的に待たない。
 3. Provider が `SUCCESS` を返した操作は、必ず冪等キー付きで送信待ちキューに載せる。
 4. VaultService だけが Man10BankService の vault 書き込み API を呼ぶ。
-5. オンラインプレイヤーの電子マネーを減らす操作は、対象が自サーバーに在席し、Provider キャッシュが `READY` の場合だけ許可し、ローカル Vault 台帳へ未確定差分を予約してから Man10BankService へ送る。
-6. 自サーバーにいないプレイヤーの残高を減らす API は拒否する。
-7. 自サーバーにいないプレイヤーの電子マネー操作は、単独の `deposit` と管理者 `setBalance` / `editvault` だけ許可する。それ以外は拒否し、必要なら既存 Bank 機能の対象にする。
-8. join 直後は Provider キャッシュを `WARMING_UP` にし、クールタイム後に権威残高を再取得してから `READY` にする。
+5. すべての vault 書き込みは、対象が自サーバーに在席している（有効な session claim を保持している）場合だけ許可する（単一書き込み者）。
+6. 電子マネーを減らす操作は、ローカル Vault 台帳へ未確定差分を予約してから Man10BankService へ送る。
+7. 別 Paper に在席しているオンラインプレイヤーへの操作は、増額・減額を問わず拒否する。
+8. 完全オフラインプレイヤーへの vault 操作は、増額を含めすべて拒否する。オフラインの資産操作は既存 Bank 機能を使う。
 9. 同一 UUID のローカル予約、Provider 書き込み、確定反映、予約取消は在席サーバーの VaultService が直列化する。
 10. Provider キャッシュが未ロード、古い、競合中、または送信待ちキューが不健康な場合、Provider は新規書き込みを拒否する。
-11. VaultService は Man10BankService の確定残高、push、再同期を使って Provider キャッシュを収束させる。
+11. VaultService は session claim 時のロード、Man10BankService の確定残高、定期再同期を使って Provider キャッシュを収束させる。
 12. 正の未確定差分は Provider キャッシュへ反映しない。入金は Man10BankService の DB 更新完了後にだけ `confirmedBalance`、`visibleBalance`、`availableBalance` を増やす。
 13. `/pay` は送金元と送金先が同一 Paper 上でオンラインの場合だけ許可し、電子マネー以外の資産へは移動しない。Bank 間送金は `/mpay` が担う。
 
@@ -298,29 +293,22 @@ Provider の `depositPlayer` や内製 API の入金は、送信中であって�
 
 この設計では、両方が同時に成功して合計 140,000 円を消費する状態をローカル側で作らない。
 
-### 5.4 自サーバーにいないプレイヤーへの操作
+### 5.4 別 Paper 在席・オフラインプレイヤーへの操作
 
-自サーバーにいないプレイヤーの残高を減らす操作を直接 Man10BankService に送ると、
-そのプレイヤーが別 Paper にいる場合に、在席サーバーの `availableBalance` を事前に減らせない。
-その状態で在席サーバーの外部ショップが Provider キャッシュを見て成功すると、
-DB 側で後から不足が判明する危険がある。
+在席サーバー以外から `user_vault` を書き込む経路は持たない。減算は stale-high による過払いを
+生むため論外として、増額も技術的には直接権威更新できるが、在席サーバーのキャッシュが stale になる
+期間と、それを収束させる残高 push・不整合許容の複雑さを引き換えに要求する。本設計では
+単一書き込み者の原則を優先し、増額側の経路も削除する。
 
-在席サーバー側で減算を実行させる仕組みや Service 側の短命な所有権トークンを作れば防げるが、実装が重くなる。
-本設計では簡素化のため、自サーバーにいないプレイヤーに対する減算操作を拒否する。
+| 操作 | 方針 |
+|---|---|
+| 別 Paper 在席プレイヤーへの増額・減額 | 拒否。 |
+| 完全オフラインプレイヤーへの増額・減額・絶対値設定 | 拒否。 |
+| 管理者 `set` / `give` / `take` | 対象が自サーバーに在席する場合だけ許可。 |
+| オフライン・別 Paper 在席への付与・回収・補償 | 既存 Bank 機能（銀行残高）で行う。 |
 
-自サーバーにいないプレイヤーへの操作ルール:
-
-
-| 操作                                  | 方針                         | 理由                                              |
-| ----------------------------------- | -------------------------- | ----------------------------------------------- |
-| 単独の `deposit(uuid, amount, reason)` | 許可。Man10BankService へ直接送る。 | Provider キャッシュは一時的に stale-low になるだけで、過払いは起きない。  |
-| `user_vault` を減らす操作                 | 拒否。                        | Provider キャッシュが stale-high になり、外部ショップで過払いが起き得る。 |
-| `transfer` / `move`                  | 拒否。                        | 複数資産・送金はローカル台帳との整合条件が複雑になるため。                       |
-| 管理者 `setBalance` / `editvault`     | 許可。                        | 管理者操作は例外として権威更新を優先し、衝突時はコマンド結果として返して運用対応する。        |
-
-
-オンライン中の Provider キャッシュには push / 再同期で反映する。ただし push 到着前は一時的に古い低い残高を見て、
-外部ショップが保守的に失敗する可能性はある。これは過払いより安全な失敗として許容する。
+この規則により、オンライン中の Provider キャッシュを在席サーバー以外が古くする書き込みは存在しなくなり、
+在席サーバーのメモリと DB の乖離は「自サーバーが送信中の操作」だけに限定される。
 
 ### 5.5 外部 Vault API 経路の同期保証
 
@@ -328,7 +316,6 @@ Provider は以下を満たす場合だけ書き込み成功を返す。
 
 - 対象プレイヤーの Provider キャッシュが `READY`。
 - 対象プレイヤーがこのサーバー上で取引可能な状態。
-- join 直後の `WARMING_UP` ではない。
 - 金額が正の整数へ正規化できる。
 - `withdraw` の場合、Provider キャッシュ上の `availableBalance >= amount`。
 - 送信待ちキューが操作を受理できる。
@@ -347,14 +334,12 @@ Provider はそのスナップショットだけを見て同期的に成功可�
 
 書き込み健全性:
 
-
-| 状態            | Provider 書き込み | 説明                                                                     |
-| ------------- | ------------- | ---------------------------------------------------------------------- |
-| `WRITE_READY` | 許可            | Man10BankService への疎通が正常、送信待ちキューが正常、未処理件数が閾値以下。                        |
-| `DEGRADED`    | 原則拒否          | heartbeat 遅延、直近送信失敗、未処理件数増加など。外部 Vault 経路は安全側に倒して `FAILURE`。           |
-| `DOWN`        | 拒否            | Man10BankService 到達不能。`depositPlayer` / `withdrawPlayer` は即 `FAILURE`。 |
-| `DRAINING`    | 拒否            | サーバー移動 / shutdown / 復旧処理中。新規 Provider 書き込みは受けない。                       |
-
+| 状態 | Provider 書き込み | 説明 |
+|---|---|---|
+| `WRITE_READY` | 許可 | Man10BankService への疎通が正常、送信待ちキューが正常、未処理件数が閾値以下。 |
+| `DEGRADED` | 原則拒否 | heartbeat 遅延、直近送信失敗、未処理件数増加など。外部 Vault 経路は安全側に倒して `FAILURE`。 |
+| `DOWN` | 拒否 | Man10BankService 到達不能。`depositPlayer` / `withdrawPlayer` は即 `FAILURE`。 |
+| `DRAINING` | 拒否 | サーバー移動 / shutdown / 復旧処理中。新規 Provider 書き込みは受けない。 |
 
 つまり、Man10BankService が落ちていることを VaultService が検知済みなら、
 外部ショップからの `withdrawPlayer` / `depositPlayer` は Provider キャッシュ残高に関係なく `FAILURE` になる。
@@ -396,8 +381,8 @@ Man10BankService の不調を検知した場合は、次の折衷案で扱う。
 通常は発生させない前提だが、次のような原因で起こり得る。
 
 - Provider キャッシュが真実より高い状態で外部ショップが `withdraw` した。
-- 管理操作や他サーバー操作と競合した。
-- サーバー移動時の `DRAINING` / `WARMING_UP` / 再同期で旧サーバーの成功済み操作を吸収しきれなかった。
+- 旧 session からの書き込みと競合した。
+- サーバー移動時の presence / lease が破綻した。
 - バグまたは DB 手動変更があった。
 
 外部 Vault API 経路は、外部ショップが既にアイテムを渡した後に失敗を知る可能性がある。
@@ -413,24 +398,17 @@ Man10BankService の不調を検知した場合は、次の折衷案で扱う。
 
 この状態を運用上の重大不整合として扱う。
 
-### 5.8 サーバー移動と READY 遅延
+### 5.8 サーバー移動と単一アクティブ Provider
 
-同一プレイヤーに対して、同期 Vault 取引を受け付ける Provider キャッシュは「自サーバーでオンラインかつ `READY`」の場合だけ有効にする。
-Man10BankService 側に短命な所有権トークンは持たせない。
-代わりに、サーバー移動直後の二重成功リスクを `DRAINING`、join 後クールタイム、再同期で緩和する。
+同一プレイヤーに対して、同期 Vault 取引を受け付ける Provider キャッシュは同時に 1 つだけにする。
 
-- join 時は Provider キャッシュを `LOADING` にする。
-- 初回ロードに成功してもすぐ `READY` にせず、`WARMING_UP` にする。
-- `WARMING_UP` 中は `getBalance` などの読み取り表示は許可してよいが、`has` は `false`、`depositPlayer` / `withdrawPlayer` は `FAILURE` にする。
-- `vault.joinReadyDelayMillis` のクールタイム後、Man10BankService から権威残高を再取得し、送信待ちキューが健全なら `READY` にする。
-- quit / kick / transfer 検知時は対象 UUID の Provider キャッシュを `DRAINING` にし、新規 Provider 書き込みを止める。
-- `DRAINING` 中は対象 UUID の送信待ちキューを可能な限り flush し、`vault.quitDrainTimeoutMillis` を超えた場合は残りを通常の送信待ちキューまたは永続キューで後送する。
-- `DRAINING` 完了後、対象 UUID の Provider キャッシュを破棄する。
+- join 時に VaultService が Man10BankService へ presence / session claim を送る。
+- claim 成功後に `user_vault` をロードし、Provider キャッシュを `READY` にする。
+- quit / kick / transfer 検知時は新規 Provider 書き込みを止め、送信待ちキューを処理してからキャッシュを破棄する。
+- 別サーバーで同じ UUID の claim が来た場合、Man10BankService は後勝ちにして旧 session を失効させる。
+- 旧 session からの後続書き込みを Man10BankService 側で拒否できるよう、すべての vault 書き込みに `sessionId` を含める。
 
-この方式は短命な所有権トークンによる厳密な fencing ではない。
-旧サーバーの成功済み未送信操作がクールタイム内に DB へ反映されることを期待する折衷案であり、
-反映が間に合わなかった場合は Man10BankService の DB 制約で不足を拒否し、VaultService が `CONFLICT` として扱う。
-唯一の真実は引き続き `user_vault`。
+presence / session は単一書き込み者を強制する要の仕組みであり、削れない。確定残高の唯一の真実は引き続き `user_vault`。
 
 ---
 
@@ -446,15 +424,15 @@ data class VaultCacheEntry(
     val uuid: UUID,
     val confirmedBalance: Long,
     val confirmedVersion: Long,
-    val pendingOperations: Map<String, PendingVaultOperation>,
+    val pendingOperations: Map<String, PendingVaultOperation>, // operationId -> 未確定の減算予約
     val status: Status,
-    val readyAfterMillis: Long?,
+    val sessionId: String,
     val lastSyncedAtMillis: Long,
 )
 
 data class PendingVaultOperation(
     val operationId: String,
-    val amount: Long,
+    val amount: Long, // 予約額（正の値）
     val source: PendingSource, // PROVIDER / MAN10_API
     val createdAtMillis: Long,
 )
@@ -462,26 +440,22 @@ data class PendingVaultOperation(
 
 概念:
 
-
-| 値                  | 意味                                                                                                                                           |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `confirmedBalance` | Man10BankService で確認済みの残高。                                                                                                                   |
-| `confirmedVersion` | `user_vault.Version`。古い push や再同期結果を捨てるために使う。                                                                                                |
-| `pendingOperations` | Provider 経路または内製 API 経路で予約済みだが、まだ Man10BankService で確定していない減算操作。`operationId` ごとに保持する。未確定の入金は含めない。                                               |
-| `pendingDelta`     | `pendingOperations.values.sumOf { -it.amount }` で計算する値。保存フィールドにはしない。常に 0 以下。未確定の入金は含めない。                                                      |
-| `visibleBalance`   | `confirmedBalance + pendingDelta`。`getBalance` が返す値。DB 未確定の入金は表示へ加えない。                                                                       |
+| 値 | 意味 |
+|---|---|
+| `confirmedBalance` | Man10BankService で確認済みの残高。 |
+| `confirmedVersion` | `user_vault.Version`。古い再同期結果を捨てるために使う。 |
+| `pendingOperations` | Provider 経路または内製 API 経路で予約済みだが、まだ Man10BankService で確定していない減算予約。`operationId` ごとに保持する。未確定の入金は含めない。 |
+| `pendingDelta` | `pendingOperations` の予約額合計の符号反転（`-Σamount`）で都度計算する値。保存フィールドにはしない。常に 0 以下。 |
+| `visibleBalance` | `confirmedBalance + pendingDelta`。`getBalance` が返す値。DB 未確定の入金は表示へ加えない。 |
 | `availableBalance` | `confirmedBalance + pendingDelta`。外部 Provider 経路と内製 API 経路の `withdraw` / `/pay` / `user_vault -> user_bank` 可否判定に使う計算値。DB 未確定の入金は利用可能額へ加えない。 |
-| `status`           | `LOADING`（読み込み中）/ `WARMING_UP`（join 直後のクールタイム中）/ `READY`（取引可能）/ `STALE`（古い可能性あり）/ `DRAINING`（キュー処理中）/ `CONFLICT`（競合停止中）/ `DISABLED`（停止中）。    |
-| `readyAfterMillis` | `WARMING_UP` を解除して再取得を試みる時刻。`READY` などでは `null`。                                                                                             |
-
+| `status` | `LOADING`（読み込み中）/ `READY`（取引可能）/ `STALE`（古い可能性あり）/ `DRAINING`（キュー処理中）/ `CONFLICT`（競合停止中）/ `DISABLED`（停止中）。 |
 
 残高は内部では `Long`（円）で保持し、Vault 境界でだけ `Double` に変換する。
-未確定の減算予約は必ず `operationId` ごとの `pendingOperations` として保持し、
-`pendingDelta` はその合計から都度計算する。これにより複数の未確定操作の一部だけが成功・失敗した場合でも、
-該当する `operationId` だけを消し込める。
+未確定の減算予約は必ず `operationId` ごとの `pendingOperations` として保持し、`pendingDelta` はその合計から
+都度計算する。これにより複数の未確定操作の一部だけが成功・失敗した場合でも、該当する `operationId` だけを消し込める。
 Provider 書き込みを許可するかどうかは、各エントリの `status` に加えて VaultService 全体の書き込み健全性
 （`WRITE_READY` / `DEGRADED` / `DOWN` / `DRAINING`）も見る。
-残高上限は Man10BankService の config API または push で受け取った権威設定値を VaultService 全体で保持し、
+残高上限は session claim で Man10BankService から受け取った権威設定値を VaultService 全体で保持し、
 Provider の同期判定に使う。上限値が未取得の間は書き込みを `FAILURE` にする。
 
 ### 6.2 同期 API の挙動
@@ -490,19 +464,17 @@ Provider の同期判定に使う。上限値が未取得の間は書き込み�
 Man10BankProvider は処理を Bukkit メインスレッドへ同期ディスパッチし、呼び出し元スレッドは結果が返るまで待つ。
 HTTP や DB の完了を待つのではなく、Provider キャッシュと送信待ちキューの同期処理だけを待つ。
 
-
-| Vault(Economy) メソッド              | Provider の挙動                                                                                                                                              |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `getBalance(player)`             | `READY` または `WARMING_UP` なら `visibleBalance` を返す。未ロード時は `0` を返し、非同期ロードを要求する。                                                                              |
-| `has(player, amount)`            | 金額を整数円へ切り捨てて正規化し、`READY` かつ書き込み健全性が `WRITE_READY` かつ `availableBalance >= normalizedAmount`。正規化失敗、未ロード、古い可能性がある状態、サービス不健康時は `false`。                      |
-| `withdrawPlayer(player, amount)` | `READY`、書き込み健全性 `WRITE_READY`、金額正規化成功、残高十分、送信待ちキューへの登録成功なら `operationId` ごとの減算予約を `pendingOperations` へ追加して `SUCCESS`。それ以外は `FAILURE`。                    |
-| `depositPlayer(player, amount)`  | `READY`、書き込み健全性 `WRITE_READY`、金額正規化成功、送信待ちキューへの登録成功なら正規化後の整数額で `SUCCESS`。DB 確定までは Provider キャッシュ残高を増やさず、確定応答後に `confirmedBalance` を更新する。それ以外は `FAILURE`。  |
-| `hasAccount(player)`             | 対象が同一サーバーでオンラインかつ Provider キャッシュが `LOADING` / `WARMING_UP` / `READY` なら `true`。オフライン、解決不能、キャッシュなしは `false`。                                               |
-| `createPlayerAccount(player)`    | 同一サーバーのオンライン対象について VaultService の ensure / load 要求を受理できれば `true`。オフライン、解決不能、要求登録失敗は `false`。`true` は DB コミット済みを意味せず、`READY` になるまで金銭操作は失敗する。               |
-| `isEnabled()`                    | Provider が ServicesManager に登録済みかつ `vault.providerEnabled = true` なら `true`。Service の `DEGRADED` / `DOWN` / `DRAINING` では `true` のままにし、取引メソッド側で書き込みを拒否する。 |
-| `format(amount)`                 | 有限値の小数部を 0 方向へ切り捨て、3 桁カンマと `円` を付ける。例: `1234.9 -> "1,234円"`、`-1234.9 -> "-1,234円"`。NaN / Infinity は `"0円"`。                                               |
-| bank 系 API                       | `hasBankSupport() = false`、bank 系は `NOT_IMPLEMENTED`。                                                                                                     |
-
+| Vault(Economy) メソッド | Provider の挙動 |
+|---|---|
+| `getBalance(player)` | `READY` なら `visibleBalance` を返す。未ロード時は `0` を返し、非同期ロードを要求する。 |
+| `has(player, amount)` | 金額を整数円へ切り捨てて正規化し、`READY` かつ書き込み健全性が `WRITE_READY` かつ `availableBalance >= normalizedAmount`。正規化失敗、未ロード、古い可能性がある状態、サービス不健康時は `false`。 |
+| `withdrawPlayer(player, amount)` | `READY`、書き込み健全性 `WRITE_READY`、金額正規化成功、残高十分、送信待ちキューへの登録成功なら `pendingDelta -= normalizedAmount` して `SUCCESS`。それ以外は `FAILURE`。 |
+| `depositPlayer(player, amount)` | `READY`、書き込み健全性 `WRITE_READY`、金額正規化成功、送信待ちキューへの登録成功なら正規化後の整数額で `SUCCESS`。DB 確定までは Provider キャッシュ残高を増やさず、確定応答後に `confirmedBalance` を更新する。それ以外は `FAILURE`。 |
+| `hasAccount(player)` | 対象が同一サーバーでオンラインかつ Provider キャッシュが `LOADING` または `READY` なら `true`。オフライン、解決不能、キャッシュなしは `false`。 |
+| `createPlayerAccount(player)` | 同一サーバーのオンライン対象について VaultService の ensure / load 要求を受理できれば `true`。オフライン、解決不能、要求登録失敗は `false`。`true` は DB コミット済みを意味せず、`READY` になるまで金銭操作は失敗する。 |
+| `isEnabled()` | Provider が ServicesManager に登録済みかつ `vault.providerEnabled = true` なら `true`。Service の `DEGRADED` / `DOWN` / `DRAINING` では `true` のままにし、取引メソッド側で書き込みを拒否する。 |
+| `format(amount)` | 有限値の小数部を 0 方向へ切り捨て、3 桁カンマと `円` を付ける。例: `1234.9 -> "1,234円"`、`-1234.9 -> "-1,234円"`。NaN / Infinity は `"0円"`。 |
+| bank 系 API | `hasBankSupport() = false`、bank 系は `NOT_IMPLEMENTED`。 |
 
 ### 6.3 overload / メタデータ
 
@@ -520,7 +492,7 @@ Provider 書き込み成功時に作る操作:
 ```kotlin
 data class VaultQueuedOperation(
     val operationId: String,
-    val serverName: String,
+    val sessionId: String,
     val uuid: UUID,
     val type: Type, // PROVIDER_DEPOSIT / PROVIDER_WITHDRAW
     val amount: Long,
@@ -534,7 +506,6 @@ data class VaultQueuedOperation(
 
 - `operationId` は UUID などの一意な冪等キー。同じ操作を二重適用しないために使う。
 - Man10BankService 側で `operationId` を UNIQUE にし、重複送信を同じ結果として扱う。
-- `serverName` はプラグイン側 config の自己申告値を監査・障害調査用に記録する。Service 側の fencing token としては使わない。
 - Provider は送信待ちキューへの登録に失敗した操作を `SUCCESS` にしてはならない。
 - 通常時はメモリ上の送信待ちキューへ登録できれば `SUCCESS` を返す。
 - 永続キューの対象は、Provider が外部プラグインへ `SUCCESS` を返した後、まだ Man10BankService へ確定送信できていない外部 Vault 取引のみ。
@@ -547,21 +518,16 @@ data class VaultQueuedOperation(
 
 VaultService は次のイベントで Provider キャッシュを更新する。
 
+| イベント | 更新内容 |
+|---|---|
+| 初回ロード / join claim 成功 | `confirmedBalance` / `confirmedVersion` をセットし、`READY` にする。 |
+| キュー操作の確定成功 | 対応する Provider 未確定操作を外し、Man10BankService の返した確定残高・version を反映する。未確定の減算予約が残る場合は `pendingDelta` を再計算する。入金による増額もこの時点で初めて反映する。 |
+| 内製 API 操作の確定成功 | 対応する内製 API の予約を外し、Man10BankService の返した確定残高・version を反映する。 |
+| 内製 API 操作の失敗 | 対応する予約を取り消し、必要なら Man10BankService から権威残高を再取得する。 |
+| 定期再同期（自己修復） | 権威残高を再取得し、`version` が新しければ `confirmedBalance` / `confirmedVersion` を更新して未確定の減算予約だけを再適用する。単一書き込み者の下では通常差分は出ないため、差分を検知したら乖離として `warning` ログを残す。 |
+| 競合検知 | `CONFLICT` にして新規 Provider 書き込みを止め、手動確認できるログを残す。 |
 
-| イベント                      | 更新内容                                                                                                                      |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| 初回ロード成功                   | `confirmedBalance` / `confirmedVersion` をセットし、`WARMING_UP` にする。                                                           |
-| join クールタイム経過後の再取得成功      | 権威残高・version を再取得し、送信待ちキューが健全なら `READY` にする。                                                                              |
-| キュー操作の確定成功                | 対応する `operationId` の Provider 未確定操作を `pendingOperations` から外し、Man10BankService の返した確定残高・version を反映する。入金による増額もこの時点で初めて反映する。 |
-| キュー操作の業務失敗                | 対応する `operationId` の予約を取り消し、`CONFLICT` として扱う。必要なら Man10BankService から権威残高を再取得する。                                             |
-| 内製 API 操作の確定成功            | 対応する `operationId` の内製 API 予約を `pendingOperations` から外し、Man10BankService の返した確定残高・version を反映する。                                  |
-| 内製 API 操作の失敗              | 対応する `operationId` の予約を取り消し、必要なら Man10BankService から権威残高を再取得する。                                                           |
-| Man10BankService からの push | `version` が新しければ `confirmedBalance` / `confirmedVersion` を更新し、未確定の減算予約だけを再適用して `visibleBalance` を計算する。                    |
-| 定期再同期                     | 権威残高を再取得し、同様に未確定の減算予約だけを再適用する。                                                                                            |
-| 競合検知                      | `CONFLICT` にして新規 Provider 書き込みを止め、手動確認できるログを残す。                                                                           |
-
-
-古い push は `version` で捨てる。
+古い再同期結果は `version` で捨てる。
 未確定操作は `operationId` で管理し、HTTP タイムアウトや WebSocket 切断後も二重適用しない。
 
 ---
@@ -576,42 +542,35 @@ VaultService は次のイベントで Provider キャッシュを更新する。
 1. Provider 送信待ちキューの処理。
 2. Man10BankService の `/api/Vault/*` 呼び出し。
 3. `Man10BankAPI` からの非同期取引を実行し、確定結果を返す。
-4. 自サーバーにいないプレイヤーへの減算 API を拒否し、単独の `deposit` と管理者 `setBalance` / `editvault` だけ Man10BankService へ送る。
-5. join / quit / kick / transfer 時の `WARMING_UP` / `DRAINING` 管理。
-6. Man10BankService からの push 受信、または定期再同期。
+4. 在席していない対象（別 Paper 在席・完全オフライン）への vault API を、増額を含め拒否する。
+5. join / quit / session claim。
+6. 定期再同期による自己修復。
 7. health check / WebSocket heartbeat / 直近送信結果による書き込み健全性の管理。
-8. Provider キャッシュの `WARMING_UP` / `READY` / `STALE` / `CONFLICT` 管理。
+8. Provider キャッシュの `READY` / `STALE` / `CONFLICT` 管理。
 9. Provider 書き込みを受け付けてよいかの健全性判定。
 
 ### 7.2 非同期 API
 
 Man10BankAPI / コマンド / 内製プラグインは以下のような非同期メソッドだけを使う。
 
-
-| メソッド                                    | 用途                                                                                                                                         |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `getBalance(uuid)`                      | Man10BankService から権威残高を取得。オンラインなら Provider キャッシュも更新。                                                                                      |
-| `deposit(uuid, amount, reason)`         | 電子マネーを権威入金。通常の内製 API では、対象が自サーバーにいなくても直接 Man10BankService へ送れる唯一の電子マネー操作。                                                                  |
-| `withdraw(uuid, amount, reason)`        | 電子マネーを権威出金。対象が自サーバー在席かつ Provider キャッシュ `READY` なら先にローカル予約し、自サーバーにいない場合または `WARMING_UP` 中は拒否。                                               |
-| `transfer(from, to, amount, reason)`    | `/pay`。送金元と送金先が同一の自サーバー上でオンライン、かつ双方の Provider キャッシュが `READY` の場合だけ実行する。電子マネー -> 電子マネー以外には使わない。                                             |
-| `moveVaultToBank(uuid, amount, reason)` | `/deposit`。対象が自サーバー在席かつ Provider キャッシュ `READY` なら vault 側を先にローカル予約し、`user_vault -> user_bank` を 1 Tx で移動。自サーバーにいない場合または `WARMING_UP` 中は拒否。 |
-| `moveBankToVault(uuid, amount, reason)` | `/withdraw`。対象が自サーバー在席かつ Provider キャッシュ `READY` の場合だけ、`user_bank -> user_vault` を 1 Tx で移動。自サーバーにいない場合または `WARMING_UP` 中は拒否。               |
-| `setBalance(uuid, amount, reason)`      | 管理者操作。対象の在席状況を問わず Man10BankService へ権威設定を送る。減額や古い Provider キャッシュとの衝突で Service 側が拒否した場合は、コマンド実行時の失敗レスポンスとして返し、以後は運用対応する。 |
-
+| メソッド | 用途 |
+|---|---|
+| `getBalance(uuid)` | Man10BankService から権威残高を取得。自サーバー在席なら Provider キャッシュも更新。 |
+| `deposit(uuid, amount, reason)` | 電子マネーを権威入金。対象が自サーバーに在席する場合だけ許可。 |
+| `withdraw(uuid, amount, reason)` | 電子マネーを権威出金。対象が自サーバーに在席する場合だけ許可し、先にローカル予約する。 |
+| `transfer(from, to, amount, reason)` | `/pay`。送金元と送金先が同一の自サーバー上に在席している場合だけ実行する。電子マネー -> 電子マネー以外には使わない。 |
+| `moveVaultToBank(uuid, amount, reason)` | `/deposit`。対象が自サーバーに在席する場合だけ、vault 側を先にローカル予約し `user_vault -> user_bank` を 1 Tx で移動。 |
+| `moveBankToVault(uuid, amount, reason)` | `/withdraw`。対象が自サーバーに在席する場合だけ、`user_bank -> user_vault` を 1 Tx で移動。 |
+| `setBalance(uuid, amount, reason)` | 管理者操作。対象が自サーバーに在席する場合だけ許可（増額・減額・絶対値とも）。 |
 
 これらは Man10BankService の確定応答を待つ。
-成功後、VaultService は Provider キャッシュが存在する UUID について確定残高を反映する。
+成功後、VaultService は確定残高+version で Provider キャッシュを補正する。
 
+すべての操作は、対象が自サーバーに在席している（有効な session claim を保持している）ことを前提条件にする。
+別 Paper 在席・完全オフラインの対象への操作は、増額を含めすべて拒否し、必要なら既存 Bank 機能を使う。
 残高を減らす操作（`withdraw`、`transfer` の送金元、`moveVaultToBank`）は、Man10BankService へ送る前に
-対象が自サーバーに在席し、Provider キャッシュが `READY` の場合だけローカル Vault 台帳で予約する。
-予約できない場合は、その時点で不足として失敗させる。
-対象が自サーバーにいない場合、または `WARMING_UP` 中の場合、減算操作は拒否する。
-通常の内製 API では、単独 UUID の残高を増やす操作（`deposit`）だけは、自サーバーにいない対象でも Man10BankService へ直接送ってよい。
-`transfer` はこの規則の対象外であり、`/pay` 用として送金元と送金先が同一 Paper 上にいる場合だけ許可する。
-対象が同一サーバーでオンラインの場合も、正の未確定差分はローカル Vault 台帳へ反映せず、Man10BankService の DB 更新完了後に確定残高を反映する。
-対象が自サーバーにいない場合は、単独の `deposit` と管理者 `setBalance` / `editvault` だけ許可する。
-`transfer` の受取人、`moveBankToVault` は、結果として `user_vault` が増える場合でもこの例外には含めない。
-オフラインプレイヤーのその他の資産操作には既存 Bank 機能を使う。
+必ずローカル Vault 台帳で予約する。予約できない場合は、その時点で不足として失敗させる。
+正の未確定差分はローカル Vault 台帳へ反映せず、Man10BankService の DB 更新完了後に確定残高を反映する。
 
 ### 7.3 Provider 送信待ちキューの処理
 
@@ -619,7 +578,7 @@ Man10BankAPI / コマンド / 内製プラグインは以下のような非同�
 
 1. Provider が送信待ちキューに操作を追加する。
 2. VaultService が登録順に操作を取得する。
-3. Man10BankService へ `operationId` / `serverName` / `uuid` / `amount` を送る。
+3. Man10BankService へ `operationId` / `sessionId` / `uuid` / `amount` を送る。
 4. 成功なら未確定操作から外し、返却された `balance` / `version` を Provider キャッシュへ反映する。
 5. タイムアウトなら同じ `operationId` で再送する。
 6. Man10BankService 不調を検知したら、未送信操作を永続キューへ退避し、新規 Provider 書き込みを止める。
@@ -629,30 +588,20 @@ Man10BankAPI / コマンド / 内製プラグインは以下のような非同�
 POST は通常リトライしない方針だが、Provider のキュー操作は冪等キーが必須なので、
 同一 `operationId` に限って再送できる。
 
-### 7.4 push / 再同期
+### 7.4 同期チャネルと再同期
 
-推奨は WebSocket による push。
+WebSocket は残高 push には使わず、session / presence チャネルとして使う。
 
-```
-Man10BankService -> VaultService -> Provider キャッシュ
-```
+- presence / session claim の維持と heartbeat。
+- Man10BankService からの session 失効通知（別サーバーの後勝ち claim を受けた場合）。
 
-イベント例:
+残高の収束は「claim 時のロード」と「自サーバー発リクエストへの確定応答」だけで行う。
+単一書き込み者の下では他サーバー発の変更が存在しないため、残高 push は不要になる。
 
-```jsonc
-{
-  "type": "vault.balance",
-  "uuid": "0a1b...-....",
-  "balance": 123450,
-  "version": 42,
-  "operationId": "optional",
-  "cause": "PROVIDER_WITHDRAW|PAY|MOVE|SET",
-  "ts": "2026-06-17T10:00:00Z"
-}
-```
-
-WebSocket が使えない期間は定期再同期で補う。
-再接続時はオンラインプレイヤー全員を全件再同期する。
+安全網として低頻度の定期再同期（権威残高の再取得）を持ち、想定外の乖離（手動 DB 変更、バグ、
+旧 session との競合）を検知・自己修復する。差分を検知した場合は `warning` ログを残す。
+WebSocket 切断中は session heartbeat が途絶するため、書き込み健全性を落として fail-closed にする。
+再接続時はオンラインプレイヤー全員を claim し直し、全件再同期する。
 
 ---
 
@@ -662,19 +611,19 @@ WebSocket が使えない期間は定期再同期で補う。
 
 `/api/Vault` を追加する。書き込みは `RequireWriteScope`。
 
-
-| メソッド                 | 概要                                                                    | 返却                                                             |
-| -------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `GET {uuid}/balance` | 電子マネー残高取得                                                             | `{ balance, version }`                                         |
-| `GET {uuid}/logs`    | 電子マネー取引ログ                                                             | `VaultLog[]`                                                   |
-| `GET config`         | Vault 設定取得。残高上限と Provider 移動緩和設定を配布する。                                | `{ maxBalance, joinReadyDelayMillis, quitDrainTimeoutMillis }` |
-| `POST deposit`       | 権威入金。内製 API と Provider 送信待ちキューの両方で使う。                                 | `{ balance, version }`                                         |
-| `POST withdraw`      | 権威出金。不足時は `409`。                                                      | `{ balance, version }`                                         |
-| `POST transfer`      | 電子マネー -> 電子マネー。送金元・送金先が同一 Paper 上でオンラインの `/pay` 用。                    | from/to の残高・version                                            |
-| `POST move`          | `user_vault` と `user_bank` の相互移動。`/deposit` `/withdraw` 用。ATM には使わない。Bank 更新は既存 `BankService` 経路に統合する。 | vault/bank の残高                                                 |
-| `POST set`           | 管理者用の絶対値設定。在席状況を問わず受理し、衝突や制約違反はレスポンスで返す。                              | `{ balance, version }`                                         |
-| `GET ws`             | push / config 更新通知。                                                   | WebSocket                                                      |
-
+| メソッド | 概要 | 返却 |
+|---|---|---|
+| `GET {uuid}/balance` | 電子マネー残高取得 | `{ balance, version }` |
+| `GET {uuid}/logs` | 電子マネー取引ログ | `VaultLog[]` |
+| `POST deposit` | 権威入金。内製 API と Provider 送信待ちキューの両方で使う。 | `{ balance, version }` |
+| `POST withdraw` | 権威出金。不足時は `409`。 | `{ balance, version }` |
+| `POST transfer` | 電子マネー -> 電子マネー。送金元・送金先が同一 Paper session 上でオンラインの `/pay` 用。 | from/to の残高・version |
+| `POST move` | `user_vault` と `user_bank` の相互移動。`/deposit` `/withdraw` 用。ATM には使わない。 | vault/bank の残高 |
+| `POST set` | 管理者用の絶対値設定。 | `{ balance, version }` |
+| `POST session/claim` | Paper サーバーの player session claim。残高上限の権威設定も配布する。 | `{ sessionId, balance, version, maxBalance }` |
+| `POST session/release` | session release。 | `204` |
+| `GET session/{uuid}` | 対象 UUID の在席サーバー / session 状態を取得する。 | `{ server, sessionId, online }` |
+| `GET ws` | presence / session 失効通知（残高 push は行わない）。 | WebSocket |
 
 ### 8.2 書き込み共通要件
 
@@ -683,23 +632,12 @@ WebSocket が使えない期間は定期再同期で補う。
 - 成功時に `version++`。
 - `vault_log` に記録する。
 - `operationId` が指定された場合は UNIQUE とし、同じ `operationId` の再送には同じ結果を返す。
-- `serverName` はプラグイン側 config の自己申告値を監査用に記録する。Man10BankService は短命な所有権トークンによる fencing は行わない。
+- `sessionId` が指定された Provider キュー操作は、現在の claim と一致しなければ拒否する。
 - 正規化後の操作金額が設定済みの `Vault:MaxBalance` を超える場合は拒否する。残高を増やす操作と絶対値設定は更新後残高も検証し、上限を超える場合は拒否する。
-- コミット後に push を発行する。
-- オンライン状態や同一 Paper 上にいることの検証は、Man10BankService ではなく呼び出し元 Paper の VaultService が行う。
-- Man10BankAPI / VaultService 由来の内製 Vault 書き込みで、対象が自サーバーにいない場合は単独の `deposit` と管理者 `set` だけ送信してよい。
-- 自サーバーにいないプレイヤーのその他の資産操作は既存 Bank API の責務であり、VaultController では扱わない。
-
-### 8.3 `move` の Bank 更新経路
-
-`POST move` は `user_vault` と `user_bank` を 1 DB トランザクションで更新するが、
-`user_bank` の更新は既存 Bank 経路から外さない。
-
-- `VaultController` / `VaultService` は既存の `BankService.RunExclusiveAsync` 上で `move` を実行する。
-- `user_vault` 行をロックして vault 側の増減を確定し、同じ `BankDbContext` / transaction 内で `BankRepository.ChangeBalanceCoreAsync` を呼んで `user_bank` と `money_log` を更新する。
-- `BankService.DepositAsync` / `WithdrawAsync` と同じ入口直列化キューに載せるため、既存 Bank 操作、小切手、ローンなどの `user_bank` 更新と競合しない。
-- ロック順序は `user_vault` 行 -> `user_bank` 行に統一する。`user_bank` 行のロックと作成、`money_log` 追加は `BankRepository.ChangeBalanceCoreAsync` に寄せる。
-- `move` で bank 側が残高不足、検証失敗、または DB 制約違反になった場合はトランザクション全体をロールバックし、呼び出し元へ失敗を返す。
+- すべての vault 書き込みに `sessionId` を必須とし、対象 UUID の現在の claim（在席サーバー・sessionId）と一致しなければ、増額・減額を問わず拒否する。
+- 有効な claim が存在しない（完全オフラインの）対象への vault 書き込みは、この規則によりすべて拒否される。
+- `transfer` は送金元・送金先の両方の claim が要求元サーバーと一致することを検証し、一致しなければ拒否する。
+- オフラインプレイヤーの資産操作は既存 Bank API の責務であり、VaultController では扱わない。
 
 ---
 
@@ -731,66 +669,48 @@ create table user_vault (
 );
 ```
 
-### 9.2 `user_bank` の一意性
-
-Vault の `move` は `user_vault` と `user_bank` を同一 UUID の 1 口座として扱うため、
-`user_bank.uuid` も UNIQUE にする。
-
-```sql
-alter table user_bank
-    add unique key uq_user_bank_uuid (uuid);
-```
-
-導入前に既存の重複 `uuid` を整理する。
-直列化は引き続き既存の `BankService.RunExclusiveAsync` で行うが、これは同一プロセス内の更新順序を揃えるためのもの。
-UUID UNIQUE は重複行を作らせず、`SELECT ... WHERE uuid = ... FOR UPDATE` の対象を 1 行に固定するために必要。
-
-### 9.3 `vault_log`
+### 9.2 `vault_log`
 
 電子マネー専用ログ。銀行の `money_log` とは混ぜない。
 
 追加で持つべき項目:
 
+| 項目 | 用途 |
+|---|---|
+| `operation_id` | Provider 送信待ちキュー / Man10BankAPI の冪等キー。nullable でもよいが、指定時は UNIQUE。 |
+| `source` | `PROVIDER` / `MAN10_API` / `ADMIN` / `SYSTEM`。 |
+| `server` | 操作元 Paper サーバー名。 |
+| `session_id` | Provider キュー操作の場合の session。 |
+| `balance_after` | 操作後残高。監査と重複応答用。 |
 
-| 項目              | 用途                                                                |
-| --------------- | ----------------------------------------------------------------- |
-| `operation_id`  | Provider 送信待ちキュー / Man10BankAPI の冪等キー。nullable でもよいが、指定時は UNIQUE。 |
-| `source`        | `PROVIDER` / `MAN10_API` / `ADMIN` / `SYSTEM`。                    |
-| `server`        | 操作元 Paper サーバー名。                                                  |
-| `balance_after` | 操作後残高。監査と重複応答用。                                                   |
+### 9.3 session / presence
 
+Provider キャッシュの単一アクティブ性を守るため、Man10BankService は短命の session を管理する。
+DB 永続テーブルにするか、プロセス内メモリ + 再接続時の全件再同期にするかは実装時に選ぶ。
 
-### 9.4 Provider 移動緩和設定
+最低限必要な情報:
 
-Man10BankService は在席管理用の永続テーブルを持たない。
-サーバー移動直後の競合は Paper 側の状態遷移と設定値で緩和する。
-
-設定項目:
-
-
-| 項目                             | 用途                                                                |
-| ------------------------------ | ----------------------------------------------------------------- |
-| `vault.joinReadyDelayMillis`   | join 後、Provider キャッシュを `WARMING_UP` に置く時間。既定値は 3000 ms。           |
-| `vault.quitDrainTimeoutMillis` | quit / transfer 時に対象 UUID の送信待ちキュー flush を待つ最大時間。既定値は 3000 ms。    |
-| `Vault:MaxBalance`             | Man10BankService 側の残高上限。`GET config` と config push で Paper へ配布する。 |
-
+| 項目 | 用途 |
+|---|---|
+| `uuid` | 対象プレイヤー。 |
+| `server` | claim した Paper サーバー。 |
+| `session_id` | Provider キュー操作に付与する識別子。 |
+| `expires_at` | ハートビート切れで失効させるための期限。 |
 
 ---
 
 ## 10. プラグイン側コンポーネント
 
-
-| コンポーネント                               | 役割                                                  |
-| ------------------------------------- | --------------------------------------------------- |
-| `economy/Man10BankProvider.kt`        | `Economy` 実装。外部 Vault Consumer から呼ばれる同期互換レイヤ。       |
-| `service/vault/VaultService.kt`       | プラグイン側の非同期 vault サービス。Man10BankService への唯一の書き込み窓口。 |
-| `service/vault/VaultProviderCache.kt` | Provider が読む同期キャッシュ。VaultService が収束更新する。           |
-| `service/vault/VaultWriteQueue.kt`    | Provider 成功操作の送信待ちキュー。冪等キーを管理する。                    |
-| `service/vault/VaultSyncClient.kt`    | WebSocket push / config 更新 / 再同期。                   |
-| `api/VaultApiClient.kt`               | `/api/Vault/*` REST クライアント。                         |
-| `Man10BankAPI.kt`                     | 内製プラグイン向けの非同期公開 API。                                |
-| `listener/VaultLifecycleListener.kt`  | join/quit で load、`WARMING_UP`、キュー処理、cache 破棄を行う。    |
-
+| コンポーネント | 役割 |
+|---|---|
+| `economy/Man10BankProvider.kt` | `Economy` 実装。外部 Vault Consumer から呼ばれる同期互換レイヤ。 |
+| `service/vault/VaultService.kt` | プラグイン側の非同期 vault サービス。Man10BankService への唯一の書き込み窓口。 |
+| `service/vault/VaultProviderCache.kt` | Provider が読む同期キャッシュ。VaultService が収束更新する。 |
+| `service/vault/VaultWriteQueue.kt` | Provider 成功操作の送信待ちキュー。冪等キーを管理する。 |
+| `service/vault/VaultSyncClient.kt` | WebSocket session / presence / 失効通知 / 定期再同期。 |
+| `api/VaultApiClient.kt` | `/api/Vault/*` REST クライアント。 |
+| `Man10BankAPI.kt` | 内製プラグイン向けの非同期公開 API。 |
+| `listener/VaultLifecycleListener.kt` | join/quit で claim、load、キュー処理、release を行う。 |
 
 ### 10.1 Economy 登録
 
@@ -812,16 +732,14 @@ server.servicesManager.register(
 
 ### 10.2 スレッドモデル
 
-
-| 処理                                  | スレッド                                                                 |
-| ----------------------------------- | -------------------------------------------------------------------- |
-| Man10BankProvider の全 `Economy` メソッド | メインスレッド同期。off-main から呼ばれた場合はメインスレッドへ同期ディスパッチして結果を返す。HTTP 待ちはしない。     |
-| Provider キャッシュ操作                    | メインスレッドへ直列化する。VaultService の確定応答、push、再同期による更新もメインスレッドへディスパッチして適用する。 |
-| 送信待ちキューの処理                          | `Dispatchers.IO`。                                                    |
-| Man10BankService REST               | `Dispatchers.IO`。                                                    |
-| WebSocket push / 再同期                | `Dispatchers.IO`。                                                    |
-| コマンド結果のプレイヤー通知                      | 必要に応じてメインスレッドへ戻す。                                                    |
-
+| 処理 | スレッド |
+|---|---|
+| Man10BankProvider の全 `Economy` メソッド | メインスレッド同期。off-main から呼ばれた場合はメインスレッドへ同期ディスパッチして結果を返す。HTTP 待ちはしない。 |
+| Provider キャッシュ操作 | メインスレッドへ直列化する。VaultService の確定応答、再同期による更新もメインスレッドへディスパッチして適用する。 |
+| 送信待ちキューの処理 | `Dispatchers.IO`。 |
+| Man10BankService REST | `Dispatchers.IO`。 |
+| WebSocket session / 再同期 | `Dispatchers.IO`。 |
+| コマンド結果のプレイヤー通知 | 必要に応じてメインスレッドへ戻す。 |
 
 ---
 
@@ -829,7 +747,7 @@ server.servicesManager.register(
 
 ### 11.1 `VaultManager` の置換
 
-既存の `[VaultManager](../src/main/java/red/man10/man10bank/service/VaultManager.kt)` は外部 Economy Provider を取得する Consumer。
+既存の [`VaultManager`](../src/main/java/red/man10/man10bank/service/VaultManager.kt) は外部 Economy Provider を取得する Consumer。
 新設計では Man10Bank 自身が Provider になるため、`VaultManager` は外部 Economy Consumer ではなく
 `VaultService` のファサードに作り替える。
 
@@ -850,8 +768,8 @@ server.servicesManager.register(
 - `/deposit`: `user_vault -> user_bank`
 - `/withdraw`: `user_bank -> user_vault`
 
-対象プレイヤーが自サーバーにいない場合、`/deposit` `/withdraw` はどちらも不可にする。
-自サーバーにいないプレイヤーの資産操作は既存 Bank 機能を使う。
+対象プレイヤーが完全オフラインの場合、`/deposit` `/withdraw` はどちらも不可にする。
+オフラインプレイヤーの資産操作は既存 Bank 機能を使う。
 
 クライアント側の補償ロジックは削除する。
 
@@ -863,7 +781,7 @@ Provider は経由しない。
 これにより同時に外部ショップ購入が来ても、送金元残高を二重に使わない。
 
 `/pay` は送金元と送金先が同一 Paper 上でオンラインの場合だけ成功させる。
-送金先を UUID だけで解決して自サーバー外へ送る実装は禁止する。
+送金先を UUID だけで解決して別 Paper 在席またはオフラインへ送る実装は禁止する。
 送金する資産は送金元・送金先ともに電子マネー (`user_vault`) であり、Bank 残高との相互移動には使わない。
 受取人の Provider キャッシュは Man10BankService の DB 更新完了後に増やす。
 
@@ -911,7 +829,7 @@ Bukkit インベントリ操作はメインスレッド、VaultService と Man10
 - `0 < amount < 1` のように切り捨て後が 0 円になる金額、0 以下、NaN、Infinity は拒否する。
 - 応答、`vault_log`、`operationId` に紐づく冪等結果には、要求時の小数値ではなく正規化後の整数額を使用する。
 - 残高上限は Man10BankService の `Vault:MaxBalance` で設定可能とし、既定値を `1_000_000_000_000` 円（1 兆円）にする。
-- Man10BankService を上限値の唯一の権威とし、`GET /api/Vault/config` または config push で Paper の VaultService / Provider へ配布する。Provider は上限未取得中の書き込みを拒否する。
+- Man10BankService を上限値の唯一の権威とし、session claim の `maxBalance` でオンライン Paper の VaultService / Provider へ配布する。Provider は上限未取得中の書き込みを拒否する。
 - 正規化後の操作金額が上限を超える場合は、Provider と Man10BankService の双方で拒否する。
 - deposit、transfer の受取人、Bank -> Vault の move、増額 set の更新後残高が上限を超える場合は拒否する。設定変更時点ですでに上限を超えている残高でも、残高を減らす操作は許可する。
 - 設定値は 1 以上かつ IEEE 754 `Double` で整数を正確に表現できる `9_007_199_254_740_991` 以下に限定する。不正な設定では Man10BankService の Vault API を fail-closed で無効化し、`severe` ログを出す。
@@ -921,42 +839,37 @@ Bukkit インベントリ操作はメインスレッド、VaultService と Man10
 
 ## 13. 障害・エッジケース
 
-
-| ケース                           | 方針                                                                                                                                                                                                                           |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Provider キャッシュ未ロード            | 書き込みは `FAILURE`。読みは `0` / `false` を返し、非同期ロードを要求する。                                                                                                                                                                           |
-| Vault API の off-main 呼び出し     | Bukkit メインスレッドへ同期ディスパッチし、Provider キャッシュと送信待ちキューの処理結果を呼び出し元へ返す。HTTP / DB は待たない。                                                                                                                                               |
-| 小数金額                          | 小数部を切り捨てて整数円として扱う。切り捨て後が 0 円なら拒否する。                                                                                                                                                                                          |
-| 残高上限                          | Man10BankService の `Vault:MaxBalance` を権威とし、既定 1 兆円。操作金額、増額後残高、絶対値設定が超える場合は拒否する。既存の上限超過残高を減らす操作は許可する。                                                                                                                        |
-| 外部ショップ購入と内製 `/pay` が同時に残高を減らす | 両方が同じローカル Vault 台帳へ先に予約する。先に予約した方が `availableBalance` を減らすため、合計額が残高を超える場合は後続がローカル不足で失敗する。                                                                                                                                    |
-| join 直後                       | Provider キャッシュは `WARMING_UP`。読み取り表示は許可してよいが、`has` は `false`、入出金は `FAILURE`。クールタイム後に権威残高を再取得して `READY` にする。                                                                                                                   |
-| quit / transfer 直後            | Provider キャッシュを `DRAINING` にし、新規 Provider 書き込みを止める。対象 UUID の送信待ちキューを可能な限り flush し、タイムアウト後は通常キューまたは永続キューで後送する。                                                                                                                |
-| 自サーバーにいないプレイヤーの残高を減らす         | 拒否する。別 Paper の Provider キャッシュを事前に減らせず、stale-high による過払いが起き得るため。                                                                                                                                                              |
-| 自サーバーにいないプレイヤーの残高を増やす         | 単独の `deposit(uuid, amount, reason)` だけ直接 Man10BankService で権威更新してよい。Provider キャッシュには push/再同期で反映する。push 前の一時的な低い残高による失敗は許容する。                                                                                                |
-| DB 未確定の入金                     | Provider キャッシュ、`visibleBalance`、`availableBalance` に加えない。Man10BankService の DB 更新完了後にだけ反映する。                                                                                                                                 |
-| 自サーバーにいないプレイヤーへの内製 Vault 操作   | 単独の `deposit(uuid, amount, reason)` と管理者 `setBalance` / `editvault` だけ許可する。`/deposit` `/withdraw` `/pay`、`withdraw`、`transfer`、`move` は拒否する。その他の資産操作は既存 Bank 機能を使う。                                                        |
-| Man10BankService 到達不能         | `isEnabled()` は `true` のまま、書き込み健全性を `DOWN` / `DEGRADED` にする。Provider の `depositPlayer` / `withdrawPlayer` / `has` は新規 `FAILURE` / `false`、`getBalance` はキャッシュ値。成功返却済みで未送信の Provider 操作は永続キューへ退避し、復旧後に同じ `operationId` で再送する。 |
-| 送信待ちキューの未処理件数過多               | Provider 書き込みを止める。外部ショップには `FAILURE` を返す。                                                                                                                                                                                    |
-| Provider 成功後の service 失敗      | `CONFLICT`。自動補償せず、権威残高で収束し、重大ログを残す。                                                                                                                                                                                          |
-| HTTP タイムアウト                   | Provider キュー操作は同一 `operationId` で再送。内製 API は結果不明として呼び出し元へ失敗または再確認を返す。                                                                                                                                                        |
-| WebSocket 切断                  | 定期再同期に落とす。再接続後にオンライン全員を全件再同期。                                                                                                                                                                                                |
-| サーバークラッシュ                     | `user_vault` が真実。永続キューへ退避済みの操作は再起動後に同じ `operationId` で再送する。メモリキューにしか無かった Provider 成功返却済み操作は失われ得るため、既知リスクとして運用ログ・監視対象にする。                                                                                                     |
-| ATM の現金 -> 電子マネー              | 現金アイテムを確定消費してから DB 入金する。DB 結果不明時はアイテムを自動返却しない。                                                                                                                                                                               |
-| ATM の電子マネー -> 現金              | DB 出金を確定してから現金アイテムを 1 回だけ付与する。付与結果不明時は再付与・自動返金をしない。                                                                                                                                                                          |
-| 二重 Provider 登録                | 実効 Provider が自分でなければ Provider 機能を停止し、severe ログ。                                                                                                                                                                              |
-| サーバー移動直後の旧キュー競合               | `joinReadyDelayMillis` と再取得で緩和する。旧サーバーの成功済み操作が間に合わず DB 側で不足になった場合は `CONFLICT` として扱う。                                                                                                                                         |
-| 管理者 set/edit                  | 対象の在席状況を問わず Man10BankService で権威更新する。衝突、残高制約違反、DB エラーはコマンド実行時の失敗レスポンスとして返し、以後は運用で対応する。Provider キャッシュは push/再同期で収束。                                                                               |
-
+| ケース | 方針 |
+|---|---|
+| Provider キャッシュ未ロード | 書き込みは `FAILURE`。読みは `0` / `false` を返し、非同期ロードを要求する。 |
+| Vault API の off-main 呼び出し | Bukkit メインスレッドへ同期ディスパッチし、Provider キャッシュと送信待ちキューの処理結果を呼び出し元へ返す。HTTP / DB は待たない。 |
+| 小数金額 | 小数部を切り捨てて整数円として扱う。切り捨て後が 0 円なら拒否する。 |
+| 残高上限 | Man10BankService の `Vault:MaxBalance` を権威とし、既定 1 兆円。操作金額、増額後残高、絶対値設定が超える場合は拒否する。既存の上限超過残高を減らす操作は許可する。 |
+| 外部ショップ購入と内製 `/pay` が同時に残高を減らす | 両方が同じローカル Vault 台帳へ先に予約する。先に予約した方が `availableBalance` を減らすため、合計額が残高を超える場合は後続がローカル不足で失敗する。 |
+| 別 Paper からオンライン中プレイヤーの残高を増減する | 増額・減額とも拒否する。vault の書き込み者は在席サーバーだけ（単一書き込み者）。 |
+| DB 未確定の入金 | Provider キャッシュ、`visibleBalance`、`availableBalance` に加えない。Man10BankService の DB 更新完了後にだけ反映する。 |
+| 完全オフラインプレイヤーへの内製 Vault 操作 | 増額を含めすべて拒否する。付与・回収・補償は既存 Bank 機能（銀行残高）を使う。 |
+| Man10BankService 到達不能 | `isEnabled()` は `true` のまま、書き込み健全性を `DOWN` / `DEGRADED` にする。Provider の `depositPlayer` / `withdrawPlayer` / `has` は新規 `FAILURE` / `false`、`getBalance` はキャッシュ値。成功返却済みで未送信の Provider 操作は永続キューへ退避し、復旧後に同じ `operationId` で再送する。 |
+| 送信待ちキューの未処理件数過多 | Provider 書き込みを止める。外部ショップには `FAILURE` を返す。 |
+| Provider 成功後の service 失敗 | `CONFLICT`。自動補償せず、権威残高で収束し、重大ログを残す。 |
+| HTTP タイムアウト | Provider キュー操作は同一 `operationId` で再送。内製 API は結果不明として呼び出し元へ失敗または再確認を返す。 |
+| WebSocket 切断 | session heartbeat が途絶するため書き込み健全性を落とし fail-closed にする。再接続後にオンライン全員を claim し直し全件再同期。 |
+| サーバークラッシュ | `user_vault` が真実。永続キューへ退避済みの操作は再起動後に同じ `operationId` で再送する。メモリキューにしか無かった Provider 成功返却済み操作は失われ得るため、既知リスクとして運用ログ・監視対象にする。 |
+| ATM の現金 -> 電子マネー | 現金アイテムを確定消費してから DB 入金する。DB 結果不明時はアイテムを自動返却しない。 |
+| ATM の電子マネー -> 現金 | DB 出金を確定してから現金アイテムを 1 回だけ付与する。付与結果不明時は再付与・自動返金をしない。 |
+| 二重 Provider 登録 | 実効 Provider が自分でなければ Provider 機能を停止し、severe ログ。 |
+| session mismatch | Man10BankService が Provider キュー操作を拒否し、VaultService は `CONFLICT` にする。 |
+| 管理者 set / give / take | 対象が在席するサーバーで実行し、確定応答で Provider キャッシュへ反映する。オフライン・別 Paper 在席の対象は拒否（Bank で代替）。 |
 
 ---
 
 ## 14. セキュリティ
 
 - REST 書き込みは既存の `RequireWriteScope` を使う。
-- WebSocket も Bearer 認証を必須にする。
+- WebSocket / session claim も Bearer 認証を必須にする。
 - Paper -> Man10BankService の API キーは `config.yml` / 環境変数管理とし、コミットしない。
-- `serverName` はプラグイン側 config の自己申告値でよい。認可判断には使わず、監査・障害調査用の操作元ラベルとして扱う。
-- `operationId`、`serverName`、`source` は監査ログに残す。
+- `serverName` / `sessionId` はクライアント自己申告だけを信用せず、認証情報またはサーバー登録情報と紐づける。
+- `operationId`、`sessionId`、`serverName`、`source` は監査ログに残す。
 
 ---
 
@@ -966,32 +879,33 @@ Bukkit インベントリ操作はメインスレッド、VaultService と Man10
 
 - 外部 Vault API 経路は `SUCCESS` を返した時点では DB コミット済みではない。外部ショップが商品を渡した後に Man10BankService 側で失敗した場合、自動補償は汎用的にできない。このリスクは許容し、検知時は `operationId`、uuid、amount、呼び出し元、失敗理由を `severe` ログへ出力する。
 - Provider が `SUCCESS` を返した後、未送信操作を永続キューへ退避する前に Paper プロセスがクラッシュすると、その取引は失われ得る。このリスクは許容する。退避失敗や正常 shutdown 時の未退避操作など検知可能な事象は `severe` ログへ出力し、Provider 有効化時にもこの動作モードを `warning` で通知する。強制終了で失われた操作そのものは事後に特定できない場合がある。
-- サーバー移動・kick・transfer・クラッシュ時に旧サーバーの成功済みキュー操作が新サーバーの `READY` 前に反映されないと、外部プラグインには成功済みだが DB では失敗する状態になり得る。このリスクは許容し、検知時は `CONFLICT` として Provider 書き込みを止め、重大ログと運用対応の対象にする。
 
 ### 15.2 確定した設計判断
 
+- vault の書き込み者は対象プレイヤーの在席サーバーだけとする（単一書き込み者）。別 Paper 在席・完全オフラインの対象への操作は増額を含め拒否し、オフライン・他サーバー在席への付与・回収・補償は既存 Bank 機能（銀行残高）で行う。
+- 真実の階層は「DB `user_vault` = 確定残高の真実、在席サーバーのローカル Vault 台帳 = 受付済みで未確定の操作（減算予約）の権威」とする。
+- 残高 push は持たない。Provider キャッシュの収束は claim 時ロード・確定応答・低頻度の定期再同期（自己修復）で行い、WebSocket は presence / session / 失効通知に使う。
 - DB 未確定の正の差分は `availableBalance` と `visibleBalance` に含めず、Provider キャッシュも増やさない。Man10BankService の DB 更新完了後に確定残高として反映する。
 - 既存電子マネーの移行は別タスクとし、現時点の Provider 設計では移行完了フラグや起動時 fail-closed を扱わない。
 - `/pay` は同一 Paper 上でオンラインのプレイヤー間の電子マネー -> 電子マネー送金、`/mpay` は Bank -> Bank 送金に固定する。`/pay` による電子マネーと Bank 間の移動は実装しない。
 - ATM は 11.4 の順序で Man10BankService の確定結果を待つ。結果不明時に消失と増殖の一方しか避けられない場合は消失を許容し、再付与・自動返金による増殖を防ぐ。
 - 小数金額は整数円へ切り捨てて統一する。切り捨て後が 0 円になる入力は拒否する。
-- Vault 残高上限は Man10BankService の `Vault:MaxBalance` で設定可能とし、既定値は 1 兆円にする。Service の設定値を権威として config API / config push で Provider へ配布する。
-- Man10BankService 側に在席管理は持たせない。join 直後は `WARMING_UP` とし、クールタイム後の再取得で `READY` にする。
-- `joinReadyDelayMillis` と `quitDrainTimeoutMillis` は config で設定可能にし、既定値は 3000 ms とする。
-- `serverName` はプラグイン側 config の自己申告値でよい。認可や整合性判定には使わず、監査・障害調査用の操作元ラベルとして扱う。
-- 管理者 `setBalance` / `editvault` は対象の在席状況を問わず許可する。衝突や残高制約違反はコマンド実行時の失敗レスポンスとして返し、以後は運用で対応する。
-- 未確定の減算予約は `operationId` ごとの `pendingOperations` として保持し、`pendingDelta` はその合計から計算する。
-- `POST move` の `user_bank` 更新は既存 `BankService.RunExclusiveAsync` 上で実行し、`BankRepository.ChangeBalanceCoreAsync` を使って `user_bank` と `money_log` を同一 transaction に載せる。
-- `user_bank.uuid` は UNIQUE にする。既存重複データは導入前に整理する。
-- idempotency 専用テーブルは作らず、`vault_log.operation_id` の UNIQUE を冪等キーとして使う。複数ログを伴う操作の応答復元が曖昧な場合は、運用ログと再照会で扱う。
+- Vault 残高上限は Man10BankService の `Vault:MaxBalance` で設定可能とし、既定値は 1 兆円にする。Service の設定値を権威として session claim で Provider へ配布する。
 - 外部プラグインから Vault API が off-main で呼ばれた場合は、Bukkit メインスレッドへ同期ディスパッチする。Provider キャッシュの全更新もメインスレッドへ直列化する。
 - Vault Economy の world 引数付き overload は world 名を無視し、全 world で同じ電子マネー残高を扱う。
 - String 指定は同一サーバーでオンラインの Minecraft ID だけを解決し、任意のオフライン UUID は生成しない。
-- `hasAccount` はオンラインかつキャッシュが `LOADING` / `WARMING_UP` / `READY` なら `true`。`createPlayerAccount` はオンライン対象の ensure / load 要求を受理できれば `true` とし、金銭操作は `READY` まで拒否する。
+- `hasAccount` はオンラインかつキャッシュが `LOADING` / `READY` なら `true`。`createPlayerAccount` はオンライン対象の ensure / load 要求を受理できれば `true` とし、金銭操作は `READY` まで拒否する。
 - `currencyNameSingular()` / `currencyNamePlural()` はどちらも `"円"` とする。
 - `format(double)` は小数部を切り捨てて 3 桁カンマと `円` を付け、`1234.9` は `"1,234円"` と表示する。
 - `isEnabled()` は Provider が登録済みかつ設定上有効なら `true` とし、一時的な Service 障害では `false` にしない。障害中の `has` は `false`、入出金は `FAILURE` とし、復旧後は再登録なしで再開する。
 
 ### 15.3 保留中・未解決のリスク
 
-現時点で追加の未解決リスクはない。
+`*` が付いた項目は検討中として保留する。その他の項目も別途仕様判断が必要。
+
+- *`operationId` を `vault_log` の UNIQUE だけで扱うと、`transfer` や `move` のような複数ログ・複数残高を返す操作の冪等応答が曖昧になる。必要ならログとは別に idempotency テーブルを用意する。
+- *session / presence の保存先、lease 期限、heartbeat 間隔、Man10BankService 再起動時の扱いが未確定。単一アクティブ Provider の正しさに直結するため、実装前に固定する。
+- *サーバー移動・kick・transfer・クラッシュ時に旧 session のキュー操作が拒否されると、外部プラグインには成功済みだが DB では失敗する状態になり得る。旧 session の drain 方針を明確にする必要がある。
+- **現行の `user_bank` は UUID UNIQUE ではない。`user_vault` と `user_bank` を 1 Tx で扱う `move` を安全に実装するには、既存重複データの整理と bank 側の一意性・ロック戦略を確認する必要がある。
+- **`VaultService` の `move` が `user_bank` を更新する場合、既存 `BankService.RunExclusiveAsync` と別経路で bank 更新を行うと競合し得る。既存 BankService の直列化キューに統合するか、行ロック順序を統一する必要がある。
+- `serverName` / `sessionId` を自己申告だけで信用しない方針に対して、サーバー別 API key や登録済み server identity との紐づけ方式が未確定。認証と監査の設計に反映する必要がある。
