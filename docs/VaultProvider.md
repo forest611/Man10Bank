@@ -75,7 +75,7 @@ Vault Provider になる。
 | 単一書き込み者 | 対象プレイヤーの vault 書き込みを発行できる唯一の主体。有効な session claim を持つ在席サーバーだけがこれになる。 |
 | ローカル Vault 台帳 | VaultService が管理するオンラインプレイヤーのローカル残高台帳。外部 Provider 経路と内製 API 経路の未確定差分を同じ場所に予約する。 |
 | Provider キャッシュ | Man10BankProvider が同期応答に使うローカルの参照用残高。実体はローカル Vault 台帳で、VaultService が更新・収束させる。 |
-| `availableBalance` | ローカル Vault 台帳上で今使ってよい残高。`confirmedBalance + pendingDelta` で計算する。`pendingDelta` は未確定の減算予約だけを含む 0 以下の値とし、DB 未確定の入金は含めない。 |
+| `availableBalance` | ローカル Vault 台帳上で今使ってよい残高。`confirmedBalance + pendingDelta` で計算する。`pendingDelta` は `operationId` ごとの未確定減算予約から計算する 0 以下の値とし、DB 未確定の入金は含めない。 |
 | 送信待ちキュー | Provider が同期成功させた操作を、後で Man10BankService へ送るために一時保存するキュー。各操作は二重適用を防ぐための `operationId` を持つ。 |
 | 唯一の真実 | `Man10BankService` が参照する DB の `user_vault`（確定残高の真実）。Provider キャッシュは真実ではなく従属する参照用データ。ただし受付済みで未確定の減算予約は、在席サーバーのローカル Vault 台帳だけが知っている。 |
 
@@ -273,7 +273,7 @@ Vault の同期制約があるため、すべての経路で同じ整合性は�
 availableBalance = confirmedBalance + pendingDelta
 ```
 
-`pendingDelta` は未確定の減算予約だけを合計した 0 以下の値とする。
+`pendingDelta` は `operationId` ごとの未確定減算予約を合計した 0 以下の計算値とする。
 Provider の `depositPlayer` や内製 API の入金は、送信中であっても正の `pendingDelta` を作らない。
 したがって DB 未確定の入金を出金、`/pay`、`user_vault -> user_bank` に再利用できない。
 
@@ -281,7 +281,7 @@ Provider の `depositPlayer` や内製 API の入金は、送信中であって�
 
 1. 対象 UUID のローカル Vault 台帳をロックする。
 2. `availableBalance` を確認する。
-3. 足りる場合だけ未確定差分を追加し、`availableBalance` を即座に減らす。
+3. 足りる場合だけ `operationId` ごとの未確定減算予約を追加し、`availableBalance` を即座に減らす。
 4. 外部 Vault 経路はこの時点で `SUCCESS` を返し、送信待ちキューへ登録する。
 5. 内製 API 経路はこの予約を保持したまま Man10BankService へ送信し、確定応答を待つ。
 6. 成功時は確定残高で予約を消し込む。失敗時は予約を取り消し、必要なら権威残高で再同期する。
@@ -424,10 +424,17 @@ data class VaultCacheEntry(
     val uuid: UUID,
     val confirmedBalance: Long,
     val confirmedVersion: Long,
-    val pendingDelta: Long, // 未確定の減算予約だけを保持するため 0 以下
+    val pendingOperations: Map<String, PendingVaultOperation>, // operationId -> 未確定の減算予約
     val status: Status,
     val sessionId: String,
     val lastSyncedAtMillis: Long,
+)
+
+data class PendingVaultOperation(
+    val operationId: String,
+    val amount: Long, // 予約額（正の値）
+    val source: PendingSource, // PROVIDER / MAN10_API
+    val createdAtMillis: Long,
 )
 ```
 
@@ -437,12 +444,15 @@ data class VaultCacheEntry(
 |---|---|
 | `confirmedBalance` | Man10BankService で確認済みの残高。 |
 | `confirmedVersion` | `user_vault.Version`。古い再同期結果を捨てるために使う。 |
-| `pendingDelta` | Provider 経路または内製 API 経路で予約済みだが、まだ Man10BankService で確定していない減算差分の合計。常に 0 以下。未確定の入金は含めない。 |
+| `pendingOperations` | Provider 経路または内製 API 経路で予約済みだが、まだ Man10BankService で確定していない減算予約。`operationId` ごとに保持する。未確定の入金は含めない。 |
+| `pendingDelta` | `pendingOperations` の予約額合計の符号反転（`-Σamount`）で都度計算する値。保存フィールドにはしない。常に 0 以下。 |
 | `visibleBalance` | `confirmedBalance + pendingDelta`。`getBalance` が返す値。DB 未確定の入金は表示へ加えない。 |
 | `availableBalance` | `confirmedBalance + pendingDelta`。外部 Provider 経路と内製 API 経路の `withdraw` / `/pay` / `user_vault -> user_bank` 可否判定に使う計算値。DB 未確定の入金は利用可能額へ加えない。 |
 | `status` | `LOADING`（読み込み中）/ `READY`（取引可能）/ `STALE`（古い可能性あり）/ `DRAINING`（キュー処理中）/ `CONFLICT`（競合停止中）/ `DISABLED`（停止中）。 |
 
 残高は内部では `Long`（円）で保持し、Vault 境界でだけ `Double` に変換する。
+未確定の減算予約は必ず `operationId` ごとの `pendingOperations` として保持し、`pendingDelta` はその合計から
+都度計算する。これにより複数の未確定操作の一部だけが成功・失敗した場合でも、該当する `operationId` だけを消し込める。
 Provider 書き込みを許可するかどうかは、各エントリの `status` に加えて VaultService 全体の書き込み健全性
 （`WRITE_READY` / `DEGRADED` / `DOWN` / `DRAINING`）も見る。
 残高上限は session claim で Man10BankService から受け取った権威設定値を VaultService 全体で保持し、
@@ -893,7 +903,6 @@ Bukkit インベントリ操作はメインスレッド、VaultService と Man10
 
 `*` が付いた項目は検討中として保留する。その他の項目も別途仕様判断が必要。
 
-- *`pendingDelta` を単一の合計値だけで管理すると、複数の未確定操作のうち一部だけ成功・失敗した場合の消し込みが曖昧になる。実装では `operationId` ごとの pending ledger を保持する必要がある。
 - *`operationId` を `vault_log` の UNIQUE だけで扱うと、`transfer` や `move` のような複数ログ・複数残高を返す操作の冪等応答が曖昧になる。必要ならログとは別に idempotency テーブルを用意する。
 - *session / presence の保存先、lease 期限、heartbeat 間隔、Man10BankService 再起動時の扱いが未確定。単一アクティブ Provider の正しさに直結するため、実装前に固定する。
 - *サーバー移動・kick・transfer・クラッシュ時に旧 session のキュー操作が拒否されると、外部プラグインには成功済みだが DB では失敗する状態になり得る。旧 session の drain 方針を明確にする必要がある。
