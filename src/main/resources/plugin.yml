@@ -51,8 +51,9 @@ commands:
     description: player loan
     permission: man10bank.lend
   pay:
-    default: op
-    description: vault pay
+    description: 電子マネー送金（同一サーバー在席者のみ）
+    usage: /pay <player> <amount>
+    permission: man10bank.pay
   deposit:
     description: VaultからBankへ入金
     usage: /deposit <金額|all>
@@ -63,6 +64,10 @@ commands:
     permission: man10bank.withdraw
   bankop:
     description: 管理用コマンド（ヘルスチェック/現金アイテム設定/機能オン・オフ）
+    permission: man10bank.admin
+  meco:
+    description: 管理用 電子マネー残高操作（give/take/set）
+    usage: /meco <give|take|set> <player> <amount> [note]
     permission: man10bank.admin
   mrevo:
     description: サーバーローン管理コマンド
