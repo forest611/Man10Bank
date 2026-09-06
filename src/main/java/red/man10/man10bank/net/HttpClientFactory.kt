@@ -5,6 +5,7 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.ContentType
@@ -85,6 +86,16 @@ object HttpClientFactory {
             }
 
             install(ContentNegotiation) { json(jsonFormat) }
+
+            // 電子マネー(Vault Provider)の push/presence 用に WebSocket を有効化する。
+            // REST 利用には影響しない。
+            install(WebSockets) {
+                // クライアント側からも定期 ping を送り、サーバーが無言で落ちた場合の切断検知を
+                // この間隔程度に短縮する（受動 pong のみだと TCP エラーまで数十秒かかる。VaultProvider 4.6）。
+                if (config.wsPingIntervalMs > 0) {
+                    pingInterval = config.wsPingIntervalMs
+                }
+            }
 
             install(HttpTimeout) {
                 // タイムアウトはすべてミリ秒単位
